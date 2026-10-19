@@ -1,0 +1,14 @@
+DRAHTWERK TECHNIK – GITHUB PAGES
+
+INHALT: Schienenrechner, Litzen, Kupferschienen, ABB Smissline.
+
+BESTEHENDES GITHUB-REPOSITORY AKTUALISIEREN:
+1. Die sechs Dateien aus diesem ZIP ins bestehende Repository hochladen.
+2. index.html, manifest.webmanifest und sw.js ersetzen; technik.html neu hinzufügen.
+3. Die beiden Icon-Dateien können ebenfalls ersetzt werden (unverändert).
+4. Änderungen committen und GitHub Pages neu laden.
+5. Auf dem iPad die App mit Internet öffnen und bei Bedarf aktualisieren.
+
+WICHTIG: Die bisherigen Schienenrechner-Eingaben bleiben lokal im selben Browser gespeichert, sofern dieselbe GitHub-Pages-Adresse beibehalten wird.
+Die Tabellen sind Referenzwerte und ersetzen keine fachgerechte elektrische Dimensionierung.
+GitHub Pages ist öffentlich.
