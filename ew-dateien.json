@@ -161,7 +161,10 @@
     },
     {
       "name": "SAK St. Gallen",
-      "files": []
+      "files": [
+        "EW/SAK St. Gallen/7.6_Zaehlersteckklemmen.pdf",
+        "EW/SAK St. Gallen/Werkvorschriften CH Spezielle Anschlussbedingungen der St.Galler Stadtwerke.pdf"
+      ]
     },
     {
       "name": "Stadtwerk Winterthur",
