@@ -106,11 +106,27 @@
     },
     {
       "name": "EWZ",
-      "files": []
+      "files": [
+        "EW/EWZ/190327_Merkblatt-Netzanschlüsse-EFH-und-DFH.pdf",
+        "EW/EWZ/190327_Merkblatt-Netzanschlüsse-mit-HAK.pdf",
+        "EW/EWZ/190327_Merkblatt-Netzanschlüsse-mit-Schaltfeld.pdf",
+        "EW/EWZ/merkblatt-direktmesseinrichtungen-mit-zaehlersteckklemmen (1).pdf",
+        "EW/EWZ/Schema Boiler ≥ 100l mit Nachtfreigabe.pdf",
+        "EW/EWZ/Schema Boiler ≥ 100l ohne Nachtfreigabe (1).pdf",
+        "EW/EWZ/Schema EEA Speicher 3-30kVA.pdf",
+        "EW/EWZ/Schema EEA Speicher grösser 30kVA.pdf",
+        "EW/EWZ/Schema EEE mit 1 WR 30-100kVA.pdf",
+        "EW/EWZ/Schema ewz-Ansteuerung Wärmepumpen.pdf",
+        "EW/EWZ/Schema Steuerung E-Mobilität.pdf",
+        "EW/EWZ/Schema TRE mit ZFA und oder TRE EEA.pdf",
+        "EW/EWZ/Spezielle_Bestimmungen_von_ewz.pdf"
+      ]
     },
     {
       "name": "Glattwerk",
-      "files": []
+      "files": [
+        "EW/Glattwerk/Ergaenzungsdokument-Glattwerk-AG-zu-Werkvorschriften-CH-V3.pdf"
+      ]
     },
     {
       "name": "IBB",
