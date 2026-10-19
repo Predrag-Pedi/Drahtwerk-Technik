@@ -33,7 +33,10 @@
     },
     {
       "name": "Energie Uster",
-      "files": []
+      "files": [
+        "EW/Energie Uster/EnergieUster_SB_WV2021_20250327.pdf",
+        "EW/Energie Uster/Zählersteckklemmen.pdf"
+      ]
     },
     {
       "name": "Eniwa AG",
