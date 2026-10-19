@@ -175,7 +175,13 @@
     },
     {
       "name": "Wallisellen",
-      "files": []
+      "files": [
+        "EW/Wallisellen/01_1466_Besondere-Bestimmungen-zu-den-Werkvorschriften-CH-2021-Juli-2025.pdf",
+        "EW/Wallisellen/02_1536_Weisung-Parallelbetrieb-von-EEA-u--o--Speicher-mit-dem-Netz-März-2025.pdf",
+        "EW/Wallisellen/Schema_24031_KLW_Elektro_Schema_HV_WHG_A_20260409.pdf",
+        "EW/Wallisellen/Schema_24031_KLW_Elektro_Schema_HV_WHG_B_20260409.pdf",
+        "EW/Wallisellen/Schema_bearbeitet_AZK_Klotenerstrasse_005_20260226.pdf"
+      ]
     },
     {
       "name": "Werk am Zürichsee",
