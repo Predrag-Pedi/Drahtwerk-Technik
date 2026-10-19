@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 root=Path(__file__).resolve().parent.parent
+root = Path(__file__).resolve().parent
 names=json.loads((root/'ew-ordner.json').read_text(encoding='utf-8'))
 folders=[]
 for name in names:
