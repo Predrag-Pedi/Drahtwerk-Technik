@@ -1,14 +1,16 @@
 DRAHTWERK TECHNIK – GITHUB PAGES
 
-INHALT: Schienenrechner, Litzen, Kupferschienen, ABB Smissline.
+1. Gesamten Inhalt dieser ZIP in die Wurzel des NEUEN GitHub-Repositories hochladen (inklusive .github, EW und scripts).
+2. Unter Settings > Pages die Quelle Deploy from a branch, Branch main, Ordner / (root) wählen.
+3. Unter Settings > Actions > General > Workflow permissions ggf. Read and write permissions aktivieren, falls der Workflow beim Push einen 403-Fehler zeigt.
+4. PDFs in EW/<Name des Elektrizitätswerks>/ hochladen. Der GitHub-Workflow erstellt automatisch ew-dateien.json.
+5. Unter Actions den Workflow 'EW PDF-Liste aktualisieren' prüfen; nach erfolgreichem Lauf ggf. GitHub Pages neu laden.
+6. PDFs können direkt in der App angesehen oder separat geöffnet werden.
 
-BESTEHENDES GITHUB-REPOSITORY AKTUALISIEREN:
-1. Die sechs Dateien aus diesem ZIP ins bestehende Repository hochladen.
-2. index.html, manifest.webmanifest und sw.js ersetzen; technik.html neu hinzufügen.
-3. Die beiden Icon-Dateien können ebenfalls ersetzt werden (unverändert).
-4. Änderungen committen und GitHub Pages neu laden.
-5. Auf dem iPad die App mit Internet öffnen und bei Bedarf aktualisieren.
+WICHTIG: GitHub Pages ist öffentlich. Keine vertraulichen PDFs hochladen.
+Ordner ohne PDF enthalten .gitkeep, damit GitHub sie anzeigt.
+PDFs müssen im Dateinamen auf .pdf enden (Gross-/Kleinschreibung egal).
+Die automatische Liste funktioniert nach GitHub-Actions-Lauf; bei Upload vieler PDFs kann es kurz dauern.
+Wenn Branch-Schutz automatisches Commit verhindert, Workflow-Berechtigungen prüfen.
 
-WICHTIG: Die bisherigen Schienenrechner-Eingaben bleiben lokal im selben Browser gespeichert, sofern dieselbe GitHub-Pages-Adresse beibehalten wird.
-Die Tabellen sind Referenzwerte und ersetzen keine fachgerechte elektrische Dimensionierung.
-GitHub Pages ist öffentlich.
+Bisheriger Schienenrechner und drei Technikbereiche sind übernommen.
