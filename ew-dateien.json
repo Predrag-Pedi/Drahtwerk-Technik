@@ -83,7 +83,10 @@
     },
     {
       "name": "EW Wetzikon",
-      "files": []
+      "files": [
+        "EW/EW Wetzikon/Ergaenzende-Werkvorschrifte.pdf",
+        "EW/EW Wetzikon/Merkblatt-Zaehlersteckklemmen_VAPR26.pdf"
+      ]
     },
     {
       "name": "EWL",
