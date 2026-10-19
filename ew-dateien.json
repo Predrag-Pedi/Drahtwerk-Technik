@@ -149,11 +149,15 @@
     },
     {
       "name": "LKW",
-      "files": []
+      "files": [
+        "EW/LKW/Werkvorschriften spezielle Bestimmungen der LKWG 2026.pdf"
+      ]
     },
     {
       "name": "Primeo",
-      "files": []
+      "files": [
+        "EW/Primeo/PE_FS_Montage_Zaehler_Anschlussklemmen_d_2024.pdf"
+      ]
     },
     {
       "name": "SAK St. Gallen",
