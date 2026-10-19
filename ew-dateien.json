@@ -90,7 +90,19 @@
     },
     {
       "name": "EWL",
-      "files": []
+      "files": [
+        "EW/EWL/1 Relais C10.1.1 Steuerung von PVA kleiner 30kVA.pdf",
+        "EW/EWL/4 Relais C 10.2 Steuerung EEA 30 bis 250 kVA.pdf",
+        "EW/EWL/C 06.71 Kommandoplan ewl .pdf",
+        "EW/EWL/C1.9.4 Not-Ansteuerung-Verbrauch.pdf",
+        "EW/EWL/C7.4 Zusatzbestimmung Fernauslesung.pdf",
+        "EW/EWL/C7.6.2 ZA Steckklemme_Apparatetafel.pdf",
+        "EW/EWL/C7.6.8 Steuerapparate.pdf",
+        "EW/EWL/Prüfklemmen.pdf",
+        "EW/EWL/Richtlinie Wohnungsnummerierung.pdf",
+        "EW/EWL/Schlüsselrohr.pdf",
+        "EW/EWL/TGH_TGK_datasheet_Broschuere.pdf"
+      ]
     },
     {
       "name": "EWZ",
