@@ -130,7 +130,10 @@
     },
     {
       "name": "IBB",
-      "files": []
+      "files": [
+        "EW/IBB/technische_anschlussbedingungen_tab_zu_den_werkvorschriften_wv-CH_2021_072024.pdf",
+        "EW/IBB/werkvorschriften_wv-CH_2021_mit_den_technischen_anschlussbedingungen_tab_072024.pdf"
+      ]
     },
     {
       "name": "Industrielle Betriebe Kloten AG",
