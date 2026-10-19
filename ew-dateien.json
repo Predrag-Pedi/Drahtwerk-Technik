@@ -64,7 +64,10 @@
     },
     {
       "name": "EW Opfikon",
-      "files": []
+      "files": [
+        "EW/EW Opfikon/20260101_Spezielle-Bestimmungen-EOAG.pdf",
+        "EW/EW Opfikon/Zahlerverdrahtungsschema_EOAG.pdf"
+      ]
     },
     {
       "name": "EW Rüti",
