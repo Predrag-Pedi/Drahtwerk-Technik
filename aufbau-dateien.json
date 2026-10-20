@@ -2,7 +2,12 @@
   "folders": [
     {
       "name": "E-Mobility",
-      "images": []
+      "images": [
+        {
+          "name": "Aufbau Abmessungen E-Mobility 1",
+          "path": "Aufbauabstaende/E-Mobility/Aufbau Abmessungen E-Mobility 1.png"
+        }
+      ]
     },
     {
       "name": "Steuerung",
