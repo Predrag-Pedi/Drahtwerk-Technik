@@ -1,7 +1,15 @@
 {
   "folders": [
     {
+      "name": "E-Mobility",
+      "images": []
+    },
+    {
       "name": "Steuerung",
+      "images": []
+    },
+    {
+      "name": "Zähler",
       "images": []
     }
   ]
