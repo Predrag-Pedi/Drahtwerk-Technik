@@ -4,89 +4,103 @@
       "name": "AEW",
       "files": [
         "EW/AEW/254101_Werkvorschriften_Spezielle_Bestimmungen_der_AEW.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "CKW",
       "files": [
         "EW/CKW/07_06_02_ewn_pflichtenheft-apparatetafeln.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EBL",
       "files": [
         "EW/EBL/Regionale Werkvorschriften 2022.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EKS Schaffhausen",
       "files": [
         "EW/EKS Schaffhausen/Verdrahtungsschema Rundsteueranlage.pdf",
         "EW/EKS Schaffhausen/Werkvorschriften_ Zusätzliche Anschlussbedingungen (2).pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EKZ",
       "files": [
         "EW/EKZ/ekz-zusaetzliche-weisungen.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Energie Uster",
       "files": [
         "EW/Energie Uster/EnergieUster_SB_WV2021_20250327.pdf",
         "EW/Energie Uster/Zählersteckklemmen.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Eniwa AG",
       "files": [
         "EW/Eniwa AG/Eniwa_Werkvorschriften_zusaetzliche_Weisungen.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EW Herrliberg",
       "files": [
         "EW/EW Herrliberg/Spez Vorschriften EWH 2022 - rev240513.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EW Höfe",
       "files": [
         "EW/EW Höfe/2025-12-12_Werkvorschriften-CH-2025_Spezielle_Bestimmungen_EWH_2026.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EW Neuenhof",
       "files": [
         "EW/EW Neuenhof/VSE_Werkvorschriften_WV-CH_Anhang_2024-01.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EW Opfikon",
       "files": [
         "EW/EW Opfikon/20260101_Spezielle-Bestimmungen-EOAG.pdf",
         "EW/EW Opfikon/Zahlerverdrahtungsschema_EOAG.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EW Rüti",
       "files": [
         "EW/EW Rüti/Weisungen der GWR.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EW Spreitenbach",
       "files": [
         "EW/EW Spreitenbach/AnhangVspezielleWerkvorschriften1-25.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EW Wetzikon",
       "files": [
         "EW/EW Wetzikon/Ergaenzende-Werkvorschrifte.pdf",
         "EW/EW Wetzikon/Merkblatt-Zaehlersteckklemmen_VAPR26.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EWL",
@@ -102,7 +116,8 @@
         "EW/EWL/Richtlinie Wohnungsnummerierung.pdf",
         "EW/EWL/Schlüsselrohr.pdf",
         "EW/EWL/TGH_TGK_datasheet_Broschuere.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "EWZ",
@@ -120,58 +135,67 @@
         "EW/EWZ/Schema Steuerung E-Mobilität.pdf",
         "EW/EWZ/Schema TRE mit ZFA und oder TRE EEA.pdf",
         "EW/EWZ/Spezielle_Bestimmungen_von_ewz.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Glattwerk",
       "files": [
         "EW/Glattwerk/Ergaenzungsdokument-Glattwerk-AG-zu-Werkvorschriften-CH-V3.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "IBB",
       "files": [
         "EW/IBB/technische_anschlussbedingungen_tab_zu_den_werkvorschriften_wv-CH_2021_072024.pdf",
         "EW/IBB/werkvorschriften_wv-CH_2021_mit_den_technischen_anschlussbedingungen_tab_072024.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Industrielle Betriebe Kloten AG",
       "files": [
         "EW/Industrielle Betriebe Kloten AG/Werkvorschriften_WV2024Neu_überarbeitet.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Infrastruktur Zürichsee AG Meilen",
       "files": [
         "EW/Infrastruktur Zürichsee AG Meilen/Strom_Werkvorschriften_iNFRA_2024.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "LKW",
       "files": [
         "EW/LKW/Werkvorschriften spezielle Bestimmungen der LKWG 2026.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Primeo",
       "files": [
         "EW/Primeo/PE_FS_Montage_Zaehler_Anschlussklemmen_d_2024.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "SAK St. Gallen",
       "files": [
         "EW/SAK St. Gallen/7.6_Zaehlersteckklemmen.pdf",
         "EW/SAK St. Gallen/Werkvorschriften CH Spezielle Anschlussbedingungen der St.Galler Stadtwerke.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Stadtwerk Winterthur",
       "files": [
         "EW/Stadtwerk Winterthur/Scan_20251219.pdf",
         "EW/Stadtwerk Winterthur/Spezielle Bestimmungen von Stadtwerk Winterthur zu Werkvorschriften ab 11. November 2024.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Wallisellen",
@@ -181,13 +205,15 @@
         "EW/Wallisellen/Schema_24031_KLW_Elektro_Schema_HV_WHG_A_20260409.pdf",
         "EW/Wallisellen/Schema_24031_KLW_Elektro_Schema_HV_WHG_B_20260409.pdf",
         "EW/Wallisellen/Schema_bearbeitet_AZK_Klotenerstrasse_005_20260226.pdf"
-      ]
+      ],
+      "info": ""
     },
     {
       "name": "Werk am Zürichsee",
       "files": [
         "EW/Werk am Zürichsee/wv-ch-2025-spezielle-bestimmungen-waz.pdf"
-      ]
+      ],
+      "info": ""
     }
   ]
 }
