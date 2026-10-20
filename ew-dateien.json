@@ -172,14 +172,14 @@
       "files": [
         "EW/LKW/Werkvorschriften spezielle Bestimmungen der LKWG 2026.pdf"
       ],
-      "info": ""
+      "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
     },
     {
       "name": "Primeo",
       "files": [
         "EW/Primeo/PE_FS_Montage_Zaehler_Anschlussklemmen_d_2024.pdf"
       ],
-      "info": ""
+      "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
     },
     {
       "name": "SAK St. Gallen",
@@ -187,7 +187,7 @@
         "EW/SAK St. Gallen/7.6_Zaehlersteckklemmen.pdf",
         "EW/SAK St. Gallen/Werkvorschriften CH Spezielle Anschlussbedingungen der St.Galler Stadtwerke.pdf"
       ],
-      "info": ""
+      "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
     },
     {
       "name": "Stadtwerk Winterthur",
@@ -195,7 +195,7 @@
         "EW/Stadtwerk Winterthur/Scan_20251219.pdf",
         "EW/Stadtwerk Winterthur/Spezielle Bestimmungen von Stadtwerk Winterthur zu Werkvorschriften ab 11. November 2024.pdf"
       ],
-      "info": ""
+      "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
     },
     {
       "name": "Wallisellen",
@@ -206,14 +206,14 @@
         "EW/Wallisellen/Schema_24031_KLW_Elektro_Schema_HV_WHG_B_20260409.pdf",
         "EW/Wallisellen/Schema_bearbeitet_AZK_Klotenerstrasse_005_20260226.pdf"
       ],
-      "info": ""
+      "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
     },
     {
       "name": "Werk am Zürichsee",
       "files": [
         "EW/Werk am Zürichsee/wv-ch-2025-spezielle-bestimmungen-waz.pdf"
       ],
-      "info": ""
+      "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
     }
   ]
 }
