@@ -17,13 +17,133 @@ header.dw-header,header.top.dw-header{background:#103d73!important;color:#fff!im
 
 body{background:#edf2f8;font-family:Arial,Helvetica,sans-serif;color:#172d46}header.dw-header{padding-bottom:0!important}main.ew-main{max-width:1250px;margin:0 auto;padding:20px 18px 45px;display:block}.ew-title{font-size:24px;margin:0 0 5px}.ew-intro{color:#60738b;margin:0 0 16px}.ew-card{background:#fff;border-radius:13px;box-shadow:0 5px 18px #142e4c12;padding:16px}.ew-search{width:100%;border:1px solid #cad9e9;border-radius:8px;padding:12px;font-size:16px;margin:0 0 14px}.ew-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.ew-folder{border:1px solid #d8e4f0;background:#f9fbff;border-radius:10px;padding:15px 12px;text-align:left;cursor:pointer;color:#173d69;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;min-height:64px}.ew-folder:hover,.ew-folder:focus-visible{background:#e6f1fc;border-color:#8db6df}.ew-folder svg{flex-shrink:0}.ew-folder small{display:block;color:#71839a;font-size:11px;font-weight:400;margin-top:3px}.ew-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.ew-back,.ew-open{border:0;border-radius:7px;background:#1767ac;color:white;padding:10px 14px;text-decoration:none;font-weight:700;cursor:pointer}.ew-doc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid #d9e5ef;border-radius:8px;margin:7px 0;flex-wrap:wrap}.ew-doc button{border:0;background:transparent;color:#145b9a;font-size:15px;font-weight:700;text-align:left;cursor:pointer;overflow-wrap:anywhere}.ew-viewer{width:100%;height:min(74vh,900px);border:1px solid #c7d7e7;border-radius:8px;background:white;margin-top:12px}.ew-empty{padding:20px;color:#65778d;background:#f2f6fa;border-radius:9px}.ew-note{font-size:12px;color:#60738b;margin-top:12px}.ew-hidden{display:none!important}@media(max-width:900px){.ew-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:650px){.ew-grid{grid-template-columns:repeat(2,minmax(0,1fr))}main.ew-main{padding:12px}.ew-folder{padding:10px;font-size:12px}}@media (orientation:landscape) and (max-height:900px){main.ew-main{padding-top:12px}.ew-card{padding:12px}.ew-grid{gap:8px}.ew-folder{min-height:54px;padding:10px}.ew-viewer{height:70vh}}
 .ew-info{background:#edf5ff;border:1px solid #c8dff7;border-radius:9px;padding:14px 16px;margin:4px 0 16px}.ew-info-head{display:flex;align-items:center;gap:8px;color:#145b9a;font-size:15px;font-weight:750;margin-bottom:9px}.ew-info-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;color:#243e58;font-size:14px}@media(max-width:650px){.ew-info{padding:12px}}
-</style></head><body><header class="dw-header"><h1 class="dw-brand">DRAHTWERK <span>| Technik</span> <span class="dw-bolt">⚡</span></h1></header><nav class="dw-nav" aria-label="Drahtwerk Technik Navigation"><a href="index.html">Schienenrechner</a><a href="technik.html#litzen">Litzen</a><a href="technik.html#kupfer">Kupferschienen</a><a href="technik.html#abb">ABB Smissline</a><a href="ew.html" aria-current="page">EW</a></nav><main class="ew-main"><h1 class="ew-title">Elektrizitätswerke (EW)</h1><p class="ew-intro">Werkvorschriften, Formulare und weitere PDF-Dokumente.</p><div class="ew-card"><div id="overview"><input class="ew-search" id="search" placeholder="Elektrizitätswerk suchen, z. B. EKZ" aria-label="Elektrizitätswerk suchen"><div class="ew-grid" id="folders"></div></div><div id="detail" class="ew-hidden"><div class="ew-row"><button class="ew-back" id="back">← Alle EW</button><strong id="ewname"></strong></div><section id="ewInfo" class="ew-info ew-hidden" aria-label="Informationen zum Elektrizitätswerk"><div class="ew-info-head">ⓘ <span id="ewInfoTitle"></span></div><div id="ewInfoText" class="ew-info-text"></div></section><div id="docs"></div><div id="viewerWrap" class="ew-hidden"><div class="ew-row"><strong id="docname"></strong><a class="ew-open" id="openPdf" target="_blank" rel="noopener">PDF separat öffnen ↗</a></div><iframe class="ew-viewer" id="viewer" title="PDF-Dokument"></iframe><p class="ew-note">Falls Safari das PDF nicht direkt anzeigt, «PDF separat öffnen» verwenden.</p></div></div><p class="ew-note" id="status"></p></div></main><script>
+</style>
+<style>
+/* iPad-tauglicher PDF-Reader */
+.pdf-reader{position:fixed;inset:0;z-index:1000;background:#dfe6ef;display:flex;flex-direction:column}
+.pdf-reader.ew-hidden{display:none!important}
+.pdf-bar{background:#103d73;color:white;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pdf-bar button{background:#285c90;color:white;border:1px solid #6c92b8;border-radius:7px;padding:9px 12px;min-height:40px}
+.pdf-bar button:disabled{opacity:.45}
+.pdf-bar input{width:auto;max-width:190px;min-width:90px;margin:0;padding:8px;font-size:16px}
+.pdf-name{font-weight:700;flex:1;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdf-controls{background:#f7f9fc;border-bottom:1px solid #bdcddd;padding:8px 12px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.pdf-controls button{padding:8px 12px;min-height:40px}
+.pdf-controls input{width:70px;margin:0;padding:7px;font-size:16px;text-align:center}
+.pdf-scroll{flex:1;min-height:0;overflow:auto;text-align:center;padding:15px;overscroll-behavior:contain}
+.pdf-scroll canvas{display:block;margin:auto;background:white;box-shadow:0 2px 12px #0003;max-width:none}
+.pdf-status{font-size:12px;color:#38516b;padding:5px 12px;background:#fff}
+.pdf-search-results{max-height:120px;overflow:auto;background:#fff;border-bottom:1px solid #ccd7e5;display:none;text-align:left}
+.pdf-search-results button{display:block;width:100%;background:white;color:#173d69;text-align:left;border-radius:0;border-bottom:1px solid #e2e8f0;padding:8px 14px;font-size:13px}
+.pdf-search-results button:hover{background:#e9f3ff}
+body.pdf-open{overflow:hidden}
+@media(max-width:900px){.pdf-bar{padding:7px 9px;gap:6px}.pdf-controls{padding:6px;gap:6px}.pdf-bar button,.pdf-controls button{font-size:13px;padding:7px 9px}.pdf-scroll{padding:8px}}
+</style>
+</head><body><header class="dw-header"><h1 class="dw-brand">DRAHTWERK <span>| Technik</span> <span class="dw-bolt">⚡</span></h1></header><nav class="dw-nav" aria-label="Drahtwerk Technik Navigation"><a href="index.html">Schienenrechner</a><a href="technik.html#litzen">Litzen</a><a href="technik.html#kupfer">Kupferschienen</a><a href="technik.html#abb">ABB Smissline</a><a href="ew.html" aria-current="page">EW</a></nav><main class="ew-main"><h1 class="ew-title">Elektrizitätswerke (EW)</h1><p class="ew-intro">Werkvorschriften, Formulare und weitere PDF-Dokumente.</p><div class="ew-card"><div id="overview"><input class="ew-search" id="search" placeholder="Elektrizitätswerk suchen, z. B. EKZ" aria-label="Elektrizitätswerk suchen"><div class="ew-grid" id="folders"></div></div><div id="detail" class="ew-hidden"><div class="ew-row"><button class="ew-back" id="back">← Alle EW</button><strong id="ewname"></strong></div><section id="ewInfo" class="ew-info ew-hidden" aria-label="Informationen zum Elektrizitätswerk"><div class="ew-info-head">ⓘ <span id="ewInfoTitle"></span></div><div id="ewInfoText" class="ew-info-text"></div></section><div id="docs"></div></div><p class="ew-note" id="status"></p></div></main><div id="pdfReader" class="pdf-reader ew-hidden" role="dialog" aria-modal="true" aria-label="PDF-Reader">
+ <div class="pdf-bar"><strong class="pdf-name" id="pdfTitle"></strong>
+ <button id="pdfClose" type="button">✕ Schliessen</button>
+ <a id="pdfExternal" class="ew-open" target="_blank" rel="noopener">PDF separat öffnen ↗</a></div>
+ <div class="pdf-controls">
+ <button id="pdfPrev" type="button">◀</button><label for="pdfPage">Seite</label><input id="pdfPage" type="number" min="1" value="1"><span id="pdfTotal">/ –</span><button id="pdfNext" type="button">▶</button>
+ <button id="pdfZoomOut" type="button">−</button><span id="pdfZoomLabel">100 %</span><button id="pdfZoomIn" type="button">+</button>
+ <input id="pdfSearch" type="search" placeholder="Im PDF suchen" aria-label="Im PDF suchen">
+ <button id="pdfSearchBtn" type="button">Suchen</button>
+ </div>
+ <div class="pdf-search-results" id="pdfSearchResults"></div>
+ <div class="pdf-scroll" id="pdfScroll"><canvas id="pdfCanvas"></canvas></div>
+ <div class="pdf-status" id="pdfStatus" aria-live="polite">PDF wird geladen …</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
 const folderIcon='<svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 6a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z" fill="#2b78bb"/><path d="M2 10h20" stroke="#b9daf4" stroke-width="1.3"/></svg>';
 let folders=[];let selected=null;const $=id=>document.getElementById(id);
-function showFolders(){selected=null;$('overview').classList.remove('ew-hidden');$('detail').classList.add('ew-hidden');$('viewer').removeAttribute('src');history.replaceState(null,'',location.pathname);drawFolders()}
+function showFolders(){selected=null;$('overview').classList.remove('ew-hidden');$('detail').classList.add('ew-hidden');history.replaceState(null,'',location.pathname);drawFolders()}
 function drawFolders(){const q=$('search').value.trim().toLocaleLowerCase('de-CH');$('folders').replaceChildren();for(const f of folders.filter(x=>x.name.toLocaleLowerCase('de-CH').includes(q))){const b=document.createElement('button');b.className='ew-folder';const t=document.createElement('span');t.textContent=f.name;const small=document.createElement('small');small.textContent=f.files.length+' PDF'+(f.files.length===1?'':'s');t.append(small);b.innerHTML=folderIcon;b.append(t);b.onclick=()=>showDetail(f.name);$('folders').append(b)}if(!$('folders').children.length)$('folders').textContent='Kein Elektrizitätswerk gefunden.'}
-function showDetail(name){const f=folders.find(x=>x.name===name);if(!f)return;selected=name;$('overview').classList.add('ew-hidden');$('detail').classList.remove('ew-hidden');$('ewname').textContent=name;$('viewerWrap').classList.add('ew-hidden');$('viewer').removeAttribute('src');$('docs').replaceChildren();const info=(f.info||'').trim();$('ewInfo').classList.toggle('ew-hidden',!info);$('ewInfoTitle').textContent='Informationen zu '+name;$('ewInfoText').textContent=info;history.replaceState(null,'','#'+encodeURIComponent(name));if(!f.files.length){const p=document.createElement('p');p.className='ew-empty';p.textContent='Noch keine PDFs hinterlegt. Lade die Dateien im GitHub-Ordner EW/'+name+'/ hoch.';$('docs').append(p)}else{for(const file of f.files){const row=document.createElement('div');row.className='ew-doc';const b=document.createElement('button');b.textContent='📄 '+file.split('/').pop();b.onclick=()=>openDoc(file);row.append(b);$('docs').append(row)}}}
-function openDoc(path){const parts=path.split('/').map(encodeURIComponent);const url=parts.join('/');$('docname').textContent=path.split('/').pop();$('openPdf').href=url;$('viewer').src=url;$('viewerWrap').classList.remove('ew-hidden');$('viewerWrap').scrollIntoView({behavior:'smooth',block:'nearest'})}
+function showDetail(name){const f=folders.find(x=>x.name===name);if(!f)return;selected=name;$('overview').classList.add('ew-hidden');$('detail').classList.remove('ew-hidden');$('ewname').textContent=name;$('docs').replaceChildren();const info=(f.info||'').trim();$('ewInfo').classList.toggle('ew-hidden',!info);$('ewInfoTitle').textContent='Informationen zu '+name;$('ewInfoText').textContent=info;history.replaceState(null,'','#'+encodeURIComponent(name));if(!f.files.length){const p=document.createElement('p');p.className='ew-empty';p.textContent='Noch keine PDFs hinterlegt. Lade die Dateien im GitHub-Ordner EW/'+name+'/ hoch.';$('docs').append(p)}else{for(const file of f.files){const row=document.createElement('div');row.className='ew-doc';const b=document.createElement('button');b.textContent='📄 '+file.split('/').pop();b.onclick=()=>openDoc(file);row.append(b);$('docs').append(row)}}}
+let pdfDocument=null,pdfPage=1,pdfScale=1,pdfRenderToken=0,pdfSearchToken=0;
+const pdfLib=window.pdfjsLib;
+if(pdfLib)pdfLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+function pdfMessage(message){$('pdfStatus').textContent=message}
+function closePdf(){pdfRenderToken++;pdfSearchToken++;$('pdfReader').classList.add('ew-hidden');document.body.classList.remove('pdf-open');$('pdfSearchResults').style.display='none';$('pdfSearchResults').replaceChildren();$('pdfSearch').value='';pdfDocument=null}
+async function renderPdfPage(){
+ if(!pdfDocument)return;
+ const token=++pdfRenderToken, doc=pdfDocument, pageNo=pdfPage;
+ pdfMessage('Seite '+pageNo+' wird angezeigt …');
+ try{
+  const page=await doc.getPage(pageNo);
+  if(token!==pdfRenderToken)return;
+  const viewport=page.getViewport({scale:pdfScale});
+  const canvas=$('pdfCanvas'),ctx=canvas.getContext('2d');
+  const pixelRatio=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.round(viewport.width*pixelRatio);canvas.height=Math.round(viewport.height*pixelRatio);
+  canvas.style.width=viewport.width+'px';canvas.style.height=viewport.height+'px';
+  const task=page.render({canvasContext:ctx,viewport,transform:pixelRatio===1?null:[pixelRatio,0,0,pixelRatio,0,0]});
+  await task.promise;
+  if(token!==pdfRenderToken)return;
+  $('pdfPage').value=pageNo;$('pdfTotal').textContent='/ '+doc.numPages;
+  $('pdfZoomLabel').textContent=Math.round(pdfScale*100)+' %';
+  $('pdfPrev').disabled=pageNo===1;$('pdfNext').disabled=pageNo===doc.numPages;
+  pdfMessage('Seite '+pageNo+' von '+doc.numPages);
+ }catch(e){if(token===pdfRenderToken){console.error(e);pdfMessage('Seite konnte nicht angezeigt werden.')}}
+}
+function setPdfPage(n){if(!pdfDocument)return;pdfPage=Math.min(pdfDocument.numPages,Math.max(1,Math.floor(Number(n)||1)));$('pdfScroll').scrollTop=0;renderPdfPage()}
+function setPdfZoom(z){pdfScale=Math.max(.5,Math.min(3,z));renderPdfPage()}
+async function openDoc(path){
+ const url=path.split('/').map(encodeURIComponent).join('/');
+ $('pdfReader').classList.remove('ew-hidden');document.body.classList.add('pdf-open');
+ $('pdfTitle').textContent=path.split('/').pop();$('pdfExternal').href=url;
+ $('pdfSearchResults').replaceChildren();$('pdfSearchResults').style.display='none';$('pdfSearch').value='';
+ pdfDocument=null;pdfPage=1;pdfScale=1;pdfMessage('PDF wird geladen …');
+ const token=++pdfRenderToken;
+ if(!pdfLib){pdfMessage('PDF-Reader konnte nicht geladen werden. Internetverbindung prüfen oder «PDF separat öffnen» wählen.');return}
+ try{
+  const doc=await pdfLib.getDocument({url}).promise;
+  if(token!==pdfRenderToken)return;
+  pdfDocument=doc;
+  const first=await doc.getPage(1);
+  if(token!==pdfRenderToken)return;
+  const viewport=first.getViewport({scale:1});
+  pdfScale=Math.min(1.6,Math.max(.5,($('pdfScroll').clientWidth-24)/viewport.width));
+  renderPdfPage();
+ }catch(e){console.error(e);if(token===pdfRenderToken)pdfMessage('PDF konnte nicht geladen werden. Bitte «PDF separat öffnen» verwenden.')}
+}
+async function searchPdf(){
+ if(!pdfDocument)return;
+ const query=$('pdfSearch').value.trim().toLocaleLowerCase('de-CH');
+ const results=$('pdfSearchResults');results.replaceChildren();
+ if(!query){results.style.display='none';return}
+ const token=++pdfSearchToken,doc=pdfDocument;
+ results.style.display='block';pdfMessage('Durchsuche '+doc.numPages+' Seiten …');
+ let count=0;
+ for(let i=1;i<=doc.numPages;i++){
+  if(token!==pdfSearchToken||doc!==pdfDocument)return;
+  try{
+   const page=await doc.getPage(i);
+   const content=await page.getTextContent();
+   const text=content.items.map(x=>x.str||'').join(' ');
+   const pos=text.toLocaleLowerCase('de-CH').indexOf(query);
+   if(pos!==-1){
+    count++;
+    const b=document.createElement('button');
+    b.textContent='Seite '+i+' · …'+text.slice(Math.max(0,pos-45),Math.min(text.length,pos+query.length+65)).trim()+'…';
+    b.onclick=()=>{setPdfPage(i);results.style.display='none'};
+    results.append(b);
+   }
+  }catch(e){console.error('PDF-Suche, Seite '+i,e)}
+ }
+ if(token!==pdfSearchToken)return;
+ if(!count){const p=document.createElement('div');p.style.padding='10px';p.textContent='Keine Treffer gefunden (gescannte PDFs ohne Text sind nicht durchsuchbar).';results.append(p)}
+ pdfMessage(count+' Seite(n) mit Treffern gefunden.');
+}
+$('pdfClose').onclick=closePdf;
+$('pdfPrev').onclick=()=>setPdfPage(pdfPage-1);
+$('pdfNext').onclick=()=>setPdfPage(pdfPage+1);
+$('pdfPage').onchange=()=>setPdfPage($('pdfPage').value);
+$('pdfZoomIn').onclick=()=>setPdfZoom(pdfScale*1.25);
+$('pdfZoomOut').onclick=()=>setPdfZoom(pdfScale/1.25);
+$('pdfSearchBtn').onclick=searchPdf;
+$('pdfSearch').onkeydown=e=>{if(e.key==='Enter')searchPdf()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('pdfReader').classList.contains('ew-hidden'))closePdf()});
 $('back').onclick=showFolders;$('search').oninput=drawFolders;
 fetch('ew-dateien.json?updated='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(data=>{folders=data.folders||[];drawFolders();$('status').textContent=folders.length+' Elektrizitätswerke · '+folders.reduce((n,f)=>n+f.files.length,0)+' PDFs';const hash=decodeURIComponent(location.hash.slice(1));if(hash)showDetail(hash)}).catch(e=>{$('status').textContent='Dateiliste konnte nicht geladen werden. Bitte GitHub Pages und ew-dateien.json prüfen.';console.error(e)});
 </script><script>if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script></body></html>
