@@ -1,0 +1,71 @@
+# Drahtwerk Drahtfarben – Bearbeitung direkt auf GitHub
+# Format: Bezeichnung | Querschnitt / Kabel | Leiter / Klemme | Drahtfarbe
+# Neue Kategorie: [Kategoriename]
+# Leere Spalten sind erlaubt. Pro Leiter eine Zeile.
+# Farbnamen können kombiniert werden, z. B. grün-gelb, blau/weiss oder rot / schwarz.
+
+[Niederspannung < 1000 V]
+Hauptstrom | mind. 1.5 mm² | L1 | braun
+Hauptstrom |  | L2 | schwarz
+Hauptstrom |  | L3 | grau
+Hauptstrom |  | N | hellblau
+Hauptstrom |  | PE | grün-gelb
+Hauptstrom |  | PEN | grün-gelb; Enden hellblau
+Steuerung 230VAC | 1.0 mm² | L | Phasenfarbe
+Steuerung 230VAC |  | N | hellblau
+Steuerung 230VAC (nach Trafo) |  | 230VAC | weiss
+Steuerung 230VAC (nach Trafo) |  | GND | weiss-schwarz
+Fremdspannung 230VAC |  | L | orange
+Fremdspannung 230VAC |  | N | hellblau
+
+[Kleinspannung < 50 V]
+Fremdspannung |  |  | orange
+Steuerung 24VAC |  | 24VAC | grün
+Steuerung 24VAC |  | GND | grün-weiss
+Steuerung 24VDC |  | 24VDC + | rot
+Steuerung 24VDC |  | 24VDC - | dunkelblau
+Digitaleingänge (DI grün) |  | FG | violett-weiss
+Digitaleingänge (DI grün) |  | FP | violett-weiss
+Digitaleingänge (DI grün) |  | DI | violett-weiss
+Digitalausgänge (DOS dunkel rot) |  | FG | je nach Spannung
+Digitalausgänge (DOS dunkel rot) |  | DO | je nach Spannung
+Analogausgänge (AO blau) |  | FG | je nach Spannung
+Analogausgänge (AO blau) |  | FP | je nach Spannung
+Analogausgänge (AO blau) |  | AO | violett
+Universaleingänge (UI gelb) |  | Alle | rosa
+Digitalausgangsrelais (DOR/m hell Rot) |  | COM | je nach Spannung
+Digitalausgangsrelais (DOR/m hell Rot) |  | NO, NC | je nach Spannung
+Fühlerleitungen |  |  | rosa
+Brandschutzklapperelais |  | 6 | blau/weiss
+Brandschutzklapperelais |  | 7 | blau/weiss
+Freigabe (Start / Stop) |  |  | weiss
+
+[Kommunikationsleitungen]
+M-Bus Variante | Kabel 2x1mm² (Paarverseilt) | Leiter M+ | weiss / oder Sw Nr1
+M-Bus Variante |  | Leiter M- | braun / oder Sw Nr2
+M9-Bus (Belimo) | Kabel G51 1x4x0.8mm² | - | blau
+M9-Bus (Belimo) |  | GND | gelb
+M9-Bus (Belimo) |  | + | weiss
+Mod-Bus (Belimo) | Kabel G51 1x4x0.8mm² | - | blau
+Mod-Bus (Belimo) |  | GND | gelb
+Mod-Bus (Belimo) |  | + | weiss
+Priva Busleitung | Kabel G51 1x2x0.8mm² | Leiter a | weiss
+Priva Busleitung |  | Leiter b | blau
+KNX | KNX Kabel 2x2x0.8mm² | +/- | rot / schwarz
+KNX |  | +/- | weiss / gelb
+KNX Binäreingang | Eigene Spannung | + | rot-weiss
+KNX Binäreingang |  | - | rot-weiss
+Dali-Bus |  | + | rot-weiss
+Dali-Bus |  | - | blau-weiss
+Taster Ansteuerung Griesser | U72 Datenkabel viererverseilt | LED | weiss
+Taster Ansteuerung Griesser |  | Ab | blau
+Taster Ansteuerung Griesser |  | Auf | türkis
+Taster Ansteuerung Griesser |  | + | blau-weiss
+
+[EW]
+EW Spannungspfad | 2.5mm² | L1/L2/L3 | Phasenfarbe
+EW Strompfad | 4mm² | S1 / S2 | Phasenfarbe
+EW Steuerleiter | 1.5mm² | 1 - 9 | hellgrau num.
+Steuerleiter Phase | 1.5mm² | L | hellgrau
+Steuerneutralleiter | 1.5mm² | 0 | hellgrau num.
+
