@@ -1,0 +1,30 @@
+name: Aufbauabstaende Bilderliste
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Aufbauabstaende/**'
+      - 'aufbau_index.py'
+      - '.github/workflows/aufbau-bilderliste.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Bilderliste erzeugen
+        run: python aufbau_index.py
+      - name: Änderungen übernehmen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add aufbau-dateien.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Aufbauabstaende Bilderliste aktualisieren"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
