@@ -6,7 +6,12 @@
     },
     {
       "name": "Steuerung",
-      "images": []
+      "images": [
+        {
+          "name": "Aufbau Abmessungen 2",
+          "path": "Aufbauabstaende/Steuerung/Aufbau Abmessungen 2.png"
+        }
+      ]
     },
     {
       "name": "Zähler",
