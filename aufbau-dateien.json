@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "name": "E-Mobility",
+      "images": []
+    },
+    {
+      "name": "Steuerungen",
+      "images": [
+        {
+          "name": "Aufbau Abmessungen Beispiel",
+          "path": "Aufbauabstaende/Steuerungen/Aufbau_Abmessungen_Beispiel.png"
+        }
+      ]
+    },
+    {
+      "name": "Zaehler",
+      "images": []
+    }
+  ]
+}
