@@ -4,6 +4,30 @@
 </style><style>
 /* Drahtwerk Startseiten-Navigation – iPad */
 .dw-home-link{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#285c90;color:#fff;text-decoration:none;border:1px solid #729bc5;border-radius:11px;padding:10px 17px;font:700 15px Arial,Helvetica,sans-serif;min-height:45px;white-space:nowrap}.dw-home-link:hover,.dw-home-link:focus-visible{background:#3679ba;outline:2px solid #a6d5ff}.dw-home-link svg{width:21px;height:21px;flex:none}.dw-header{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:15px!important;padding-bottom:13px!important}.dw-header p{display:none!important}@media(max-width:600px){.dw-home-link{padding:9px 12px;font-size:13px}}@media print{.dw-home-link{display:none!important}}
+</style><style>
+/* Einheitliche Kopfzeile – auf allen Werkzeugseiten wie bei Drahtfarben */
+header.dw-header, header.top.dw-header {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:15px!important;
+  min-height:56px!important;
+  height:auto!important;
+  padding:6px max(18px,3vw)!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+header.dw-header .dw-home-link, header.top.dw-header .dw-home-link {
+  flex-shrink:0;
+  align-self:center!important;
+  margin:0!important;
+}
+header.dw-header .dw-brand, header.top.dw-header .dw-brand,
+header.top.dw-header .brand {margin:0!important;line-height:1.2!important}
+@media(max-width:600px){
+  header.dw-header,header.top.dw-header{min-height:56px!important;padding:6px 12px!important}
+}
+@media print{header.dw-header .dw-home-link,header.top.dw-header .dw-home-link{display:none!important}}
 </style></head><body><header class="dw-header"><div class="dw-brand">DRAHTWERK <span>| Technik</span> <span class="bolt">⚡</span></div><a aria-label="Zur Startseite" class="dw-home-link" href="index.html"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><path d="m3 10 9-7 9 7"></path><path d="M5 9v12h14V9"></path><path d="M9 21v-7h6v7"></path></svg> Startseite</a></header><main><h1>Drahtfarben</h1><p class="intro">Leiterfarben, Querschnitte und Anwendungen – aus drahtfarben.txt</p><div class="tools"><input aria-label="Drahtfarben durchsuchen" id="search" placeholder="Drahtfarbe, Anwendung oder Leiter suchen …" type="search"/><span id="count">Wird geladen …</span></div><div id="sections"></div><p class="foot">Angaben gemäss hinterlegter Drahtwerk-Vorlage. Änderungen an drahtfarben.txt werden beim erneuten Laden übernommen. Technische Vorgaben vor Anwendung prüfen.</p></main><script>
 const $=id=>document.getElementById(id);let groups=[];
 const colors={'braun':'#86502e','schwarz':'#222222','grau':'#9c9fa3','hellgrau':'#c3c8ce','hellblau':'#8bd9f4','blau':'#2563c6','dunkelblau':'#183b88','grün':'#279950','gelb':'#f3cf2c','rot':'#d93236','weiss':'#ffffff','violett':'#9255ba','rosa':'#e9a1c6','orange':'#f49324','türkis':'#2cb6b4'};

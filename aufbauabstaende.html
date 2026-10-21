@@ -4,6 +4,30 @@
 </style><style>
 /* Drahtwerk Startseiten-Navigation – iPad */
 .dw-home-link{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#285c90;color:#fff;text-decoration:none;border:1px solid #729bc5;border-radius:11px;padding:10px 17px;font:700 15px Arial,Helvetica,sans-serif;min-height:45px;white-space:nowrap}.dw-home-link:hover,.dw-home-link:focus-visible{background:#3679ba;outline:2px solid #a6d5ff}.dw-home-link svg{width:21px;height:21px;flex:none}.dw-header{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:15px!important;padding-bottom:13px!important}.dw-header p{display:none!important}@media(max-width:600px){.dw-home-link{padding:9px 12px;font-size:13px}}@media print{.dw-home-link{display:none!important}}
+</style><style>
+/* Einheitliche Kopfzeile – auf allen Werkzeugseiten wie bei Drahtfarben */
+header.dw-header, header.top.dw-header {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:15px!important;
+  min-height:56px!important;
+  height:auto!important;
+  padding:6px max(18px,3vw)!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+header.dw-header .dw-home-link, header.top.dw-header .dw-home-link {
+  flex-shrink:0;
+  align-self:center!important;
+  margin:0!important;
+}
+header.dw-header .dw-brand, header.top.dw-header .dw-brand,
+header.top.dw-header .brand {margin:0!important;line-height:1.2!important}
+@media(max-width:600px){
+  header.dw-header,header.top.dw-header{min-height:56px!important;padding:6px 12px!important}
+}
+@media print{header.dw-header .dw-home-link,header.top.dw-header .dw-home-link{display:none!important}}
 </style></head><body><header class="dw-header"><div class="dw-brand">DRAHTWERK <span>| Technik</span> <span class="bolt">⚡</span></div><a aria-label="Zur Startseite" class="dw-home-link" href="index.html"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><path d="m3 10 9-7 9 7"></path><path d="M5 9v12h14V9"></path><path d="M9 21v-7h6v7"></path></svg> Startseite</a></header><main><h1>Aufbauabstände</h1><p class="intro">Technische Aufbauzeichnungen und Schienenabstände – nach Kategorien geordnet.</p><div class="card"><div id="overview"><div class="folders" id="folders"></div></div><div class="hidden" id="detail"><div class="detail-head"><button class="back" id="back" type="button">← Alle Kategorien</button><strong class="detail-title" id="categoryName"></strong></div><div id="drawings"></div></div><p class="hint" id="status">Kategorien werden geladen …</p></div></main><div aria-label="Zeichnung vergrössern" aria-modal="true" class="lightbox hidden" id="lightbox" role="dialog"><div class="lightbar"><strong id="imageName"></strong><div class="zoomline"><button id="zoomOut" type="button">−</button><span id="zoomValue">100 %</span><button id="zoomIn" type="button">+</button><button id="close" type="button">✕ Schliessen</button></div></div><div class="lightview" id="lightview"><img alt="Vergrösserte Aufbauzeichnung" id="bigImage"/></div></div><script>
 const $=id=>document.getElementById(id);let categories=[],selected=null,zoom=1;
 function imageUrl(path){return path.split('/').map(encodeURIComponent).join('/')}
