@@ -12,9 +12,9 @@ test('Fuse ranges use DII through 25 A, DIII through 63 A and NH above; absent 1
   const d=parsePages([page(`1F1\n${amp}A\n5\n6`)]).devices[0];assert.equal(d.kind,amp>63?'NH':'FUSE');assert.equal(candidates(d,cat)[0],cat[index]);
  }
 });
-test('Time switch reference is chosen, but incompatible main-switch variants remain reviewable',()=>{
- const clocks=[{kind:'CLOCK',code:'EG103',pv:2},{kind:'CLOCK',code:'EG203',pv:4}];assert.equal(suggestArticle({kind:'CLOCK'},clocks),clocks[0]);
- assert.equal(suggestArticle({kind:'MAIN',amp:160},[{kind:'MAIN',amp:160,pv:26},{kind:'MAIN',amp:160,pv:12}]),undefined);
+test('Middle-loss references resolve compatible variants automatically',()=>{
+ const clocks=[{kind:'CLOCK',code:'EG103',pv:2},{kind:'CLOCK',code:'EG203',pv:4},{kind:'CLOCK',code:'low',pv:1}];assert.equal(suggestArticle({kind:'CLOCK'},clocks),clocks[0]);
+ assert.equal(suggestArticle({kind:'MAIN',amp:160},[{kind:'MAIN',amp:160,pv:26},{kind:'MAIN',amp:160,pv:12}]).pv,26);
 });
 test('Confirmed symbol interpretations cannot leak into an unrelated drawing with identical references',()=>{
  const text='10S2\n160A\n13F2.1\n160A\n60P3\nL\nN\n61K7\nA1\nA2';
