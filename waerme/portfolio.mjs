@@ -1,4 +1,4 @@
-import {parsePages} from './core.mjs?v=20261027-7';
+import {parsePages} from './core.mjs?v=20261027-8';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
@@ -78,7 +78,7 @@ export function buildPortfolio(documents,overrides={},links={}){
   if(best?.uncertain)p.warnings.push('Feldmasse aus Massbeschriftungen vorgeschlagen. Tiefe und Aufteilung prüfen.');
   if(ranked.length>1)p.warnings.push('Mehrere Dispos vorhanden. Separate Dispo hat Vorrang; ältere Zeichnungen bitte abgleichen.');
   const schema=p.pages.filter(page=>!disposition(page)),parsed=parsePages(schema);
-  const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;p.warnings.push(...parsed.warnings,...parsed.ignored.filter(s=>s.includes('kein Privatzähler')));
+  const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;p.warnings.push(...parsed.warnings,...parsed.ignored.filter(s=>s.includes('kein Privatzähler')||s.includes('gemäss Vorgabe ausgeschlossen')));
   p.sources=[...new Set(p.pages.map(page=>page.file))].map(file=>`${file} (${p.pages.filter(page=>page.file===file).length} Seiten)`);p.layoutSource=best?`${best.page.file} · Seite ${best.page.number}`:'Keine Dispo';
   const supply=best?[...best.page.text.matchAll(/Zuleitung[^\n]*?\s(\d+)\s*A\b/gi)].map(m=>+m[1]):[];const currents=[...new Set(supply.length?supply:parsed.currents.map(c=>c.amp))];if(currents.length===1)p.project.amp=currents[0];
   const refs=new Map();if(best)for(const item of best.page.items||[]){const ref=item.str.trim().replace(/^[-+]/,'');if(/^\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?$/.test(ref)){const list=refs.get(ref)||[];list.push(item.x);refs.set(ref,list);}}
