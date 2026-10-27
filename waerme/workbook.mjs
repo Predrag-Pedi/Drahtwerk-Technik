@@ -1,5 +1,5 @@
-import {shiftFormula,calculateCell} from './formula.mjs?v=20261027-4';
-import {SHEETS,classify} from './core.mjs?v=20261027-4';
+import {shiftFormula,calculateCell} from './formula.mjs?v=20261027-5';
+import {SHEETS,classify} from './core.mjs?v=20261027-5';
 const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)throw Error('Ungültiges XML in Excel-Datei');return d;};
 const tags=(n,t)=>Array.from(n.getElementsByTagNameNS('*',t));
@@ -32,12 +32,13 @@ export async function readWorkbook(buffer,Zip){
     const sheet=sheets.get(name),rows=tags(sheet.doc,'row');
     for(const row of rows){const r=Number(row.getAttribute('r')),label=get(name,'B'+r),pv=get(name,'E'+r),formula=sheet.cells.get('F'+r)?.formula;
       if(typeof label!=='string')continue;
+      if(/Schmelzsicherungen|Diazed-/i.test(label))section='Hager';
       if(/Überspannungsableiter/i.test(label))section='SPD';
       if(/^(Hager|ABB)/i.test(label)&&typeof pv!=='number'&&!/^Total/i.test(label))section=label;
       // Keep the Smissline family through subsection headings that omit its name.
       if(/^ABB/i.test(section)&&r>=356&&r<=465&&name===SHEETS.fine)section+=' SMISSLINE';
       if(typeof pv==='number'&&!/^Total/i.test(label)&&(section==='SPD'||sheet.cells.get('F'+r)?.formula)){
-        const c=section==='SPD'?{kind:'SPD',poles:'4P',amp:null,ma:null,system:'hager',special:false}:classify(label,section);catalog.push({id:name+'!'+r,sheet:name,row:r,label,code:String(get(name,'G'+r)||''),pv,missingLoss:section==='SPD'&&pv===0,wire:typeof get(name,'J'+r)==='number'?get(name,'J'+r):0,...c});
+        const c=section==='SPD'?{kind:'SPD',poles:'4P',amp:null,ma:null,system:'hager',special:false}:classify(label,section);if(!c.amp){const a=get(name,'D'+r);c.amp=typeof a==='number'?a:Number(String(a).match(/(\d+)\s*A/)?.[1])||null;}catalog.push({id:name+'!'+r,sheet:name,row:r,label,code:String(get(name,'G'+r)||''),pv,missingLoss:section==='SPD'&&pv===0,wire:typeof get(name,'J'+r)==='number'?get(name,'J'+r):0,...c});
       }
     }
   }

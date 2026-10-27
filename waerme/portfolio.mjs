@@ -1,4 +1,4 @@
-import {parsePages} from './core.mjs?v=20261027-4';
+import {parsePages} from './core.mjs?v=20261027-5';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
@@ -27,7 +27,7 @@ export function disposition(page){
  }
  return {name,fields,page,uncertain,type,depthWarning:m&&m[3].toUpperCase()==='H'?`Im Beschrieb steht H${m[4]} statt T${m[4]}. Als Tiefe übernommen; bitte prüfen.`:''};
 }
-const refSet=pages=>new Set(pages.flatMap(p=>[...p.text.matchAll(/\b\d+F\d+(?:\.\d+)*[A-Za-z]?\b/g)].map(m=>m[0])));
+const refSet=pages=>new Set(pages.flatMap(p=>[...p.text.matchAll(/\b\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?\b/g)].map(m=>m[0])));
 const fileStem=file=>norm(file.replace(/^\d{4}-\d{2}-\d{2}[_ -]*/, '').replace(/\.pdf$/i,''));
 function mergeScore(layout,schema){
  const a=identity(layout.cover?.text||''),b=identity(schema.cover?.text||'');if(a&&b&&a!==b)return 0;
@@ -81,7 +81,7 @@ export function buildPortfolio(documents,overrides={},links={}){
   const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;p.warnings.push(...parsed.warnings);
   p.sources=[...new Set(p.pages.map(page=>page.file))].map(file=>`${file} (${p.pages.filter(page=>page.file===file).length} Seiten)`);p.layoutSource=best?`${best.page.file} · Seite ${best.page.number}`:'Keine Dispo';
   const supply=best?[...best.page.text.matchAll(/Zuleitung[^\n]*?\s(\d+)\s*A\b/gi)].map(m=>+m[1]):[];const currents=[...new Set(supply.length?supply:parsed.currents.map(c=>c.amp))];if(currents.length===1)p.project.amp=currents[0];
-  const refs=new Map();if(best)for(const item of best.page.items||[]){const ref=item.str.trim().replace(/^[-+]/,'');if(/^\d+F\d+(?:\.\d+)*[A-Za-z]?$/.test(ref)){const list=refs.get(ref)||[];list.push(item.x);refs.set(ref,list);}}
+  const refs=new Map();if(best)for(const item of best.page.items||[]){const ref=item.str.trim().replace(/^[-+]/,'');if(/^\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?$/.test(ref)){const list=refs.get(ref)||[];list.push(item.x);refs.set(ref,list);}}
   // Field boundaries need visual confirmation. Never silently place every device into field 1.
   let boundary=null;
   if(best&&p.fields.length===2){
