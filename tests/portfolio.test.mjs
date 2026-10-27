@@ -18,7 +18,7 @@ test('Position-based field proposal requires unique dimension labels and referen
 test('Different file titles join using shared project and devices, independent of import-role and order',()=>{
  const schema=doc('2026-08-31_HV Sample.pdf','schema',[page('ELEKTROSCHEMA\nTechnikraum\nSAMPLE'),page('DISPO',2),page('11F1\n16A\nC\n12F1.1\n16A\nC\n13F1\n16A\nC',3)]);
  const layout=doc('2026-10-15_HV Sample Street.pdf','schema',[page('ELEKTROSCHEMA\nSAMPLE'),page('Dispo\nB1258/1258x H1918x H165mm\n11F1\n12F1.1\n13F1',2)]);
- for(const role of ['schema','dispo'])for(const docs of [[schema,layout],[layout,schema]]){const r=buildPortfolio(docs.map(d=>({...d,role})));assert.equal(r.plants.length,1);const p=r.plants[0];assert.equal(p.devices.length,3);assert.deepEqual(p.fields.map(f=>[f.b,f.h,f.t]),[[1258,1918,null],[1258,1918,null]]);assert.equal(p.sources.length,2);assert.ok(p.layoutSource.includes('2026-10-15'));assert.ok(p.warnings.some(w=>w.includes('H165')));}
+ for(const role of ['schema','dispo'])for(const docs of [[schema,layout],[layout,schema]]){const r=buildPortfolio(docs.map(d=>({...d,role})));assert.equal(r.plants.length,1);const p=r.plants[0];assert.equal(p.devices.length,3);assert.deepEqual(p.fields.map(f=>[f.b,f.h,f.t]),[[1258,1918,165],[1258,1918,165]]);assert.equal(p.sources.length,2);assert.ok(p.layoutSource.includes('2026-10-15'));assert.ok(p.warnings.some(w=>w.includes('H165')));}
 });
 test('Ambiguous repeated device references do not merge unrelated plants; manual link remains available',()=>{
  const s=n=>doc(n+'.pdf','schema',[page('ELEKTROSCHEMA\n'+n),page('Dispo',2),page('11F1\n16A\n12F1\n16A\n13F1\n16A',3)]);

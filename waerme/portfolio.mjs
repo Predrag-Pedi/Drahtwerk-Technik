@@ -1,5 +1,5 @@
-import {parsePages} from './core.mjs?v=20261027-3';
-export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'estimate',manual:null});
+import {parsePages} from './core.mjs?v=20261027-5';
+export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
  const house=text.match(/(?:HV\s*)?Haus\s+([A-Z]|\d+)\b/i)||text.match(/\bHV([A-Z])\b/);if(house)return 'HV Haus '+house[1].toUpperCase();
@@ -16,7 +16,7 @@ export function disposition(page){
  const title=alu>0&&/[a-zäöü]/i.test(lines[alu-1])?lines[alu-1]:'';
  const heading=lines.find(s=>/^Dispo(?:sition)?\s+.+/i.test(s))?.replace(/^Dispo(?:sition)?\s+/i,'')||'';const name=identity(title)||identity(text)||title||heading;
  const type=/Selbstbaurahmen/i.test(text)?'SBR':/Reihenschrank/i.test(text)?'ARS':null;
- let fields=m?m[1].split('/').map(b=>({...blankField(),type:type||'SBR',b:+b.trim(),h:+m[2],t:m[3].toUpperCase()==='T'?+m[4]:null})):[];
+ let fields=m?m[1].split('/').map(b=>({...blankField(),type:type||'SBR',b:+b.trim(),h:+m[2],t:+m[4]})):[];
  let uncertain=false;
  if(!fields.length){
   // Only propose isolated dimension labels along the upper drawing edge; review is mandatory.
@@ -25,9 +25,9 @@ export function disposition(page){
   const h=[...new Set(heights)];
   fields=widths.length>0&&widths.length<=5?widths.map(x=>({...blankField(),type:type||'ARS',b:+x.str,h:h.length===1?h[0]:null})): [blankField()];uncertain=true;
  }
- return {name,fields,page,uncertain,type,depthWarning:m&&m[3].toUpperCase()==='H'?`Im Beschrieb steht H${m[4]} statt T${m[4]}. Tiefe prüfen und ergänzen.`:''};
+ return {name,fields,page,uncertain,type,depthWarning:m&&m[3].toUpperCase()==='H'?`Im Beschrieb steht H${m[4]} statt T${m[4]}. Als Tiefe übernommen; bitte prüfen.`:''};
 }
-const refSet=pages=>new Set(pages.flatMap(p=>[...p.text.matchAll(/\b\d+F\d+(?:\.\d+)*[A-Za-z]?\b/g)].map(m=>m[0])));
+const refSet=pages=>new Set(pages.flatMap(p=>[...p.text.matchAll(/\b\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?\b/g)].map(m=>m[0])));
 const fileStem=file=>norm(file.replace(/^\d{4}-\d{2}-\d{2}[_ -]*/, '').replace(/\.pdf$/i,''));
 function mergeScore(layout,schema){
  const a=identity(layout.cover?.text||''),b=identity(schema.cover?.text||'');if(a&&b&&a!==b)return 0;
@@ -42,7 +42,8 @@ function mergeScore(layout,schema){
 }
 export function buildPortfolio(documents,overrides={},links={}){
  const plants=[],pending=[];const add=(name)=>{let p=plants.find(p=>norm(p.name)===norm(name));if(!p){p={id:norm(name),name,pages:[],dispos:[],warnings:[],hasSchema:false};plants.push(p);}return p;};
- for(const doc of documents){
+ const orders=documents.filter(d=>/Auftragsbestätigung/i.test(d.pages.map(p=>p.text).join(' ')));
+ for(const doc of documents.filter(d=>!orders.includes(d))){
   const cover=doc.pages[0]?.text||'', defaultName=identity(cover)||doc.file.replace(/^\d{4}-\d{2}-\d{2}[_ -]*/, '').replace(/\.pdf$/i,'');
   const drawings=doc.pages.filter(p=>disposition(p));
   const hasSchema=doc.pages.some(p=>!disposition(p)&&! /Inhaltsverzeichnis|Symbolverzeichnis|Allgemeine Hinweise|Anschluss-?\s*und\s*Umgebungsbedingungen/i.test(p.text)&&refSet([p]).size>0);
@@ -80,7 +81,7 @@ export function buildPortfolio(documents,overrides={},links={}){
   const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;p.warnings.push(...parsed.warnings);
   p.sources=[...new Set(p.pages.map(page=>page.file))].map(file=>`${file} (${p.pages.filter(page=>page.file===file).length} Seiten)`);p.layoutSource=best?`${best.page.file} · Seite ${best.page.number}`:'Keine Dispo';
   const supply=best?[...best.page.text.matchAll(/Zuleitung[^\n]*?\s(\d+)\s*A\b/gi)].map(m=>+m[1]):[];const currents=[...new Set(supply.length?supply:parsed.currents.map(c=>c.amp))];if(currents.length===1)p.project.amp=currents[0];
-  const refs=new Map();if(best)for(const item of best.page.items||[]){const ref=item.str.trim().replace(/^[-+]/,'');if(/^\d+F\d+(?:\.\d+)*[A-Za-z]?$/.test(ref)){const list=refs.get(ref)||[];list.push(item.x);refs.set(ref,list);}}
+  const refs=new Map();if(best)for(const item of best.page.items||[]){const ref=item.str.trim().replace(/^[-+]/,'');if(/^\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?$/.test(ref)){const list=refs.get(ref)||[];list.push(item.x);refs.set(ref,list);}}
   // Field boundaries need visual confirmation. Never silently place every device into field 1.
   let boundary=null;
   if(best&&p.fields.length===2){
@@ -91,6 +92,10 @@ export function buildPortfolio(documents,overrides={},links={}){
   for(const d of p.devices){d.field=p.fields.length===1?1:0;const xs=refs.get(d.ref.replace(/^[-+]/,''));if(boundary!==null&&xs?.length===1){d.field=xs[0]<boundary?1:2;d.note=(d.note||'')+' Feldvorschlag anhand Position in Dispo; prüfen.';}}
   if(p.fields.length>1)p.warnings.push('Geräte den Feldern zuordnen. Die elektrische Reihenfolge im Schema bestimmt nicht die physische Einbauposition.');
   if(best){const hh=(best.page.items||[]).filter(x=>x.rotated&&/^\d{4}$/.test(x.str.trim())).map(x=>+x.str);if(hh.some(h=>p.fields.some(f=>f.h&&h!==f.h)))p.warnings.push('Höhe in Masslinie und Beschrieb weicht ab. Feldhöhe vor Export prüfen.');}p.reviewed=false;
+  for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name){Object.assign(p.project,info);p.project.name=p.name;p.sources.push(order.file+' (Auftragsbestätigung)');p.warnings.push('PL aus «Ihr Ansprechpartner» vorgeschlagen; Zuständigkeit prüfen.');}}
+
  }
- return {plants,pending};
+ for(const order of orders)if(!plants.some(p=>p.sources.some(s=>s.startsWith(order.file+' ('))))pending.push({file:order.file,name:order.file});return {plants,pending};
 }
+
+export function parseOrder(doc){const text=doc.pages.map(p=>p.text).join('\n'),lines=text.split('\n').map(s=>s.trim()).filter(Boolean);const after=label=>{const i=lines.findIndex(l=>l===label);return i>=0?lines[i+1]:'';};const date=after('Datum:').match(/(\d{2})\.(\d{2})\.(\d{4})/);const delivery=after('Lieferadresse');return {customer:lines[0]||'',customerNo:after('Kundennummer:'),pl:after('Ihr Ansprechpartner:'),date:date?`${date[3]}-${date[2]}-${date[1]}`:'',order:text.match(/\bAU-\d+\b/)?.[0]||'',city:delivery.match(/\b\d{4}\s+([^,]+)/)?.[1]?.trim()||''};}

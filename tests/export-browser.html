@@ -1,6 +1,6 @@
 <!doctype html><html lang="de"><meta charset="utf-8"><title>Excel-Export Integrationstest</title><h1>Excel-Export Integrationstest</h1><label>Originalvorlage auswählen <input id="file" type="file" accept=".xlsx"></label><pre id="results">Wartet auf Vorlage.</pre><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script type="module">
 import {readWorkbook,exportWorkbook} from '../waerme/workbook.mjs';
-import {SHEETS,candidates,maxPv} from '../waerme/core.mjs';
+import {SHEETS,candidates,suggestArticle,maxPv} from '../waerme/core.mjs';
 document.getElementById('file').onchange=async e=>{
  const output=document.getElementById('results');output.textContent='Prüfung läuft …';
  try{const buffer=await e.target.files[0].arrayBuffer(),w=await readWorkbook(buffer,JSZip),results=[];
@@ -9,10 +9,19 @@ document.getElementById('file').onchange=async e=>{
  const h=candidates({kind:'FILS',system:'hager',amp:16,ma:30,poles:'LN'},w.catalog);
  const s=candidates({kind:'FILS',system:'smissline',amp:16,ma:30,poles:'LN'},w.catalog);
  check(h.length===1&&h[0].row===317,'Hager FI/LS 16 A → Zeile 317');check(s.length===1&&s[0].row===443,'Smissline FI/LS 16 A → Zeile 443');
+ check(Math.abs(w.deviceTotal([{ref:'test',article:h[0].id,qty:7}])-63.84)<1e-8,'Gerätetotal wird aus Excel-Formeln berechnet');
+ check(w.corrections.length===1,'Doppelte Smissline-Zählung korrigiert');
+ const spd=w.catalog.find(c=>c.kind==='SPD');check(!!spd,'Vierpoliger SPD-Referenzeintrag vorhanden');let missing=false;try{w.deviceTotal([{ref:'SPD',article:spd.id,qty:1}]);}catch{missing=true;}check(missing,'Fehlende SPD-Verlustleistung verhindert scheinbar präzises Total');check(w.deviceTotal([{ref:'SPD',article:spd.id,qty:1,manualLoss:2.5}])===2.5,'Manueller SPD-Wert einmal im Excel-Total enthalten');
+ const extras=[{kind:'FUSE',amp:10,poles:'LN'},{kind:'FUSE',amp:13,poles:'3LN'},{kind:'NH',amp:160,poles:'3LN',referenceCode:'S00(0) u.ä'},{kind:'CLOCK'},{kind:'TWILIGHT'},{kind:'METER'},{kind:'TIMER',referenceCode:'TLA-1/230'}].map((d,i)=>({...d,ref:'test-extra-'+i,qty:1,field:1,article:suggestArticle(d,w.catalog)?.id}));
+ check(extras.every(d=>d.article),'Excel-Referenzen: '+extras.map(d=>d.kind+":"+(d.article||"FEHLT")).join(", "));
+ check(w.catalog.find(c=>c.id===extras[1].article).row===66,'13-A-Sicherung verwendet 16-A-DII-3LN-Referenz');
+ check(w.deviceTotal([extras[2]])>=56,'NH-Element enthält auch drei Sicherungspatronen aus der Excel-Formel');
+ check(w.deviceTotal(extras)>60,'Zusatzgeräte werden im Excel-Total mitgerechnet');
  const fields=['SBR','ARS','SBR','GZK','SBR'].map(type=>({type,b:1008,h:1200,t:165,percent:50,mode:'estimate',max:maxPv(type,1008,1200,165,w.get)}));fields.forEach(f=>f.selected=f.max/2);
- const blob=await exportWorkbook(buffer,JSZip,{project:{customer:'<Test & Kunde>',customerNo:'00012',pl:'Test',name:'Testanlage',order:'TEST',type:'SBR',city:'Zürich',amp:160,icp:10},fields,devices:[{ref:'1F1',source:'Test',field:1,qty:7,article:h[0].id},{ref:'2F1',source:'Test',field:2,qty:3,article:s[0].id}]});
+ const blob=await exportWorkbook(buffer,JSZip,{project:{customer:'<Test & Kunde>',customerNo:'00012',pl:'Test',name:'Testanlage',order:'TEST',type:'SBR',city:'Zürich',amp:160,icp:10},fields,devices:[...extras,{ref:'1F1',source:'Test',field:1,qty:7,article:h[0].id},{ref:'2F1',source:'Test',field:2,qty:3,article:s[0].id}]});
  const v=await readWorkbook(await blob.arrayBuffer(),JSZip);
  check(v.get(SHEETS.project,'B7')==='<Test & Kunde>','Texte XML-sicher übernommen');check(v.get(SHEETS.project,'H7')==='00012','Führende Nullen der Kundennummer erhalten');check(v.get(SHEETS.project,'H24')===160&&v.get(SHEETS.project,'D26')===10,'Bemessungsstrom und Icp richtig');
+ for(const d of extras){const c=w.catalog.find(c=>c.id===d.article);check(v.get(c.sheet,'A'+c.row)===1,'Zusatzgerät exportiert: '+c.label);}
  check(v.get(SHEETS.fine,'A317')===7&&v.get(SHEETS.fine,'A443')===3,'Hager- und Smissline-Mengen richtig');
  check(v.sheets.get(SHEETS.project).cells.get('D32').formula==="'"+SHEETS.fine+"'!F748",'Feld-3-Bezug korrigiert');
  for(let i=0;i<5;i++)check(v.get(SHEETS.fine,'F'+(746+i))===fields[i].selected,'Feld '+(i+1)+' übernommen');
