@@ -23,6 +23,7 @@ export function candidates(d,catalog){
  if(d.kind==='SPD')return catalog.filter(c=>c.kind==='SPD'&&c.poles==='4P');
  if(['FILS','LS','FI'].includes(d.kind))return catalog.filter(c=>c.kind===d.kind&&c.system===d.system&&c.amp===d.amp&&(!d.poles||c.poles===d.poles)&&(!d.ma||c.ma===d.ma)&&!c.special);
  let cs=catalog.filter(c=>c.kind===d.kind);
+ if(d.kind==='CONTACTOR')return cs.filter(c=>/^ESC[24](?:25|40|63)S$/.test(c.code.trim()));
  if(['FUSE','NH','MAIN'].includes(d.kind)){
   if(!d.amp)return [];
   if(d.kind==='FUSE'){cs=cs.filter(c=>d.amp<=25?/^DII Element/.test(c.label):/^DIII Element/.test(c.label));const fine=cs.filter(c=>c.sheet===SHEETS.fine);if(fine.length)cs=fine;}
@@ -32,7 +33,9 @@ export function candidates(d,catalog){
  return cs;
 }
 export function suggestArticle(d,catalog){
- const cs=candidates(d,catalog);if(cs.length===1)return cs[0];
+ const cs=candidates(d,catalog);
+ if(d.kind==='CONTACTOR'){const amp=d.amp>0?d.amp:25,rating=[25,40,63].find(a=>a>=amp);const contacts=(d.poles==='2S'||d.poles!=='4S'&&d.contacts==='2S')?'2':'4';return cs.find(c=>c.code.trim()===`ESC${contacts}${rating}S`);}
+ if(cs.length===1)return cs[0];
  if(d.kind==='SPD')return cs[0];
  // User-authorised representative time switch; other ambiguous variants stay open.
  if(d.kind==='CLOCK')return cs.find(c=>c.code==='EG103')||cs[0];
@@ -49,7 +52,7 @@ export function parsePages(pages){
   const confirmed=/abelia/i.test(pages.map(p=>p.file).join(' '))&&['10S2','13F2.1','60P3','61K7'].every(ref=>sourceText.split('\n').includes(ref))?{
    '11F6':{kind:'FUSE',amp:10,poles:'LN'},'12F4':{kind:'FUSE',amp:13,poles:'3LN'},
    '13F2.1':{kind:'NH',amp:160,poles:'3LN',referenceCode:'S00(0) u.ä'},'13F4.1':{kind:'FUSE',amp:13,poles:'3LN'},
-   '15F2':{kind:'FUSE',amp:25,poles:'3LN'},'22Y3':{kind:'METER'},
+   '15P2.2':{exclude:true},'15F2':{kind:'FUSE',amp:25,poles:'3LN'},'22Y3':{kind:'METER'},
    '60P3':{kind:'CLOCK'},'60P5':{kind:'CLOCK'},'60K6':{kind:'TWILIGHT'},
    '60K8':{kind:'TIMER',referenceCode:'TLA-1/230'},'61K5':{kind:'TIMER',referenceCode:'TLA-1/230'},
    '61K7':{kind:'CONTACTOR'}
@@ -77,10 +80,12 @@ export function parsePages(pages){
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD]$/.test(x));
       const local=block.join(' ');const letter=ref.match(/\d+([A-Z])\d/)[1];
-      const kind=spd?'SPD':/Hauptschalter/i.test(local)?'MAIN':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser|kWh/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':/Schütz|Relais/i.test(local)&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const kind=spd?'SPD':/Hauptschalter/i.test(local)?'MAIN':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':block.includes('5')&&block.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:other?block.slice(0,5).join(' '):''};
       if(confirmed[ref]){Object.assign(device,confirmed[ref]);device.note='Symbolzuordnung für dieses Schema bestätigt. '+device.note;}
+      if(device.exclude||(['P','Y'].includes(letter)&&device.kind!=='METER'&&/kWh|Wirkleistungszähler|DVH4013/i.test(lines.slice(Math.max(0,i-5),refs[k+1]?.i??lines.length).join(' ')))){seen.add(ref);result.ignored.push(source+': '+ref+' – kein Privatzähler; nicht berücksichtigt.');continue;}
+      if(device.kind==='CONTACTOR'){device.contacts=local.match(/\b([24]S)\b/)?.[1]||'';device.note+=(device.amp&&device.contacts?' Hager-Schütz nach Nennstrom und Kontakten.':' Hager-Schütz: fehlende Angaben mit 25 A / 4S ergänzt.');}
       if(device.kind==='MAIN')device.poles='3LN';
       if(!['FILS','FI','LS'].includes(device.kind))device.system='hager';
       result.devices.push(device);seen.add(ref);
