@@ -1,7 +1,7 @@
-import {buildPortfolio} from './portfolio.mjs';
-import {templateStore} from './storage.mjs';
-import {SHEETS,maxPv,candidates,parsePages,validateFields} from './core.mjs';
-import {readWorkbook,exportWorkbook} from './workbook.mjs';
+import {buildPortfolio} from './portfolio.mjs?v=20261027-3';
+import {templateStore} from './storage.mjs?v=20261027-3';
+import {SHEETS,maxPv,candidates,parsePages,validateFields} from './core.mjs?v=20261027-3';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261027-3';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'estimate',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
