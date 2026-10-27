@@ -1,4 +1,4 @@
-import {parsePages} from './core.mjs';
+import {parsePages} from './core.mjs?v=20261027-3';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'estimate',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
