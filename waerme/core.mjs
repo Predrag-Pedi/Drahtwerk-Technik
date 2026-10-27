@@ -35,7 +35,7 @@ export function parsePages(pages){
     if(page.number===1){const body=text.slice(Math.max(text.indexOf('ELEKTROSCHEMA'),text.indexOf('Objekt:')));const city=body.match(/([A-ZÄÖÜ][a-zäöüéè]+)\s*\n\s*\d{4}\b/)||body.match(/\b\d{4}\s+([A-ZÄÖÜ][a-zäöüéè]+(?:[ -][A-ZÄÖÜ][a-zäöü]+)?)/);if(city)result.project.city=city[1];const reversed=[...body.matchAll(/([A-ZÄÖÜ][a-zäöüéè]+)\s*\n\s*\d{4}\b/g)];if(reversed.length)result.project.city=reversed.at(-1)[1];}
     for(const m of text.matchAll(/(?:Zuleitung[^\n]*|Hauptschalter)\s+(\d+)\s*A\b/gi))result.currents.push({amp:+m[1],source});
     if(/\bDispo\b|Disposition/i.test(text)){result.warnings.push(source+': Dispo liefert Masse und Aufbau. Gerätebilder bitte mit dem Schema abgleichen oder manuell ergänzen.');continue;}
-    const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?[A-Za-z]*\d+F\d+[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
+    const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?[A-Za-z]*\d+F\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
     for(let k=0;k<refs.length;k++){
       const {i,ref}=refs[k];if(seen.has(ref))continue;
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.find(x=>/^\d+\s*A$/.test(x));

@@ -15,3 +15,13 @@ test('Unknown schema stays pending until explicit assignment',()=>{const d=doc('
 test('Position-based field proposal requires unique dimension labels and reference position',()=>{
  const r=buildPortfolio([doc('schema','schema',[page('ELEKTROSCHEMA\nAllgemein\nHauptverteilung'),page('Dispo\nB1000/500x H2000x T200mm',2,[{str:'1000',x:100,y:100,width:0},{str:'500',x:300,y:100,width:0},{str:'11F1',x:120,y:200},{str:'12F1',x:300,y:200}]),page('11F1\n16A\nC\n12F1\n16A\nC',3)])]);assert.deepEqual(r.plants[0].devices.map(d=>d.field),[1,2]);
 });
+test('Different file titles join using shared project and devices, independent of import-role and order',()=>{
+ const schema=doc('2026-08-31_HV Sample.pdf','schema',[page('ELEKTROSCHEMA\nTechnikraum\nSAMPLE'),page('DISPO',2),page('11F1\n16A\nC\n12F1.1\n16A\nC\n13F1\n16A\nC',3)]);
+ const layout=doc('2026-10-15_HV Sample Street.pdf','schema',[page('ELEKTROSCHEMA\nSAMPLE'),page('Dispo\nB1258/1258x H1918x H165mm\n11F1\n12F1.1\n13F1',2)]);
+ for(const role of ['schema','dispo'])for(const docs of [[schema,layout],[layout,schema]]){const r=buildPortfolio(docs.map(d=>({...d,role})));assert.equal(r.plants.length,1);const p=r.plants[0];assert.equal(p.devices.length,3);assert.deepEqual(p.fields.map(f=>[f.b,f.h,f.t]),[[1258,1918,null],[1258,1918,null]]);assert.equal(p.sources.length,2);assert.ok(p.layoutSource.includes('2026-10-15'));assert.ok(p.warnings.some(w=>w.includes('H165')));}
+});
+test('Ambiguous repeated device references do not merge unrelated plants; manual link remains available',()=>{
+ const s=n=>doc(n+'.pdf','schema',[page('ELEKTROSCHEMA\n'+n),page('Dispo',2),page('11F1\n16A\n12F1\n16A\n13F1\n16A',3)]);
+ const d=doc('Layout.pdf','schema',[page('Dispo\nB1000x H2000x T200mm\n11F1\n12F1\n13F1')]);
+ const r=buildPortfolio([s('Alpha'),s('Beta'),d]);assert.equal(r.plants.length,3);const joined=buildPortfolio([s('Alpha'),s('Beta'),d],{},{layout:'alpha'});assert.equal(joined.plants.length,2);assert.equal(joined.plants.find(p=>p.id==='alpha').sources.length,2);
+});
