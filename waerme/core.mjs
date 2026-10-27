@@ -11,10 +11,10 @@ export function maxPv(type,b,h,t,get){
   const convection=s?(12*Math.sqrt(n('F18'))+2)*(b*t/1e6)*dt:n('B19');
   return conduction+radiation+convection;
 }
-export const DEVICE_KINDS=[['FILS','FI/LS'],['LS','LS'],['FI','FI'],['SPD','SPD 4-polig'],['MAIN','Hauptschalter'],['FUSE','Schmelzsicherung'],['NH','NH-Element'],['METER','Privatzähler'],['CLOCK','Schaltuhr'],['TWILIGHT','Dämmerungsschalter'],['TIMER','Minuterie/Zeitrelais'],['CONTACTOR','Schütz/Relais'],['OTHER','Andere']];
+export const DEVICE_KINDS=[['FILS','FI/LS'],['LS','LS'],['FI','FI'],['SPD','SPD 4-polig'],['MAIN','Hauptschalter'],['CONTROL','Steuerschalter H–0–A'],['FUSE','Schmelzsicherung'],['NH','NH-Element'],['METER','Privatzähler'],['CLOCK','Schaltuhr'],['TWILIGHT','Dämmerungsschalter'],['TIMER','Minuterie/Zeitrelais'],['CONTACTOR','Schütz/Relais'],['OTHER','Andere']];
 export function classify(label,section=''){
   const text=String(label), all=text+' '+section;
-  return {kind:/DIII? Element/i.test(text)?'FUSE':/NH.*Element|NH - Element/i.test(text)?'NH':/LTS|Dilos|modularer Ausschalter/i.test(text)?'MAIN':/Dämmerungs/i.test(text)?'TWILIGHT':/Schaltuhr|Analoguhr/i.test(text)?'CLOCK':/Privatzähler/i.test(text)?'METER':/Minuterie|Treppenlicht|Monof.relais|Zweif.relais|Multif.relais/i.test(text)?'TIMER':/schütz|Hilfsrelais/i.test(text)?'CONTACTOR':/FI\s*-?\s*Leitung|FI.?LS/i.test(text)?'FILS':/Leitungsschutz|\bLS\b/i.test(text)?'LS':/^FI\s/i.test(text)?'FI':'OTHER',
+  return {kind:/Steuer-Schalter/i.test(text)?'CONTROL':/DIII? Element/i.test(text)?'FUSE':/NH.*Element|NH - Element/i.test(text)?'NH':/LTS|Dilos|modularer Ausschalter/i.test(text)?'MAIN':/Dämmerungs/i.test(text)?'TWILIGHT':/Schaltuhr|Analoguhr/i.test(text)?'CLOCK':/Privatzähler/i.test(text)?'METER':/Minuterie|Treppenlicht|Monof.relais|Zweif.relais|Multif.relais/i.test(text)?'TIMER':/schütz|Hilfsrelais/i.test(text)?'CONTACTOR':/FI\s*-?\s*Leitung|FI.?LS/i.test(text)?'FILS':/Leitungsschutz|\bLS\b/i.test(text)?'LS':/^FI\s/i.test(text)?'FI':'OTHER',
     system:/smissline/i.test(section)?'smissline':'hager',poles:/3LN|3\s*\+\s*N|4.pol/i.test(text)?'3LN':/\bLN\b|1\s*\+\s*N/i.test(text)?'LN':'',
     amp:Number(text.match(/(\d+)\s*A(?:\b|\/)/)?.[1])||null,ma:Number(text.match(/(\d+)\s*mA/i)?.[1])||null,
     special:/\bHI\b|kurzz|kurzzeit|Typ B/i.test(all)};
@@ -35,6 +35,7 @@ export function candidates(d,catalog){
 export function suggestArticle(d,catalog){
  const cs=candidates(d,catalog);
  if(d.kind==='CONTACTOR'){const amp=d.amp>0?d.amp:25,rating=[25,40,63].find(a=>a>=amp);const contacts=(d.poles==='2S'||d.poles!=='4S'&&d.contacts==='2S')?'2':'4';return cs.find(c=>c.code.trim()===`ESC${contacts}${rating}S`);}
+ if(d.kind==='CONTROL')return cs.find(c=>/Schrack/i.test(c.label)&&/H\s*-\s*0\s*-\s*A/i.test(c.label));
  if(d.kind==='OTHER')return undefined;
  return middleLossArticle(cs);
 }
@@ -46,6 +47,16 @@ export function middleLossArticle(cs){
  return usable.toSorted((a,b)=>Math.abs(a.pv-mid)-Math.abs(b.pv-mid)||b.pv-a.pv||String(a.id||a.code||'').localeCompare(String(b.id||b.code||'')))[0];
 }
 
+export function spdLoss(d){const value=d.manualLoss??5;if(!Number.isFinite(value)||value<0)throw Error('Ungültige SPD-Verlustleistung: '+d.ref);return value;}
+// Associate short equipment labels spatially, without treating a whole page's title as a device label.
+function equipmentLabels(page,ref){
+ const items=page.items||[],refs=items.filter(x=>/^[-+]?\d+[FSPKY]\d+(?:\.\d+)*$/.test(x.str.trim()));
+ const point=x=>({x:x.x+(x.width||0)/2,y:x.y});
+ return items.filter(x=>/^(?:RS\s*485|RSE|NKE|ZFA|Res\.|Reserve)$/i.test(x.str.trim())).filter(x=>{
+  const p=point(x),near=refs.map(r=>({r,d:Math.hypot(p.x-point(r).x,p.y-r.y)})).sort((a,b)=>a.d-b.d);
+  return near[0]?.d<65&&near[0].r.str.trim()===ref;
+ }).map(x=>x.str).join(' ');
+}
 export function parsePages(pages){
   const result={devices:[],warnings:[],dimensions:[],currents:[],project:{},ignored:[]};
   const seen=new Set();
@@ -82,10 +93,14 @@ export function parsePages(pages){
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD]$/.test(x));
       const local=block.join(' ');const letter=ref.match(/\d+([A-Z])\d/)[1];
-      const kind=spd?'SPD':/Hauptschalter/i.test(local)?'MAIN':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const kind=spd?'SPD':/Hauptschalter/i.test(local)?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','0','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:other?block.slice(0,5).join(' '):''};
       if(confirmed[ref]){Object.assign(device,confirmed[ref]);device.note='Symbolzuordnung für dieses Schema bestätigt. '+device.note;}
+      const ownLabels=equipmentLabels(page,ref),previousLabel=lines[i-1]||'';
+      const utilityLabel=ownLabels+' '+block.slice(1,4).join(' ')+' '+(/^(?:RS\s*485|RSE|NKE|ZFA|Res\.|Reserve)$/i.test(previousLabel)?previousLabel:'');
+      if(['P','Y'].includes(letter)&&(/\b(?:RSE|NKE|ZFA|RS\s*485)\b/i.test(utilityLabel)||/\bRes\.|\bReserve\b/i.test(utilityLabel))){seen.add(ref);result.ignored.push(source+': '+ref+' – Messkommunikation/Reserve gemäss Vorgabe ausgeschlossen.');continue;}
+      if(device.kind==='SPD'){device.manualLoss=5;device.note+=' SPD: Vorgabewert 5 W je Gerät.';}
       if(device.exclude||(['P','Y'].includes(letter)&&device.kind==='OTHER'&&/kWh|(?:Strom|Storm|Energie|Wirkleistungs)?zähler|\bMID\b|DVH\d+/i.test(lines.slice(Math.max(0,i-5),refs[k+1]?.i??lines.length).join(' ')))){seen.add(ref);result.ignored.push(source+': '+ref+' – kein Privatzähler; nicht berücksichtigt.');continue;}
       if(device.kind==='CONTACTOR'){device.contacts=local.match(/\b([24]S)\b/)?.[1]||'';device.note+=(device.amp&&device.contacts?' Hager-Schütz nach Nennstrom und Kontakten.':' Hager-Schütz: fehlende Angaben mit 25 A / 4S ergänzt.');}
       if(device.kind==='MAIN')device.poles='3LN';
