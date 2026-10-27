@@ -18,7 +18,7 @@ export function classify(label,section=''){
     amp:Number(text.match(/(\d+)\s*A(?:\b|\/)/)?.[1])||null,ma:Number(text.match(/(\d+)\s*mA/i)?.[1])||null,
     special:/\bHI\b|kurzz|kurzzeit|Typ B/i.test(all)};
 }
-export function candidates(device,catalog){return catalog.filter(c=>c.kind===device.kind&&c.system===device.system&&c.amp===device.amp&&(!device.poles||c.poles===device.poles)&&(!device.ma||c.ma===device.ma)&&!c.special);}
+export function candidates(device,catalog){if(device.kind==='SPD')return catalog.filter(c=>c.kind==='SPD'&&c.poles==='4P');return catalog.filter(c=>c.kind===device.kind&&c.system===device.system&&c.amp===device.amp&&(!device.poles||c.poles===device.poles)&&(!device.ma||c.ma===device.ma)&&!c.special);}
 export function parsePages(pages){
   const result={devices:[],warnings:[],dimensions:[],currents:[],project:{},ignored:[]};
   const seen=new Set();
@@ -41,10 +41,11 @@ export function parsePages(pages){
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.find(x=>/^\d+\s*A$/.test(x));
       const amp=ampLine?parseInt(ampLine):null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
       const ma=maLine?parseInt(maLine):null;
+      const spd=/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '));
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD]$/.test(x));
-      const kind=other?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':'OTHER';
-      const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=block.includes('5')&&block.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
+      const kind=spd?'SPD':other?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':'OTHER';
+      const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':block.includes('5')&&block.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:other?block.slice(0,5).join(' '):''};
       result.devices.push(device);seen.add(ref);
       if(other&&amp&&/DIN00|Trennmesser/.test(block.join(' ')))result.currents.push({amp,source});
