@@ -1,0 +1,29 @@
+<!doctype html><html lang="de"><meta charset="utf-8"><title>Excel-Export Integrationstest</title><h1>Excel-Export Integrationstest</h1><label>Originalvorlage auswählen <input id="file" type="file" accept=".xlsx"></label><pre id="results">Wartet auf Vorlage.</pre><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script type="module">
+import {readWorkbook,exportWorkbook} from '../waerme/workbook.mjs';
+import {SHEETS,candidates,maxPv} from '../waerme/core.mjs';
+document.getElementById('file').onchange=async e=>{
+ const output=document.getElementById('results');output.textContent='Prüfung läuft …';
+ try{const buffer=await e.target.files[0].arrayBuffer(),w=await readWorkbook(buffer,JSZip),results=[];
+ const check=(ok,label)=>{if(!ok)throw Error(label);results.push('OK: '+label);};
+ check(w.catalog.length>400,'Geteilte Excel-Formeln werden beim Artikelimport berücksichtigt');
+ const h=candidates({kind:'FILS',system:'hager',amp:16,ma:30,poles:'LN'},w.catalog);
+ const s=candidates({kind:'FILS',system:'smissline',amp:16,ma:30,poles:'LN'},w.catalog);
+ check(h.length===1&&h[0].row===317,'Hager FI/LS 16 A → Zeile 317');check(s.length===1&&s[0].row===443,'Smissline FI/LS 16 A → Zeile 443');
+ const fields=['SBR','ARS','SBR','GZK','SBR'].map(type=>({type,b:1008,h:1200,t:165,percent:50,mode:'estimate',max:maxPv(type,1008,1200,165,w.get)}));fields.forEach(f=>f.selected=f.max/2);
+ const blob=await exportWorkbook(buffer,JSZip,{project:{customer:'<Test & Kunde>',customerNo:'00012',pl:'Test',name:'Testanlage',order:'TEST',type:'SBR',city:'Zürich',amp:160,icp:10},fields,devices:[{ref:'1F1',source:'Test',field:1,qty:7,article:h[0].id},{ref:'2F1',source:'Test',field:2,qty:3,article:s[0].id}]});
+ const v=await readWorkbook(await blob.arrayBuffer(),JSZip);
+ check(v.get(SHEETS.project,'B7')==='<Test & Kunde>','Texte XML-sicher übernommen');check(v.get(SHEETS.project,'H7')==='00012','Führende Nullen der Kundennummer erhalten');check(v.get(SHEETS.project,'H24')===160&&v.get(SHEETS.project,'D26')===10,'Bemessungsstrom und Icp richtig');
+ check(v.get(SHEETS.fine,'A317')===7&&v.get(SHEETS.fine,'A443')===3,'Hager- und Smissline-Mengen richtig');
+ check(v.sheets.get(SHEETS.project).cells.get('D32').formula==="'"+SHEETS.fine+"'!F748",'Feld-3-Bezug korrigiert');
+ for(let i=0;i<5;i++)check(v.get(SHEETS.fine,'F'+(746+i))===fields[i].selected,'Feld '+(i+1)+' übernommen');
+ check(v.get(SHEETS.sbr,'B29')===null&&v.get(SHEETS.ars,'B31')===fields[1].max,'Keine doppelte Max.-Pv-Übernahme zwischen Bauarten');
+ for(const p of Object.keys(w.zip.files).filter(p=>/^xl\/(media|drawings)\//.test(p)&&!w.zip.files[p].dir))check(await w.zip.file(p).async('base64')===await v.zip.file(p).async('base64'),'Unverändert: '+p);
+ check(await w.zip.file('xl/styles.xml').async('string')===await v.zip.file('xl/styles.xml').async('string'),'Formatvorlagen unverändert');
+ check(v.sheets.has('Webapp Eingaben'),'Alle Feldmasse und Quellen dokumentiert');check(!v.zip.file('xl/calcChain.xml'),'Veraltete Berechnungskette entfernt');
+ const batch=new JSZip();for(let i=0;i<3;i++){const b=await exportWorkbook(buffer,JSZip,{project:{name:'Anlage '+i,city:'Zürich',amp:160,icp:6},fields:fields.slice(0,i===0?2:1),devices:[]});batch.file('Anlage_'+i+'.xlsx',b);}
+ const batchBlob=await batch.generateAsync({type:'blob'}),batchRead=await JSZip.loadAsync(batchBlob);check(Object.keys(batchRead.files).length===3,'Sammel-ZIP enthält drei separate Excel-Dateien');
+ for(let i=0;i<3;i++){const wb=await readWorkbook(await batchRead.file('Anlage_'+i+'.xlsx').async('arraybuffer'),JSZip);check(wb.get(SHEETS.project,'B9')==='Anlage '+i,'Anlage '+i+' im eigenen Export');check(wb.get(SHEETS.fine,'F747')===(i===0?fields[1].selected:null),'Felder pro Anlage getrennt: '+i);}
+ output.textContent=results.join('\n')+'\n\nAlle Export-Prüfungen bestanden. Native Excel-Neuberechnung bleibt separat zu prüfen.';
+ }catch(err){output.textContent='FEHLER: '+err.message;}
+};
+</script></html>
