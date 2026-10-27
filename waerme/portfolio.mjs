@@ -1,4 +1,4 @@
-import {parsePages} from './core.mjs?v=20261027-5';
+import {parsePages} from './core.mjs?v=20261027-6';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
@@ -78,24 +78,50 @@ export function buildPortfolio(documents,overrides={},links={}){
   if(best?.uncertain)p.warnings.push('Feldmasse aus Massbeschriftungen vorgeschlagen. Tiefe und Aufteilung prüfen.');
   if(ranked.length>1)p.warnings.push('Mehrere Dispos vorhanden. Separate Dispo hat Vorrang; ältere Zeichnungen bitte abgleichen.');
   const schema=p.pages.filter(page=>!disposition(page)),parsed=parsePages(schema);
-  const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;p.warnings.push(...parsed.warnings);
+  const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;p.warnings.push(...parsed.warnings,...parsed.ignored.filter(s=>s.includes('kein Privatzähler')));
   p.sources=[...new Set(p.pages.map(page=>page.file))].map(file=>`${file} (${p.pages.filter(page=>page.file===file).length} Seiten)`);p.layoutSource=best?`${best.page.file} · Seite ${best.page.number}`:'Keine Dispo';
   const supply=best?[...best.page.text.matchAll(/Zuleitung[^\n]*?\s(\d+)\s*A\b/gi)].map(m=>+m[1]):[];const currents=[...new Set(supply.length?supply:parsed.currents.map(c=>c.amp))];if(currents.length===1)p.project.amp=currents[0];
   const refs=new Map();if(best)for(const item of best.page.items||[]){const ref=item.str.trim().replace(/^[-+]/,'');if(/^\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?$/.test(ref)){const list=refs.get(ref)||[];list.push(item.x);refs.set(ref,list);}}
-  // Field boundaries need visual confirmation. Never silently place every device into field 1.
-  let boundary=null;
-  if(best&&p.fields.length===2){
-   const labels=p.fields.map(f=>(best.page.items||[]).filter(x=>x.str.trim()===String(f.b)&&!x.rotated&&x.y<best.page.height*.3));
-   const centres=p.fields[0].b===p.fields[1].b&&labels[0].length===2?labels[0].map(x=>x.x+(x.width||0)/2).sort((a,b)=>a-b):labels.every(a=>a.length===1)?labels.map(a=>a[0].x+(a[0].width||0)/2):[];
-   if(centres.length===2){const [a,b]=centres;if(b>a)boundary=(a*p.fields[1].b+b*p.fields[0].b)/(p.fields[0].b+p.fields[1].b);}
-  }
-  for(const d of p.devices){d.field=p.fields.length===1?1:0;const xs=refs.get(d.ref.replace(/^[-+]/,''));if(boundary!==null&&xs?.length===1){d.field=xs[0]<boundary?1:2;d.note=(d.note||'')+' Feldvorschlag anhand Position in Dispo; prüfen.';}}
-  if(p.fields.length>1)p.warnings.push('Geräte den Feldern zuordnen. Die elektrische Reihenfolge im Schema bestimmt nicht die physische Einbauposition.');
+  assignFields(p.devices,p.fields,best?.page,refs);
+  if(p.devices.some(d=>d.fieldMethod==='slots'))p.warnings.push('Nicht im Dispo lokalisierte Geräte automatisch nach Platzeinheiten und Feldbreiten verteilt (Näherung).');
   if(best){const hh=(best.page.items||[]).filter(x=>x.rotated&&/^\d{4}$/.test(x.str.trim())).map(x=>+x.str);if(hh.some(h=>p.fields.some(f=>f.h&&h!==f.h)))p.warnings.push('Höhe in Masslinie und Beschrieb weicht ab. Feldhöhe vor Export prüfen.');}p.reviewed=false;
-  for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name){Object.assign(p.project,info);p.project.name=p.name;p.sources.push(order.file+' (Auftragsbestätigung)');p.warnings.push('PL aus «Ihr Ansprechpartner» vorgeschlagen; Zuständigkeit prüfen.');}}
+  for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name){Object.assign(p.project,info);p.project.name=p.name;p.sources.push(order.file+' (Auftragsbestätigung)');}}
 
  }
  for(const order of orders)if(!plants.some(p=>p.sources.some(s=>s.startsWith(order.file+' ('))))pending.push({file:order.file,name:order.file});return {plants,pending};
 }
 
-export function parseOrder(doc){const text=doc.pages.map(p=>p.text).join('\n'),lines=text.split('\n').map(s=>s.trim()).filter(Boolean);const after=label=>{const i=lines.findIndex(l=>l===label);return i>=0?lines[i+1]:'';};const date=after('Datum:').match(/(\d{2})\.(\d{2})\.(\d{4})/);const delivery=after('Lieferadresse');return {customer:lines[0]||'',customerNo:after('Kundennummer:'),pl:after('Ihr Ansprechpartner:'),date:date?`${date[3]}-${date[2]}-${date[1]}`:'',order:text.match(/\bAU-\d+\b/)?.[0]||'',city:delivery.match(/\b\d{4}\s+([^,]+)/)?.[1]?.trim()||''};}
+export function parseOrder(doc){
+ const text=doc.pages.map(p=>p.text).join('\n'),lines=text.split('\n').map(s=>s.trim()).filter(Boolean);
+ const after=label=>{const i=lines.findIndex(l=>l.startsWith(label));return i>=0?(lines[i].slice(label.length).trim()||lines[i+1]||''):'';};
+ const date=after('Datum:').match(/(\d{2})\.(\d{2})\.(\d{4})/),delivery=text.split('Lieferadresse')[1]?.split(/Guten Tag|Sehr geehrt|Pos\./)[0]||'';
+ // Recipient/salutation belongs to the customer. "Ihr Ansprechpartner" is the issuer.
+ const salutation=text.match(/(?:Guten Tag|Sehr geehrter Herr|Sehr geehrte Frau)\s+([^\n,]+)/i)?.[1]?.trim();
+ const recipient=lines.find(l=>/^(?:Herr|Frau)\s+/.test(l))?.replace(/^(?:Herr|Frau)\s+/,'').trim();
+ const name=[salutation,recipient].find(n=>n&&n.split(/\s+/).length>=2&&!/Djevat|Neziri/i.test(n))||'';
+ return {customer:lines.find(l=>!/Drahtwerk/i.test(l)&&/\b(?:AG|GmbH)\b/.test(l))||'',customerNo:after('Kundennummer:').match(/^\d+/)?.[0]||'',pl:name,date:date?`${date[3]}-${date[2]}-${date[1]}`:'',order:text.match(/\bAU-\d+\b/)?.[0]||'',city:delivery.match(/\b\d{4}\s+([^,]+)/)?.[1]?.trim()||''};
+}
+export function moduleUnits(d){
+ if(d.kind==='LS')return d.poles==='3LN'||d.poles==='4P'?3:1;
+ if(d.kind==='FILS')return d.poles==='3LN'||d.poles==='4P'?4:2;
+ return d.poles==='3LN'||d.poles==='4P'||d.poles==='4S'?4:2;
+}
+export function assignFields(devices,fields,page,refs=new Map()){
+ if(!fields.length)return;
+ const labels=(page?.items||[]).filter(x=>!x.rotated&&x.y<page.height*.3&&fields.some(f=>String(f.b)===x.str.trim())).sort((a,b)=>a.x-b.x);
+ const centres=labels.length===fields.length&&labels.every((x,i)=>+x.str===fields[i].b)?labels.map(x=>x.x+(x.width||0)/2):[];
+ const boundaries=centres.slice(1).map((x,i)=>(centres[i]*fields[i+1].b+x*fields[i].b)/(fields[i].b+fields[i+1].b));
+ const loads=fields.map(()=>0),widths=fields.map(f=>f.b>0?f.b:1);
+ for(const d of devices){
+  d.field=fields.length===1?1:0;d.fieldMethod=fields.length===1?'single':'';
+  const xs=refs.get(d.ref.replace(/^[-+]/,''));
+  if(centres.length&&xs?.length){const targets=xs.map(x=>boundaries.filter(b=>x>=b).length+1);if(targets.every(f=>f===targets[0])){d.field=targets[0];d.fieldMethod='dispo';}}
+  if(d.field)loads[d.field-1]+=moduleUnits(d)*(d.qty||1);
+ }
+ for(const d of devices.filter(d=>!d.field)){
+  const units=moduleUnits(d)*(d.qty||1);let target=0;
+  for(let i=1;i<fields.length;i++)if((loads[i]+units)/widths[i]<(loads[target]+units)/widths[target])target=i;
+  d.field=target+1;d.fieldMethod='slots';loads[target]+=units;
+ }
+ for(const d of devices)d.note=(d.note||'')+(d.fieldMethod==='slots'?' Feld automatisch nach Platzeinheiten/Feldbreite verteilt (Näherung).':d.fieldMethod==='dispo'?' Feld anhand Kennzeichen im Dispo.':'');
+}

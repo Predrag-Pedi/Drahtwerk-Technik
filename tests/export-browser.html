@@ -12,7 +12,7 @@ document.getElementById('file').onchange=async e=>{
  check(Math.abs(w.deviceTotal([{ref:'test',article:h[0].id,qty:7}])-63.84)<1e-8,'Gerätetotal wird aus Excel-Formeln berechnet');
  check(w.corrections.length===1,'Doppelte Smissline-Zählung korrigiert');
  const spd=w.catalog.find(c=>c.kind==='SPD');check(!!spd,'Vierpoliger SPD-Referenzeintrag vorhanden');let missing=false;try{w.deviceTotal([{ref:'SPD',article:spd.id,qty:1}]);}catch{missing=true;}check(missing,'Fehlende SPD-Verlustleistung verhindert scheinbar präzises Total');check(w.deviceTotal([{ref:'SPD',article:spd.id,qty:1,manualLoss:2.5}])===2.5,'Manueller SPD-Wert einmal im Excel-Total enthalten');
- const extras=[{kind:'FUSE',amp:10,poles:'LN'},{kind:'FUSE',amp:13,poles:'3LN'},{kind:'NH',amp:160,poles:'3LN',referenceCode:'S00(0) u.ä'},{kind:'CLOCK'},{kind:'TWILIGHT'},{kind:'METER'},{kind:'TIMER',referenceCode:'TLA-1/230'}].map((d,i)=>({...d,ref:'test-extra-'+i,qty:1,field:1,article:suggestArticle(d,w.catalog)?.id}));
+ const extras=[{kind:'FUSE',amp:10,poles:'LN'},{kind:'FUSE',amp:13,poles:'3LN'},{kind:'NH',amp:160,poles:'3LN',referenceCode:'S00(0) u.ä'},{kind:'CLOCK'},{kind:'CONTACTOR'},{kind:'TWILIGHT'},{kind:'METER'},{kind:'TIMER',referenceCode:'TLA-1/230'}].map((d,i)=>({...d,ref:'test-extra-'+i,qty:1,field:1,article:suggestArticle(d,w.catalog)?.id}));
  check(extras.every(d=>d.article),'Excel-Referenzen: '+extras.map(d=>d.kind+":"+(d.article||"FEHLT")).join(", "));
  check(w.catalog.find(c=>c.id===extras[1].article).row===66,'13-A-Sicherung verwendet 16-A-DII-3LN-Referenz');
  check(w.deviceTotal([extras[2]])>=56,'NH-Element enthält auch drei Sicherungspatronen aus der Excel-Formel');

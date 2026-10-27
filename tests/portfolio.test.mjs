@@ -4,7 +4,7 @@ const doc=(file,role,pages)=>({file,role,pages:pages.map(p=>({...p,file}))});
 test('Separate Dispo wins in either import order and preserves separate devices per plant',()=>{
  const schema=n=>doc(n,'schema',[page('ELEKTROSCHEMA\nHaus '+n+'\nHauptverteilung'),page('Dispo\nB1000x H2000x T200mm',2),page('15F1\n16A\nC\n30mA',3)]);
  const own=doc('own','dispo',[page('HV Haus A\nAlu-Selbstbaurahmen\nB1758/758x H1600x T165mm'),page('HV Haus B\nAlu-Selbstbaurahmen\nB2008x H1520x T165mm',2)]);
- for(const docs of [[schema('A'),schema('B'),own],[own,schema('B'),schema('A')]]){const r=buildPortfolio(docs);assert.equal(r.plants.length,2);const a=r.plants.find(p=>p.name==='HV Haus A');assert.deepEqual(a.fields.map(f=>f.b),[1758,758]);assert.equal(a.devices[0].field,0);assert.ok(r.plants.every(p=>p.devices.length===1));}
+ for(const docs of [[schema('A'),schema('B'),own],[own,schema('B'),schema('A')]]){const r=buildPortfolio(docs);assert.equal(r.plants.length,2);const a=r.plants.find(p=>p.name==='HV Haus A');assert.deepEqual(a.fields.map(f=>f.b),[1758,758]);assert.equal(a.devices[0].field,1);assert.ok(r.plants.every(p=>p.devices.length===1));}
 });
 test('Combined PDF separates additional distribution and ignores mentions in general notes',()=>{
  assert.equal(disposition(page('Allgemeine Hinweise\nGrobdisposition des Planers')),null);
