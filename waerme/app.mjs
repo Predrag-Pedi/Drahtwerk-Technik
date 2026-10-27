@@ -1,7 +1,7 @@
-import {buildPortfolio} from './portfolio.mjs?v=20261027-8';
-import {templateStore} from './storage.mjs?v=20261027-8';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields} from './core.mjs?v=20261027-8';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261027-8';
+import {buildPortfolio} from './portfolio.mjs?v=20261027-9';
+import {templateStore} from './storage.mjs?v=20261027-9';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields} from './core.mjs?v=20261027-9';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261027-9';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

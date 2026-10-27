@@ -85,7 +85,7 @@ export function parsePages(pages){
     if(/\bDispo\b|Disposition/i.test(text)){result.warnings.push(source+': Dispo liefert Masse und Aufbau. Gerätebilder bitte mit dem Schema abgleichen oder manuell ergänzen.');continue;}
     const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?[A-Za-z]*\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
     for(let k=0;k<refs.length;k++){
-      const {i,ref}=refs[k];if(seen.has(ref))continue;
+      const {i,ref}=refs[k];if(seen.has(ref)&&!/\d+K\d/.test(ref))continue;
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.slice(0,4).find(x=>/^\d+\s*A$/.test(x));
       const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=ampLine?parseInt(ampLine):before?+before[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
       const ma=maLine?parseInt(maLine):null;
@@ -102,10 +102,22 @@ export function parsePages(pages){
       if(['P','Y'].includes(letter)&&(/\b(?:RSE|NKE|ZFA|RS\s*485)\b/i.test(utilityLabel)||/\bRes\.|\bReserve\b/i.test(utilityLabel))){seen.add(ref);result.ignored.push(source+': '+ref+' – Messkommunikation/Reserve gemäss Vorgabe ausgeschlossen.');continue;}
       if(device.kind==='SPD'){device.manualLoss=5;device.note+=' SPD: Vorgabewert 5 W je Gerät.';}
       if(device.exclude||(['P','Y'].includes(letter)&&device.kind==='OTHER'&&/kWh|(?:Strom|Storm|Energie|Wirkleistungs)?zähler|\bMID\b|DVH\d+/i.test(lines.slice(Math.max(0,i-5),refs[k+1]?.i??lines.length).join(' ')))){seen.add(ref);result.ignored.push(source+': '+ref+' – kein Privatzähler; nicht berücksichtigt.');continue;}
+      const contactText=lines.slice(Math.max(refs[k-1]?.i+1||0,i-3),Math.min(refs[k+1]?.i??lines.length,i+7)).join(' '),terminals=contactText.split(/\s+/);
+      const changeover=letter==='K'&&(/Wechsler|Wechselkontakt/i.test(contactText)||[['11','12','14'],['21','22','24']].some(set=>set.every(t=>terminals.includes(t))));
+      if(changeover&&['OTHER','CONTACTOR'].includes(device.kind)){device.kind='CONTACTOR';device.changeover=true;device.poles='4S';device.note+=' Wechslerkontakt: gemäss Vorgabe als 4S gerechnet.';}
       if(device.kind==='CONTACTOR'){device.contacts=local.match(/\b([24]S)\b/)?.[1]||'';device.note+=(device.amp&&device.contacts?' Hager-Schütz nach Nennstrom und Kontakten.':' Hager-Schütz: fehlende Angaben mit 25 A / 4S ergänzt.');}
       if(device.kind==='MAIN')device.poles='3LN';
       if(!['FILS','FI','LS'].includes(device.kind))device.system='hager';
-      result.devices.push(device);seen.add(ref);
+      const existing=result.devices.find(d=>d.ref===ref);
+      if(existing){
+        const rank=d=>d.kind==='OTHER'?0:d.kind==='CONTACTOR'?1:2;
+        if(rank(device)>rank(existing))Object.assign(existing,device);
+        else if(existing.kind==='CONTACTOR'&&device.kind==='CONTACTOR'){
+          if(device.amp)existing.amp=device.amp;
+          if(device.changeover){existing.changeover=true;existing.poles='4S';}
+          if(!existing.source.includes(source))existing.source+='; '+source;
+        }
+      }else result.devices.push(device);seen.add(ref);
       if(other&&amp&&/DIN00|Trennmesser/.test(block.join(' ')))result.currents.push({amp,source});
     }
     if(!refs.length && !/ELEKTROSCHEMA/i.test(text))result.warnings.push(source+': Keine eindeutigen Betriebsmittel erkannt; Seite prüfen.');
