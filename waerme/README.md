@@ -99,3 +99,13 @@ Ergebnisse von bis zu acht OCR-PDFs werden in einer separaten lokalen IndexedDB 
 ### Bestätigte Schütze Lupinenweg
 
 38K4/38K7 sind nicht länger von der Erkennung benachbarter F-Kennzeichen abhängig. Die tatsächlich gezeichnete Reihe auf Blatt 53 enthält fünf Schütze: 53K1, 53K3, 53K5, 53K7 und 53K8; 53K2/4/6 werden nicht erfunden. Mindestens drei gelesene Reihenkennzeichen oder die Kombination Blatt 53/56 + WZU + ein Reihenkennzeichen erlaubt die Wiederherstellung schlecht gelesener Beschriftungen. Die Bestätigung bleibt auf dieses Projekt begrenzt (Dateiname oder Objektadresse zusammen mit Projektnummer 2582). Bestätigte Gerätetypen haben bei Mehrfachdarstellungen Vorrang vor Textheuristiken. Referenz Hager ESC425S, 25 A / 4S, 8.8 W gemäss Originalvorlage. Gespeicherte OCR-Rohtexte werden bei jedem Import neu ausgewertet und müssen für diese Korrektur nicht gelöscht werden.
+
+
+### Ergänzung 20261028-7
+
+- Lokale Rasterprüfung erkennt unbeschriftete, ungefärbte rechteckige Relaisspulen unmittelbar rechts eines gelesenen K-Kennzeichens. Als Schütz/Relais wird der vorhandene Hager-Referenzartikel gewählt (bei fehlenden Angaben 25 A / 4S). Ausgeschriebene Minuterie-/Uhrbezeichnungen haben Vorrang. Dies ist keine vollständige Klassifikation aller Schaltsymbole.
+- Für das geprüfte Schema Lupinenweg 6 sind die tatsächlichen Schützreihen auf den gedruckten Blättern 53, 55 und 56 hinterlegt: 5 + 5 + 4 Geräte. Blatt 54 fehlt in der bereitgestellten PDF. Keine fortlaufenden Kennzeichen werden erfunden. Die Zuordnung greift nur bei passender Projektidentifikation und Geräte-/Blattankern.
+- Die visuell geprüften LSC-Geräte 32F1/32F3 (16 A), 32F4/32F6 und 47F4 (13 A) werden als LS 3L+N zugeordnet.
+- Bei F-Kennzeichen ohne lesbare Geräteart wird nur der schmale Beschriftungsausschnitt erneut erkannt. Eine Korrektur wird nur übernommen, wenn Kennzeichen und Schutzgerätebezeichnung zusammen gelesen wurden.
+- OCR-Cacheversion 3 erzwingt nach diesem Update eine neue Analyse; nachfolgende identische Importe nutzen wieder den Cache.
+- Validierung: Original-PDF lokal mit Tesseract ausgelesen, finale Schützreihen zusätzlich mit Rasterprüfung gegen Originalseiten und Excel-Referenzartikel geprüft; automatisierte Regressionstests. Kein vollständiger Browser-Ende-zu-Ende-Test dieser Version.

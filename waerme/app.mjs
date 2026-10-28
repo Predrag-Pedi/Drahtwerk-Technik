@@ -1,10 +1,10 @@
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261028-6';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261028-6';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-6';
-import {buildPortfolio} from './portfolio.mjs?v=20261028-6';
-import {templateStore} from './storage.mjs?v=20261028-6';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261028-6';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-6';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261028-7';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261028-7';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-7';
+import {buildPortfolio} from './portfolio.mjs?v=20261028-7';
+import {templateStore} from './storage.mjs?v=20261028-7';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261028-7';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-7';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
