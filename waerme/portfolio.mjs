@@ -1,4 +1,4 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261028-3';
+import {parsePages,defaultIcp} from './core.mjs?v=20261028-4';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
@@ -13,7 +13,7 @@ export function disposition(page){
  const m=text.match(/B\s*(\d+(?:\s*\/\s*\d+)*)\s*[x×]\s*H\s*(\d+)\s*[x×]\s*([TH])\s*(\d+)\s*mm/i);
  if(!m&&!/\bDispo\b|\bDisposition\b/i.test(text))return null;
  const lines=text.split('\n').map(s=>s.trim()).filter(Boolean), alu=lines.findIndex(s=>/Alu[ -](Selbstbau|Reihen)/i.test(s));
- const title=alu>0&&/[a-zäöü]/i.test(lines[alu-1])?lines[alu-1]:'';
+ const title=alu>0&&/[a-zäöü]/i.test(lines[alu-1])&&!/^\d*[FSPKYQ]\d+(?:\.\d+)*$/i.test(lines[alu-1])?lines[alu-1]:'';
  const heading=lines.find(s=>/^Dispo(?:sition)?\s+.+/i.test(s))?.replace(/^Dispo(?:sition)?\s+/i,'')||'';const name=identity(title)||identity(text)||title||heading;
  const type=/Selbstbaurahmen/i.test(text)?'SBR':/Reihenschrank/i.test(text)?'ARS':null;
  let fields=m?m[1].split('/').map(b=>({...blankField(),type:type||'SBR',b:+b.trim(),h:+m[2],t:+m[4]})):[];
@@ -44,7 +44,10 @@ function mergeScore(layout,schema){
  const designation=t=>t.match(/^(?:Hauptverteilung|Unterverteilung|HV|UV)\s+[^\n]+/im)?.[0]?.trim().toLowerCase();
  const ld=designation(layout.cover?.text||''),sd=designation(schema.cover?.text||'');
  const sameAddress=la&&la===sa&&ld&&ld===sd;
- return (related||shared||sameAddress||a&&a===b)&&overlap/Math.min(ar.size,br.size)>=.4?overlap:0;
+ const street=f=>f.match(/([a-zäöü]+(?:weg|strasse|straße|gasse))\s+(\d+[a-z]?)/i)?.[0]?.toLowerCase();
+ const layoutStreet=street(layout.pages[0].file),schemaStreet=street(schema.pages[0].file);
+ const sameFileAddress=layoutStreet&&layoutStreet===schemaStreet;
+ return (related||shared||sameAddress||sameFileAddress||a&&a===b)&&overlap/Math.min(ar.size,br.size)>=.4?overlap:0;
 }
 export function buildPortfolio(documents,overrides={},links={}){
  const plants=[],pending=[];const add=(name)=>{let p=plants.find(p=>norm(p.name)===norm(name));if(!p){p={id:norm(name),name,pages:[],dispos:[],warnings:[],hasSchema:false};plants.push(p);}return p;};
