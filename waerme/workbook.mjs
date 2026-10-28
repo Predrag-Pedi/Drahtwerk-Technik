@@ -1,5 +1,5 @@
-import {shiftFormula,calculateCell} from './formula.mjs?v=20261028-1';
-import {SHEETS,classify,spdLoss} from './core.mjs?v=20261028-1';
+import {shiftFormula,calculateCell} from './formula.mjs?v=20261028-2';
+import {SHEETS,classify,spdLoss} from './core.mjs?v=20261028-2';
 const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)throw Error('Ungültiges XML in Excel-Datei');return d;};
 const tags=(n,t)=>Array.from(n.getElementsByTagNameNS('*',t));

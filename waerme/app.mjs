@@ -1,7 +1,8 @@
-import {buildPortfolio} from './portfolio.mjs?v=20261028-1';
-import {templateStore} from './storage.mjs?v=20261028-1';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields} from './core.mjs?v=20261028-1';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-1';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-2';
+import {buildPortfolio} from './portfolio.mjs?v=20261028-2';
+import {templateStore} from './storage.mjs?v=20261028-2';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields} from './core.mjs?v=20261028-2';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-2';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -78,7 +79,7 @@ $('pdf').addEventListener('change',async e=>{
  const files=Array.from(e.target.files);if(!files.length)return;state.busy=true;$('pdf').disabled=true;update();
  try{const role='auto',pdfjs=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
  const imported=[];for(const file of files){if(file.size>40*1024*1024)throw Error(file.name+': maximal 40 MB.');const doc=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise;const pages=[];
- try{if(doc.numPages>200)throw Error('Maximal 200 Seiten pro PDF.');for(let i=1;i<=doc.numPages;i++){status(`${file.name}: Seite ${i} von ${doc.numPages}`);const page=await doc.getPage(i),content=await page.getTextContent(),vp=page.getViewport({scale:1});const items=content.items.filter(x=>'str'in x).map(x=>({str:x.str,x:x.transform[4],y:vp.height-x.transform[5],width:x.width,rotated:Math.abs(x.transform[1])>Math.abs(x.transform[0])}));pages.push({file:file.name,number:i,text:items.map(x=>x.str).join('\n'),items,height:vp.height});}}finally{await doc.destroy();}imported.push({file:file.name,role,pages});}
+ try{if(doc.numPages>200)throw Error('Maximal 200 Seiten pro PDF.');for(let i=1;i<=doc.numPages;i++){status(`${file.name}: Seite ${i} von ${doc.numPages}`);const page=await doc.getPage(i),content=await page.getTextContent(),vp=page.getViewport({scale:1});const items=drawingItems(content,vp),text=items.map(x=>x.str).join('\n');let drawing;try{if(/\bReserve\b|\bRes\./i.test(text))drawing=drawingLines(await page.getOperatorList(),pdfjs.OPS,vp);}catch{drawing={complete:false,segments:[]};}pages.push({file:file.name,number:i,text,items,height:vp.height,drawing});}}finally{await doc.destroy();}imported.push({file:file.name,role,pages});}
  for(const doc of imported){const i=documents.findIndex(d=>d.file===doc.file);if(i>=0)documents[i]=doc;else documents.push(doc);}
  importsPending=true;invalidateDownloads();if(!plants.length||!edited)analyze();else status('PDFs eingelesen. Mit «Imports auswerten / Eingaben ersetzen» die Anlagen neu erkennen lassen. Dabei werden manuelle Eingaben ersetzt.');
  }catch(e){status(e.message,true);}finally{state.busy=false;$('pdf').disabled=!state.book;e.target.value='';update();}
