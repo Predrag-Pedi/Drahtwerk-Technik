@@ -1,3 +1,4 @@
+import {reserveStatus} from './drawing.mjs?v=20261028-2';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -85,7 +86,9 @@ export function parsePages(pages){
     if(/\bDispo\b|Disposition/i.test(text)){result.warnings.push(source+': Dispo liefert Masse und Aufbau. Gerätebilder bitte mit dem Schema abgleichen oder manuell ergänzen.');continue;}
     const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
     for(let k=0;k<refs.length;k++){
-      const {i,ref}=refs[k];if(seen.has(ref)&&!/\d*K\d/.test(ref))continue;
+      const {i,ref}=refs[k];
+      if(/[FSKQ]\d/.test(ref)&&reserveStatus(page,ref)==='unwired'){result.ignored.push(source+': '+ref+' – Reserve ohne angeschlossene Stromlinien; nicht eingebaut und ausgeschlossen.');continue;}
+      if(seen.has(ref)&&!/\d*K\d/.test(ref))continue;
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.slice(0,4).find(x=>/^\d+\s*A$/.test(x));
       const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=ampLine?parseInt(ampLine):before?+before[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
       const ma=maLine?parseInt(maLine):null;
