@@ -50,7 +50,7 @@ export function middleLossArticle(cs){
 export function spdLoss(d){const value=d.manualLoss??5;if(!Number.isFinite(value)||value<0)throw Error('Ungültige SPD-Verlustleistung: '+d.ref);return value;}
 // Associate short equipment labels spatially, without treating a whole page's title as a device label.
 function equipmentLabels(page,ref){
- const items=page.items||[],refs=items.filter(x=>/^[-+]?\d+[FSPKY]\d+(?:\.\d+)*$/.test(x.str.trim()));
+ const items=page.items||[],refs=items.filter(x=>/^[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*$/.test(x.str.trim()));
  const point=x=>({x:x.x+(x.width||0)/2,y:x.y});
  return items.filter(x=>/^(?:RS\s*485|RSE|NKE|ZFA|Res\.|Reserve)$/i.test(x.str.trim())).filter(x=>{
   const p=point(x),near=refs.map(r=>({r,d:Math.hypot(p.x-point(r).x,p.y-r.y)})).sort((a,b)=>a.d-b.d);
@@ -83,17 +83,18 @@ export function parsePages(pages){
     if(page.number===1){const body=text.slice(Math.max(text.indexOf('ELEKTROSCHEMA'),text.indexOf('Objekt:')));const city=body.match(/([A-ZÄÖÜ][a-zäöüéè]+)\s*\n\s*\d{4}\b/)||body.match(/\b\d{4}\s+([A-ZÄÖÜ][a-zäöüéè]+(?:[ -][A-ZÄÖÜ][a-zäöü]+)?)/);if(city)result.project.city=city[1];const reversed=[...body.matchAll(/([A-ZÄÖÜ][a-zäöüéè]+)\s*\n\s*\d{4}\b/g)];if(reversed.length)result.project.city=reversed.at(-1)[1];}
     for(const m of text.matchAll(/(?:Zuleitung[^\n]*|Hauptschalter)\s+(\d+)\s*A\b/gi))result.currents.push({amp:+m[1],source});
     if(/\bDispo\b|Disposition/i.test(text)){result.warnings.push(source+': Dispo liefert Masse und Aufbau. Gerätebilder bitte mit dem Schema abgleichen oder manuell ergänzen.');continue;}
-    const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?[A-Za-z]*\d+[FSPKY]\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
+    const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
     for(let k=0;k<refs.length;k++){
-      const {i,ref}=refs[k];if(seen.has(ref)&&!/\d+K\d/.test(ref))continue;
+      const {i,ref}=refs[k];if(seen.has(ref)&&!/\d*K\d/.test(ref))continue;
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.slice(0,4).find(x=>/^\d+\s*A$/.test(x));
       const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=ampLine?parseInt(ampLine):before?+before[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
       const ma=maLine?parseInt(maLine):null;
-      const spd=/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '));
+      const preceding=lines.slice(Math.max(refs[k-1]?.i+1||0,i-10),i).join(' ');
+      const spd=/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(lines.slice(Math.max(0,i-2),i).join(' '));
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD]$/.test(x));
-      const local=block.join(' ');const letter=ref.match(/\d+([A-Z])\d/)[1];
-      const kind=spd?'SPD':/Hauptschalter/i.test(local)?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','0','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const local=block.join(' ');const letter=ref.match(/([FSPKYQ])\d/)[1];
+      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter/i.test(local)||letter==='Q'&&/Hauptschalter|Lasttrennschalter/i.test(preceding))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','0','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:other?block.slice(0,5).join(' '):''};
       if(confirmed[ref]){Object.assign(device,confirmed[ref]);device.note='Symbolzuordnung für dieses Schema bestätigt. '+device.note;}
@@ -106,7 +107,7 @@ export function parsePages(pages){
       const changeover=letter==='K'&&(/Wechsler|Wechselkontakt/i.test(contactText)||[['11','12','14'],['21','22','24']].some(set=>set.every(t=>terminals.includes(t))));
       if(changeover&&['OTHER','CONTACTOR'].includes(device.kind)){device.kind='CONTACTOR';device.changeover=true;device.poles='4S';device.note+=' Wechslerkontakt: gemäss Vorgabe als 4S gerechnet.';}
       if(device.kind==='CONTACTOR'){device.contacts=local.match(/\b([24]S)\b/)?.[1]||'';device.note+=(device.amp&&device.contacts?' Hager-Schütz nach Nennstrom und Kontakten.':' Hager-Schütz: fehlende Angaben mit 25 A / 4S ergänzt.');}
-      if(device.kind==='MAIN')device.poles='3LN';
+      if(device.kind==='MAIN'){device.poles='3LN';if(device.amp)result.currents.push({amp:device.amp,source});}
       if(!['FILS','FI','LS'].includes(device.kind))device.system='hager';
       const existing=result.devices.find(d=>d.ref===ref);
       if(existing){
@@ -120,6 +121,7 @@ export function parsePages(pages){
       }else result.devices.push(device);seen.add(ref);
       if(other&&amp&&/DIN00|Trennmesser/.test(block.join(' ')))result.currents.push({amp,source});
     }
+    if(/Zeitschaltuhr/i.test(text)&&!result.devices.some(d=>d.source===source&&d.kind==='CLOCK'))result.devices.push({ref:'Uhr · Seite '+page.number,kind:'CLOCK',amp:null,ma:null,poles:'',system:'hager',qty:1,field:1,source,article:'',note:'Zeitschaltuhr beschriftet, ohne eigenes Kennzeichen. Anzahl prüfen.'});
     if(!refs.length && !/ELEKTROSCHEMA/i.test(text))result.warnings.push(source+': Keine eindeutigen Betriebsmittel erkannt; Seite prüfen.');
   }
   if(!result.devices.length)result.warnings.push('Keine Geräte sicher erkannt. Bei Dispo oder Scan Geräte manuell hinzufügen; es wird kein vollständiger Gerätebestand angenommen.');
