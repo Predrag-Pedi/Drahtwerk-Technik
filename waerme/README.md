@@ -77,3 +77,7 @@ Die Erkennung unterstützt auch F302, Q101, P112 und S612. Lasttrennschalter mit
 ### Unverdrahtete Reserven
 
 Bei lokal mit „Reserve“/„Res.“ bezeichneten F-/S-/K-/Q-Geräten wertet der Import zusätzlich die PDF-Vektorpfade aus. Ein erkennbares, isoliert gezeichnetes Symbol ohne aus seinem Nahbereich herausführende Linien wird ausgeschlossen und in den Erkennungshinweisen mit Quelle aufgeführt. Vorhandene Anschlusslinien erhalten das Gerät, auch ohne Nennstrom. Die Sammelschienen am oberen Blattrand gelten nicht als Geräteanschluss. Fehlende/uneindeutige Geometrie, Bilder oder nicht unterstützte Pfade führen zu keiner automatischen Entfernung. Die Erkennung ist eine konservative geometrische Näherung, keine vollständige elektrische Netzanalyse. Text und Vektorpfade werden inklusive PDF-Seitenrotation in dasselbe Koordinatensystem gebracht. Die bisherigen Ausschlüsse für Zähler und Messkommunikation gelten weiterhin.
+
+### Icp-Vorgabe und freie Eingabe
+
+Icp wird pro Anlage mit 6 kA vorbelegt, bei Smissline im zugeordneten Dispo oder in den Geräten mit 10 kA. Das Zahlenfeld erlaubt eigene positive Werte, auch über 10 kA. Eine manuelle Eingabe bleibt bei Geräteänderungen und beim Anlagenwechsel erhalten; ein neuer Auftrag bzw. ausdrücklich neu ausgewertete Imports setzen die Vorgabe neu. Ipk folgt unverändert der Excel-Formel ROUND(Icp × 1.7, 0), damit ergeben sich die Standardpaare 6/10 und 10/17 kA. Leere oder ungültige Icp-Werte verhindern den Export.

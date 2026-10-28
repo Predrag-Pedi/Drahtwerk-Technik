@@ -1,4 +1,4 @@
-import {reserveStatus} from './drawing.mjs?v=20261028-2';
+import {reserveStatus} from './drawing.mjs?v=20261028-3';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -131,3 +131,6 @@ export function parsePages(pages){
   return result;
 }
 export function validateFields(fields){return fields.length>0&&fields.length<=5&&fields.every(f=>['SBR','ARS','GZK'].includes(f.type)&&[f.b,f.h,f.t].every(n=>Number.isFinite(n)&&n>0)&&Number.isFinite(f.percent)&&f.percent>=0&&f.percent<=100);}
+
+export function defaultIcp(devices=[],smisslineInstalled=false){return smisslineInstalled||devices.some(d=>d.system==='smissline'&&d.qty>0)?10:6;}
+export function peakCurrent(icp){const n=Number(icp);return Number.isFinite(n)&&n>0?Math.round(n*1.7):null;}
