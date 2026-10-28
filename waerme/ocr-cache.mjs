@@ -1,4 +1,4 @@
-export async function ocrCacheKey(bytes){const hash=await crypto.subtle.digest('SHA-256',bytes);return 'ocr-v2:'+Array.from(new Uint8Array(hash),x=>x.toString(16).padStart(2,'0')).join('');}
+export async function ocrCacheKey(bytes){const hash=await crypto.subtle.digest('SHA-256',bytes);return 'ocr-v3:'+Array.from(new Uint8Array(hash),x=>x.toString(16).padStart(2,'0')).join('');}
 export async function ocrCache(action,key,pages){
  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('drahtwerk-waerme-ocr',1);r.onupgradeneeded=()=>r.result.createObjectStore('imports',{keyPath:'key'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
  try{return await new Promise((resolve,reject)=>{const tx=db.transaction('imports',action==='get'?'readonly':'readwrite'),s=tx.objectStore('imports');let result;

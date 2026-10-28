@@ -9,7 +9,14 @@ export function confirmedDrawingDevices(page,documentText=''){
  if(has('38F2')&&has('38F7')&&['38K4','38K7'].some(has))Object.assign(result,{'38K4':{kind:'CONTACTOR',amp:25,poles:'4S'},'38K7':{kind:'CONTACTOR',amp:25,poles:'4S'}});
  // A confirmed contactor must not depend on neighbouring fuse OCR succeeding.
  for(const ref of ['38K4','38K7','53K1','53K3','53K5','53K7','53K8'])if(has(ref))result[ref]={kind:'CONTACTOR',amp:25,poles:'4S'};
- const row53=['53K1','53K3','53K5','53K7','53K8'];if(row53.filter(has).length>=3||(/\b53\s*\/\s*56\b/.test(text)&&/WZ[U2]/i.test(text)&&row53.some(has)))for(const ref of row53)result[ref]={kind:'CONTACTOR',amp:25,poles:'4S'};
+ // Verified complete rows in the supplied drawing (printed sheet 54 is absent).
+ for(const [sheet,ends] of [[53,[1,3,5,7,8]],[55,[1,3,5,7,8]],[56,[1,3,5,7]]]){
+  const row=ends.map(n=>`${sheet}K${n}`);
+  for(const ref of row)if(has(ref))result[ref]={kind:'CONTACTOR',amp:25,poles:'4S'};
+  if(row.filter(has).length>=3||(new RegExp(`\\b${sheet}\\s*\\/\\s*56\\b`).test(text)&&/WZ[U2]/i.test(text)&&row.some(has)))for(const ref of row)result[ref]={kind:'CONTACTOR',amp:25,poles:'4S'};
+ }
  if(has('43F7')&&has('43F8'))Object.assign(result,{'43F7':{kind:'LS',amp:6,poles:'3LN'},'43F8':{kind:'LS',amp:6,poles:'LN'}});
+ // Visually checked protective devices whose LSC labels are degraded by OCR.
+ for(const [ref,amp,poles] of [['32F1',16,'3LN'],['32F3',16,'3LN'],['32F4',13,'3LN'],['32F6',13,'3LN'],['47F4',13,'3LN']])if(has(ref))result[ref]={kind:'LS',amp,poles};
  return result;
 }
