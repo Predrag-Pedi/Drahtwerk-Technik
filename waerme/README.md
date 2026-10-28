@@ -81,3 +81,9 @@ Bei lokal mit „Reserve“/„Res.“ bezeichneten F-/S-/K-/Q-Geräten wertet d
 ### Icp-Vorgabe und freie Eingabe
 
 Icp wird pro Anlage mit 6 kA vorbelegt, bei Smissline im zugeordneten Dispo oder in den Geräten mit 10 kA. Das Zahlenfeld erlaubt eigene positive Werte, auch über 10 kA. Eine manuelle Eingabe bleibt bei Geräteänderungen und beim Anlagenwechsel erhalten; ein neuer Auftrag bzw. ausdrücklich neu ausgewertete Imports setzen die Vorgabe neu. Ipk folgt unverändert der Excel-Formel ROUND(Icp × 1.7, 0), damit ergeben sich die Standardpaare 6/10 und 10/17 kA. Leere oder ungültige Icp-Werte verhindern den Export.
+
+### Schemas ohne lesbare Textebene
+
+Seiten, deren Textebene nur Rasterzeichen bzw. fast keine verwertbaren Beschriftungen enthält, werden automatisch mit Tesseract.js 5.1.1 (Deutsch/Englisch) im Browser gelesen. Dafür werden Bibliothek, WebAssembly und Sprachdaten nachgeladen; PDF und Seitenbilder werden nicht an einen OCR-Dienst gesendet. Ein Worker wird für den Import wiederverwendet und anschliessend beendet. Rendering auf maximal 3-facher Auflösung bzw. 3200 Pixel Kantenlänge begrenzt den Speicherverbrauch. Der Status zeigt Seite und Fortschritt.
+
+OCR-Wörter werden anhand ihrer Position dem nächsten Betriebsmittel zugeordnet, damit Spalten nicht vermischt werden. Kombinierte Beschriftungen FI-LSC und 13A/30mA werden unterstützt. Geräte und Seiten tragen einen Prüfhinweis; nicht sicher erkannte Kennzeichen oder Symbole werden nicht als vollständig erkannt ausgegeben. Die automatische Entfernung unverdrahteter Reserven wird bei OCR-Seiten nicht angewendet, da gezeichnete Schriftzeichen sonst mit Symbolen verwechselt werden könnten. Projektadresse im Dateinamen plus Kennzeichenüberlappung unterstützt die Zuordnung zu separaten Dispos. Auftragsbestätigungen mit abweichender Auftragsnummer bleiben getrennt.

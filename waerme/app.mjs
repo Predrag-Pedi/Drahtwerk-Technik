@@ -1,8 +1,9 @@
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-3';
-import {buildPortfolio} from './portfolio.mjs?v=20261028-3';
-import {templateStore} from './storage.mjs?v=20261028-3';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261028-3';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-3';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261028-4';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-4';
+import {buildPortfolio} from './portfolio.mjs?v=20261028-4';
+import {templateStore} from './storage.mjs?v=20261028-4';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261028-4';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-4';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -78,12 +79,13 @@ $('template').addEventListener('change',async e=>{const file=e.target.files[0];i
 $('forgetTemplate').onclick=async()=>{try{await templateStore('delete');state.book=null;state.buffer=null;$('template').value='';$('pdf').disabled=true;dirty();update();status('Gespeicherte Vorlage gelöscht.');}catch(e){status(e.message,true);}};
 $('pdf').addEventListener('change',async e=>{
  const files=Array.from(e.target.files);if(!files.length)return;state.busy=true;$('pdf').disabled=true;update();
+ const ocr=createOcrReader(message=>status(message));
  try{const role='auto',pdfjs=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
  const imported=[];for(const file of files){if(file.size>40*1024*1024)throw Error(file.name+': maximal 40 MB.');const doc=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise;const pages=[];
- try{if(doc.numPages>200)throw Error('Maximal 200 Seiten pro PDF.');for(let i=1;i<=doc.numPages;i++){status(`${file.name}: Seite ${i} von ${doc.numPages}`);const page=await doc.getPage(i),content=await page.getTextContent(),vp=page.getViewport({scale:1});const items=drawingItems(content,vp),text=items.map(x=>x.str).join('\n');let drawing;try{if(/\bReserve\b|\bRes\./i.test(text))drawing=drawingLines(await page.getOperatorList(),pdfjs.OPS,vp);}catch{drawing={complete:false,segments:[]};}pages.push({file:file.name,number:i,text,items,height:vp.height,drawing});}}finally{await doc.destroy();}imported.push({file:file.name,role,pages});}
+ try{if(doc.numPages>200)throw Error('Maximal 200 Seiten pro PDF.');for(let i=1;i<=doc.numPages;i++){status(`${file.name}: Seite ${i} von ${doc.numPages}`);const page=await doc.getPage(i),content=await page.getTextContent(),vp=page.getViewport({scale:1});let items=drawingItems(content,vp),text=items.map(x=>x.str).join('\n'),recognized={};if(needsOcr(items)){recognized=await ocr.read(page,`${file.name}: Seite ${i} von ${doc.numPages}`);items=recognized.items;text=recognized.text;}let drawing;try{if(!recognized.ocr&&/\bReserve\b|\bRes\./i.test(text))drawing=drawingLines(await page.getOperatorList(),pdfjs.OPS,vp);}catch{drawing={complete:false,segments:[]};}pages.push({file:file.name,number:i,...recognized,text,items,height:vp.height,drawing});}}finally{await doc.destroy();}imported.push({file:file.name,role,pages});}
  for(const doc of imported){const i=documents.findIndex(d=>d.file===doc.file);if(i>=0)documents[i]=doc;else documents.push(doc);}
  importsPending=true;invalidateDownloads();if(!plants.length||!edited)analyze();else status('PDFs eingelesen. Mit «Imports auswerten / Eingaben ersetzen» die Anlagen neu erkennen lassen. Dabei werden manuelle Eingaben ersetzt.');
- }catch(e){status(e.message,true);}finally{state.busy=false;$('pdf').disabled=!state.book;e.target.value='';update();}
+ }catch(e){status(e.message,true);}finally{await ocr.close().catch(()=>{});state.busy=false;$('pdf').disabled=!state.book;e.target.value='';update();}
 });
 $('fields').addEventListener('input',e=>{const card=e.target.closest('[data-field]'),key=e.target.dataset.key;if(!card||!key)return;const f=state.fields[+card.dataset.field];f[key]=['type','mode'].includes(key)?e.target.value:number(e.target.value);dirty();update();});
 $('fields').addEventListener('click',e=>{if(e.target.dataset.removeField!==undefined){const i=+e.target.dataset.removeField;if(state.devices.some(d=>d.field===i+1)){status('Zuerst die Geräte dieses Felds einem anderen Feld zuordnen.',true);return;}state.fields.pop();dirty();drawFields();drawDevices();}});
