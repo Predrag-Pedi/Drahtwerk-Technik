@@ -1,5 +1,5 @@
-import {shiftFormula,calculateCell} from './formula.mjs?v=20261028-2';
-import {SHEETS,classify,spdLoss} from './core.mjs?v=20261028-2';
+import {shiftFormula,calculateCell} from './formula.mjs?v=20261028-3';
+import {SHEETS,classify,spdLoss,peakCurrent} from './core.mjs?v=20261028-3';
 const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)throw Error('Ungültiges XML in Excel-Datei');return d;};
 const tags=(n,t)=>Array.from(n.getElementsByTagNameNS('*',t));
@@ -62,7 +62,8 @@ export async function exportWorkbook(original,Zip,data){
   const w=await readWorkbook(original,Zip),p=data.project;
   for(const [a,k] of Object.entries({B7:'customer',H7:'customerNo',B8:'pl',B9:'name',H8:'date',H9:'order',H10:'type',H14:'city',H24:'amp',D26:'icp'}))put(w,SHEETS.project,a,p[k]??'');
   if(p.date){const dt=new Date(p.date+'T00:00:00Z');if(Number.isFinite(dt.getTime()))put(w,SHEETS.project,'H8',(dt.getTime()-Date.UTC(1899,11,30))/86400000);}
-  put(w,SHEETS.project,'H26',Math.round(p.icp*1.7),'ROUND(D26*1.7,0)');
+  if(peakCurrent(p.icp)===null)throw Error('Icp muss eine positive Zahl in kA sein.');
+  put(w,SHEETS.project,'H26',peakCurrent(p.icp),'ROUND(D26*1.7,0)');
   // Fix the confirmed field-3 reference; preserve all other workbook formulas.
   put(w,SHEETS.project,'D32',null,"'"+SHEETS.fine+"'!F748");
   // Each export is a fresh project: clear prior article quantities and field totals.

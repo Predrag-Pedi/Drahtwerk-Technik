@@ -1,9 +1,9 @@
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-2';
-import {buildPortfolio} from './portfolio.mjs?v=20261028-2';
-import {templateStore} from './storage.mjs?v=20261028-2';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields} from './core.mjs?v=20261028-2';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-2';
-const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false};
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-3';
+import {buildPortfolio} from './portfolio.mjs?v=20261028-3';
+import {templateStore} from './storage.mjs?v=20261028-3';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261028-3';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-3';
+const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=v=>v===''?null:Number(v),fmt=n=>Number.isFinite(n)?n.toLocaleString('de-CH',{maximumFractionDigits:2})+' W':'–';
@@ -21,7 +21,8 @@ function update(){
   state.fields.forEach((f,i)=>{const r=fieldResult(f,i);const card=document.querySelector('[data-field="'+i+'"]');if(card){card.querySelector('[data-key="percent"]').disabled=f.mode!=='estimate';card.querySelector('[data-key="manual"]').disabled=f.mode!=='manual';}$('max'+i).textContent=fmt(r.max);$('selected'+i).textContent=r.calculationError&&f.mode==='devices'?r.calculationError:fmt(r.selected);$('estimated'+i).textContent=f.mode==='estimate'?'Schätzung nach Einbaugrad':f.mode==='devices'?'Geräte gemäss Excel-Total':'Manueller Wattwert';});
   const unresolved=state.devices.filter(d=>d.qty>0&&!d.article).length;
   $('deviceTotal').textContent=`${state.devices.reduce((s,d)=>s+d.qty,0)} Geräte · ${unresolved} nicht zugeordnet. Berechnung anhand der Excel-Formeln bis «Total Verlustleistung Pv». Fehlende Verlustleistungswerte müssen ergänzt werden.`;
-  $('ipk').textContent=Math.round(Number($('icp').value)*1.7)+' kA';
+  if(!state.icpManual)$('icp').value=defaultIcp(state.devices,plants[active]?.smisslineInstalled);
+  const ipk=peakCurrent($('icp').value);$('ipk').textContent=ipk===null?'–':ipk+' kA';
   updateEW();
   $('export').disabled=!state.book||state.busy||!$('reviewed').checked; $('exportAll').disabled=!state.book||state.busy; for(const id of ['template','reanalyze','plant','newProject','forgetTemplate'])$(id).disabled=state.busy;
  }catch(e){status(e.message,true);$('export').disabled=true;}
@@ -58,8 +59,8 @@ function drawDevices(){
 const documents=[],overrides={},links={};let plants=[],active=-1,importsPending=false,edited=false;
 const projectKeys=['customer','customerNo','pl','name','order','city','amp','icp','date'];
 function invalidateDownloads(){ $('downloads').querySelectorAll('a').forEach(a=>URL.revokeObjectURL(a.href));$('downloads').replaceChildren(); }
-function saveActive(){if(active<0)return;Object.assign(plants[active],{fields:state.fields,devices:state.devices,warnings:state.warnings,reviewed:$('reviewed').checked,project:Object.fromEntries(projectKeys.map(k=>[k,$(k).value]))});}
-function selectPlant(i){saveActive();active=i;const p=plants[i];if(!p)return;state.fields=p.fields;state.devices=p.devices;state.warnings=[...p.warnings,...(state.book?.corrections||[])];for(const key of projectKeys)$(key).value=p.project[key]??(key==='icp'?'6':'');$('reviewed').checked=p.reviewed;$('sources').textContent='Verwendete Dispo: '+p.layoutSource+'. Quellen: '+p.sources.join(' · ');warnings();drawFields();drawDevices();}
+function saveActive(){if(active<0)return;Object.assign(plants[active],{fields:state.fields,devices:state.devices,warnings:state.warnings,icpManual:state.icpManual,reviewed:$('reviewed').checked,project:Object.fromEntries(projectKeys.map(k=>[k,$(k).value]))});}
+function selectPlant(i){saveActive();active=i;const p=plants[i];if(!p)return;state.icpManual=!!p.icpManual;state.fields=p.fields;state.devices=p.devices;state.warnings=[...p.warnings,...(state.book?.corrections||[])];for(const key of projectKeys)$(key).value=p.project[key]??(key==='icp'?'6':'');$('reviewed').checked=p.reviewed;$('sources').textContent='Verwendete Dispo: '+p.layoutSource+'. Quellen: '+p.sources.join(' · ');warnings();drawFields();drawDevices();}
 function analyze(){
  saveActive();importsPending=false;const result=buildPortfolio(documents,overrides,links);plants=result.plants;active=-1;edited=false;invalidateDownloads();
  for(const p of plants)p.devices.forEach(suggest);
@@ -71,7 +72,7 @@ function analyze(){
 $('plant').onchange=e=>selectPlant(+e.target.value);
 $('mergePlant').onclick=()=>{if(active<0||!$('mergeTarget').value)return;const source=plants[active].id,target=$('mergeTarget').value;if(source===target){status('Eine andere Zielanlage wählen.',true);return;}if(edited&&$('mergePlant').dataset.confirm!=='yes'){$('mergePlant').dataset.confirm='yes';status('Zusammenführen baut die Auswertung neu auf. Erneut klicken, um bearbeitete Eingaben zu ersetzen.');return;}delete $('mergePlant').dataset.confirm;links[source]=target;analyze();};
 $('reanalyze').onclick=()=>{if(plants.some(p=>p.reviewed)&&$('reanalyze').dataset.confirm!=='yes'){ $('reanalyze').dataset.confirm='yes';status('Erneut klicken, um die Auswertung neu aufzubauen und bearbeitete Eingaben zu ersetzen.');return;}delete $('reanalyze').dataset.confirm;analyze();};
-$('newProject').onclick=()=>{documents.length=0;plants=[];active=-1;importsPending=false;Object.keys(overrides).forEach(k=>delete overrides[k]);Object.keys(links).forEach(k=>delete links[k]);state.fields=[newField()];state.devices=[];state.warnings=[];projectKeys.forEach(k=>$(k).value=k==='icp'?'6':'');$('plant').replaceChildren();$('pending').replaceChildren();$('sources').textContent='';dirty();warnings();drawFields();drawDevices();status('Neuer Auftrag. Gespeicherte Vorlage bleibt verfügbar.');};
+$('newProject').onclick=()=>{documents.length=0;plants=[];active=-1;importsPending=false;Object.keys(overrides).forEach(k=>delete overrides[k]);Object.keys(links).forEach(k=>delete links[k]);state.icpManual=false;state.fields=[newField()];state.devices=[];state.warnings=[];projectKeys.forEach(k=>$(k).value=k==='icp'?'6':'');$('plant').replaceChildren();$('pending').replaceChildren();$('sources').textContent='';dirty();warnings();drawFields();drawDevices();status('Neuer Auftrag. Gespeicherte Vorlage bleibt verfügbar.');};
 async function loadTemplate(buffer,name){if(!globalThis.JSZip)throw Error('Excel-Bibliothek konnte nicht geladen werden.');const book=await readWorkbook(buffer,globalThis.JSZip);state.buffer=buffer;state.book=book;state.devices.forEach(suggest);plants.forEach(p=>{p.devices.forEach(suggest);p.reviewed=false;});$('reviewed').checked=false;$('towns').replaceChildren(...book.towns.map(t=>new Option(t.name,t.name)));$('pdf').disabled=false;status(`${name}: ${book.catalog.length} Referenzartikel geladen.`);drawDevices();}
 $('template').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.busy=true;dirty();update();try{if(file.size>15*1024*1024)throw Error('Excel-Vorlage ist zu gross (maximal 15 MB).');const buffer=await file.arrayBuffer();await loadTemplate(buffer,file.name);try{await templateStore('put',{buffer,name:file.name});}catch{status('Vorlage geladen, konnte aber nicht dauerhaft gespeichert werden.',true);}}catch(e){status(e.message,true);}finally{state.busy=false;update();}});
 $('forgetTemplate').onclick=async()=>{try{await templateStore('delete');state.book=null;state.buffer=null;$('template').value='';$('pdf').disabled=true;dirty();update();status('Gespeicherte Vorlage gelöscht.');}catch(e){status(e.message,true);}};
@@ -90,7 +91,7 @@ $('addField').onclick=()=>{if(state.fields.length>=5)return;state.fields.push(ne
 $('addDevice').onclick=()=>{state.devices.push({ref:'Manuell '+(state.devices.length+1),source:'Manuell',field:1,qty:1,system:'hager',kind:'OTHER',poles:'',amp:null,ma:null,article:''});dirty();drawDevices();};
 $('devices').addEventListener('change',e=>{const row=e.target.closest('[data-device]'),key=e.target.dataset.key;if(!row||!key)return;const d=state.devices[+row.dataset.device];d[key]=['field','qty','amp','ma','manualLoss'].includes(key)?number(e.target.value):e.target.value;if(['system','kind','poles','amp','ma'].includes(key))suggest(d);dirty();drawDevices();});
 $('devices').addEventListener('click',e=>{if(e.target.dataset.remove!==undefined){state.devices.splice(+e.target.dataset.remove,1);dirty();drawDevices();}});
-$('projectForm').addEventListener('input',e=>{if(e.target.id!=='reviewed')dirty();else edited=true;update();});
+$('projectForm').addEventListener('input',e=>{if(e.target.id==='icp')state.icpManual=true;if(e.target.id!=='reviewed')dirty();else edited=true;update();});
 function exportData(p){
  if(!validateFields(p.fields))throw Error(p.name+': Feldmasse oder Einbaugrad fehlen.');
  if(!p.reviewed)throw Error(p.name+': Angaben noch nicht geprüft.');
@@ -98,6 +99,7 @@ function exportData(p){
  const previous=state.devices;let fields;try{state.devices=p.devices;fields=p.fields.map(fieldResult);}finally{state.devices=previous;}
  if(fields.some(f=>!Number.isFinite(f.selected)||f.selected<0))throw Error(p.name+': Wattwerte oder Gerätezuordnungen fehlen.');
  const project={...p.project,type:fields[0].type,amp:Number(p.project.amp),icp:Number(p.project.icp)};
+ if(peakCurrent(project.icp)===null)throw Error(p.name+': Icp muss eine positive Zahl in kA sein.');
  if(!(project.amp>0))throw Error(p.name+': Bemessungsstrom fehlt.');
  if(!state.book.towns.some(t=>t.name.toLocaleLowerCase('de-CH')===(project.city||'').trim().toLocaleLowerCase('de-CH')))throw Error(p.name+': Ort aus der Vorlage wählen.');
  return {project,fields,devices:p.devices};

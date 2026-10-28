@@ -1,4 +1,4 @@
-import {parsePages} from './core.mjs?v=20261028-2';
+import {parsePages,defaultIcp} from './core.mjs?v=20261028-3';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
@@ -90,7 +90,7 @@ export function buildPortfolio(documents,overrides={},links={}){
   const refs=new Map();if(best)for(const item of best.page.items||[]){for(const match of item.str.matchAll(/(?<![\w])[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Za-z]?(?![\w])/g)){const ref=match[0].replace(/^[-+]/,'');const list=refs.get(ref)||[];list.push(item.x+(item.width||0)*match.index/Math.max(1,item.str.length));refs.set(ref,list);}}
   assignFields(p.devices,p.fields,best?.page,refs);
   if(p.devices.some(d=>d.fieldMethod==='slots'))p.warnings.push('Nicht im Dispo lokalisierte Geräte automatisch nach Platzeinheiten und Feldbreiten verteilt (Näherung).');
-  if(best){const hh=(best.page.items||[]).filter(x=>x.rotated&&/^\d{4}$/.test(x.str.trim())).map(x=>+x.str);if(hh.some(h=>p.fields.some(f=>f.h&&h!==f.h)))p.warnings.push('Höhe in Masslinie und Beschrieb weicht ab. Feldhöhe vor Export prüfen.');}p.reviewed=false;
+  if(best){const hh=(best.page.items||[]).filter(x=>x.rotated&&/^\d{4}$/.test(x.str.trim())).map(x=>+x.str);if(hh.some(h=>p.fields.some(f=>f.h&&h!==f.h)))p.warnings.push('Höhe in Masslinie und Beschrieb weicht ab. Feldhöhe vor Export prüfen.');}p.reviewed=false;p.smisslineInstalled=!!best&&/smissline/i.test(best.page.text);p.project.icp=defaultIcp(p.devices,p.smisslineInstalled);p.icpManual=false;
   for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name){Object.assign(p.project,info);p.project.name=p.name;p.sources.push(order.file+' (Auftragsbestätigung)');}}
 
  }
