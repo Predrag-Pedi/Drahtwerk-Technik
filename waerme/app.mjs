@@ -1,9 +1,10 @@
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261028-4';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-4';
-import {buildPortfolio} from './portfolio.mjs?v=20261028-4';
-import {templateStore} from './storage.mjs?v=20261028-4';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261028-4';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-4';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261028-5';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261028-5';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261028-5';
+import {buildPortfolio} from './portfolio.mjs?v=20261028-5';
+import {templateStore} from './storage.mjs?v=20261028-5';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261028-5';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261028-5';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -25,7 +26,7 @@ function update(){
   if(!state.icpManual)$('icp').value=defaultIcp(state.devices,plants[active]?.smisslineInstalled);
   const ipk=peakCurrent($('icp').value);$('ipk').textContent=ipk===null?'–':ipk+' kA';
   updateEW();
-  $('export').disabled=!state.book||state.busy||!$('reviewed').checked; $('exportAll').disabled=!state.book||state.busy; for(const id of ['template','reanalyze','plant','newProject','forgetTemplate'])$(id).disabled=state.busy;
+  $('export').disabled=!state.book||state.busy||!$('reviewed').checked; $('exportAll').disabled=!state.book||state.busy; for(const id of ['template','reanalyze','plant','newProject','forgetTemplate','clearOcrCache'])$(id).disabled=state.busy;
  }catch(e){status(e.message,true);$('export').disabled=true;}
 }
 function updateEW(){
@@ -76,13 +77,14 @@ $('reanalyze').onclick=()=>{if(plants.some(p=>p.reviewed)&&$('reanalyze').datase
 $('newProject').onclick=()=>{documents.length=0;plants=[];active=-1;importsPending=false;Object.keys(overrides).forEach(k=>delete overrides[k]);Object.keys(links).forEach(k=>delete links[k]);state.icpManual=false;state.fields=[newField()];state.devices=[];state.warnings=[];projectKeys.forEach(k=>$(k).value=k==='icp'?'6':'');$('plant').replaceChildren();$('pending').replaceChildren();$('sources').textContent='';dirty();warnings();drawFields();drawDevices();status('Neuer Auftrag. Gespeicherte Vorlage bleibt verfügbar.');};
 async function loadTemplate(buffer,name){if(!globalThis.JSZip)throw Error('Excel-Bibliothek konnte nicht geladen werden.');const book=await readWorkbook(buffer,globalThis.JSZip);state.buffer=buffer;state.book=book;state.devices.forEach(suggest);plants.forEach(p=>{p.devices.forEach(suggest);p.reviewed=false;});$('reviewed').checked=false;$('towns').replaceChildren(...book.towns.map(t=>new Option(t.name,t.name)));$('pdf').disabled=false;status(`${name}: ${book.catalog.length} Referenzartikel geladen.`);drawDevices();}
 $('template').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.busy=true;dirty();update();try{if(file.size>15*1024*1024)throw Error('Excel-Vorlage ist zu gross (maximal 15 MB).');const buffer=await file.arrayBuffer();await loadTemplate(buffer,file.name);try{await templateStore('put',{buffer,name:file.name});}catch{status('Vorlage geladen, konnte aber nicht dauerhaft gespeichert werden.',true);}}catch(e){status(e.message,true);}finally{state.busy=false;update();}});
+$('clearOcrCache').onclick=async()=>{try{await ocrCache('clear');status('Gespeicherte PDF-Texterkennung gelöscht.');}catch{status('Texterkennungsspeicher konnte nicht gelöscht werden.',true);}};
 $('forgetTemplate').onclick=async()=>{try{await templateStore('delete');state.book=null;state.buffer=null;$('template').value='';$('pdf').disabled=true;dirty();update();status('Gespeicherte Vorlage gelöscht.');}catch(e){status(e.message,true);}};
 $('pdf').addEventListener('change',async e=>{
  const files=Array.from(e.target.files);if(!files.length)return;state.busy=true;$('pdf').disabled=true;update();
  const ocr=createOcrReader(message=>status(message));
  try{const role='auto',pdfjs=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
- const imported=[];for(const file of files){if(file.size>40*1024*1024)throw Error(file.name+': maximal 40 MB.');const doc=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise;const pages=[];
- try{if(doc.numPages>200)throw Error('Maximal 200 Seiten pro PDF.');for(let i=1;i<=doc.numPages;i++){status(`${file.name}: Seite ${i} von ${doc.numPages}`);const page=await doc.getPage(i),content=await page.getTextContent(),vp=page.getViewport({scale:1});let items=drawingItems(content,vp),text=items.map(x=>x.str).join('\n'),recognized={};if(needsOcr(items)){recognized=await ocr.read(page,`${file.name}: Seite ${i} von ${doc.numPages}`);items=recognized.items;text=recognized.text;}let drawing;try{if(!recognized.ocr&&/\bReserve\b|\bRes\./i.test(text))drawing=drawingLines(await page.getOperatorList(),pdfjs.OPS,vp);}catch{drawing={complete:false,segments:[]};}pages.push({file:file.name,number:i,...recognized,text,items,height:vp.height,drawing});}}finally{await doc.destroy();}imported.push({file:file.name,role,pages});}
+ const imported=[];for(const file of files){if(file.size>40*1024*1024)throw Error(file.name+': maximal 40 MB.');const bytes=new Uint8Array(await file.arrayBuffer());let cacheKey=null,cached;try{cacheKey=await ocrCacheKey(bytes);cached=await ocrCache('get',cacheKey);}catch{}if(cached){status(file.name+': gespeicherte Texterkennung übernommen.');imported.push({file:file.name,role,pages:renameCachedPages(cached,file.name)});continue;}const doc=await pdfjs.getDocument({data:bytes,isEvalSupported:false}).promise;const pages=[];
+ try{if(doc.numPages>200)throw Error('Maximal 200 Seiten pro PDF.');for(let i=1;i<=doc.numPages;i++){status(`${file.name}: Seite ${i} von ${doc.numPages}`);const page=await doc.getPage(i),content=await page.getTextContent(),vp=page.getViewport({scale:1});let items=drawingItems(content,vp),text=items.map(x=>x.str).join('\n'),recognized={};if(needsOcr(items)){recognized=await ocr.read(page,`${file.name}: Seite ${i} von ${doc.numPages}`);items=recognized.items;text=recognized.text;}let drawing;try{if(!recognized.ocr&&/\bReserve\b|\bRes\./i.test(text))drawing=drawingLines(await page.getOperatorList(),pdfjs.OPS,vp);}catch{drawing={complete:false,segments:[]};}pages.push({file:file.name,number:i,...recognized,text,items,height:vp.height,drawing});}}finally{await doc.destroy();}if(cacheKey&&pages.some(p=>p.ocr))try{await ocrCache('put',cacheKey,pages);}catch{}imported.push({file:file.name,role,pages});}
  for(const doc of imported){const i=documents.findIndex(d=>d.file===doc.file);if(i>=0)documents[i]=doc;else documents.push(doc);}
  importsPending=true;invalidateDownloads();if(!plants.length||!edited)analyze();else status('PDFs eingelesen. Mit «Imports auswerten / Eingaben ersetzen» die Anlagen neu erkennen lassen. Dabei werden manuelle Eingaben ersetzt.');
  }catch(e){status(e.message,true);}finally{await ocr.close().catch(()=>{});state.busy=false;$('pdf').disabled=!state.book;e.target.value='';update();}

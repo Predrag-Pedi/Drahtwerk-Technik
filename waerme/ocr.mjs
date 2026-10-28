@@ -7,7 +7,14 @@ export function ocrPage(data,scale){
  let anchors=items.filter(w=>refPattern.test(w.str.toUpperCase())&&w.confidence>=35).map(w=>({...w,str:w.str.toUpperCase()}));
  if(anchors.some(a=>/^\d+[FSPKYQ]/.test(a.str)))anchors=anchors.filter(a=>!/^K\d+$/.test(a.str));
  const blocks=anchors.map(a=>({a,local:[]}));
- for(const b of blocks)b.local=items.filter(w=>!refPattern.test(w.str.toUpperCase())&&w.y>=b.a.y-3&&w.y<=b.a.y+42&&Math.abs(w.x+w.width/2-b.a.x-b.a.width/2)<55).filter(w=>{const closest=anchors.toSorted((u,v)=>Math.hypot(w.x-u.x,w.y-u.y)-Math.hypot(w.x-v.x,w.y-v.y))[0];return closest===b.a;});
+ // Assign each word once; no repeated full sorts for every reference/word pair.
+ for(const w of items){if(refPattern.test(w.str.toUpperCase()))continue;let chosen=null,best=Infinity;
+  for(const b of blocks){const dy=w.y-b.a.y,dx=w.x+w.width/2-b.a.x-b.a.width/2;
+   if(dy<(/[KS]\d/.test(b.a.str)?-55:-3)||dy>42||Math.abs(dx)>=55)continue;
+   const score=dx*dx+dy*dy;if(score<best){best=score;chosen=b;}
+  }if(chosen)chosen.local.push(w);
+ }
+
  return {items,text:data.text||items.map(x=>x.str).join('\n'),ocr:true,ocrDeviceText:blocks.map(({a,local})=>[a.str,...local.toSorted((u,v)=>u.y-v.y||u.x-v.x).map(w=>w.str)].join('\n')).join('\n')};
 }
 let library;

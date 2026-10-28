@@ -1,4 +1,5 @@
-import {reserveStatus} from './drawing.mjs?v=20261028-4';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261028-5';
+import {reserveStatus} from './drawing.mjs?v=20261028-5';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -85,23 +86,25 @@ export function parsePages(pages){
     for(const m of text.matchAll(/(?:Zuleitung[^\n]*|Hauptschalter)\s+(\d+)\s*A\b/gi))result.currents.push({amp:+m[1],source});
     if(/\bDispo\b|Disposition/i.test(text)){result.warnings.push(source+': Dispo liefert Masse und Aufbau. Gerätebilder bitte mit dem Schema abgleichen oder manuell ergänzen.');continue;}
     if(page.ocr){result.warnings.push(source+': Mit Texterkennung gelesen. Kennzeichen, Nennstrom und Vollständigkeit prüfen.');lines=(page.ocrDeviceText||'').split('\n').filter(Boolean);}
+    const pageConfirmed=confirmedDrawingDevices(page);for(const ref of Object.keys(pageConfirmed))if(!lines.includes(ref))lines.push(ref);
     const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
     for(let k=0;k<refs.length;k++){
       const {i,ref}=refs[k];
       if(/[FSKQ]\d/.test(ref)&&reserveStatus(page,ref)==='unwired'){result.ignored.push(source+': '+ref+' – Reserve ohne angeschlossene Stromlinien; nicht eingebaut und ausgeschlossen.');continue;}
       if(seen.has(ref)&&!/\d*K\d/.test(ref))continue;
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.slice(0,4).find(x=>/^\d+\s*A$/.test(x));
-      const ocrAmp=page.ocr?block.slice(0,12).join(' ').match(/\b(\d+)\s*A\b/i):null;
-      const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=ampLine?parseInt(ampLine):before?+before[1]:ocrAmp?+ocrAmp[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
+      const ratingText=block.slice(0,12).join(' ');const ocrAmp=ratingText.match(/\b(\d+)\s*A\b/i)||ratingText.match(/\bLS[BCD]?\s+[BCD](\d+)\b/i);
+      const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=ampLine?parseInt(ampLine):ocrAmp?+ocrAmp[1]:before?+before[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
       const ma=maLine?parseInt(maLine):Number(block.join(' ').match(/(\d+)\s*mA\b/i)?.[1])||null;
       const preceding=lines.slice(Math.max(refs[k-1]?.i+1||0,i-10),i).join(' ');
       const spd=/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(lines.slice(Math.max(0,i-2),i).join(' '));
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD](?:\s*\d+\s*mA)?$/i.test(x))||/\bLS[BCD]?\b/i.test(block.join(' '));
       const local=block.join(' ');const letter=ref.match(/([FSPKYQ])\d/)[1];
-      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter/i.test(local)||letter==='Q'&&/Hauptschalter|Lasttrennschalter/i.test(preceding))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','0','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter/i.test(local)||letter==='Q'&&/Hauptschalter|Lasttrennschalter/i.test(preceding))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:(page.ocr?'Texterkennung: Angaben prüfen. ':'')+(other?block.slice(0,5).join(' '):'')};
+      if(pageConfirmed[ref]){Object.assign(device,pageConfirmed[ref]);device.note='Symbol-/Gerätezuordnung vom Anwender für dieses Schema bestätigt.';}
       if(confirmed[ref]){Object.assign(device,confirmed[ref]);device.note='Symbolzuordnung für dieses Schema bestätigt. '+device.note;}
       const ownLabels=equipmentLabels(page,ref),previousLabel=lines[i-1]||'';
       const utilityLabel=ownLabels+' '+block.slice(1,4).join(' ')+' '+(/^(?:RS\s*485|RSE|NKE|ZFA|Res\.|Reserve)$/i.test(previousLabel)?previousLabel:'');
