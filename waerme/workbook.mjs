@@ -1,5 +1,5 @@
-import {shiftFormula,calculateCell} from './formula.mjs?v=20261029-2';
-import {SHEETS,classify,spdLoss,peakCurrent} from './core.mjs?v=20261029-2';
+import {shiftFormula,calculateCell} from './formula.mjs?v=20261029-3';
+import {SHEETS,classify,spdLoss,peakCurrent,unassignedLoss,UNASSIGNED_LOSS_W} from './core.mjs?v=20261029-3';
 const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)throw Error('Ungültiges XML in Excel-Datei');return d;};
 const tags=(n,t)=>Array.from(n.getElementsByTagNameNS('*',t));
@@ -43,7 +43,7 @@ export async function readWorkbook(buffer,Zip){
     }
   }
   const towns=[];const ts=sheets.get('EW-Zuweisung');if(ts)for(const r of tags(ts.doc,'row')){const i=r.getAttribute('r'),name=get('EW-Zuweisung','A'+i),ew=get('EW-Zuweisung','B'+i);if(typeof name==='string'&&typeof ew==='string')towns.push({name,ew});}
-  const deviceTotal=devices=>{const counts=new Map(catalog.map(c=>[c.id,0]));for(const d of devices){if(!d.article)throw Error('Excel-Artikel fehlt: '+d.ref);counts.set(d.article,(counts.get(d.article)||0)+d.qty);}const overrides=new Map(catalog.map(c=>[c.sheet+'!A'+c.row,counts.get(c.id)||0]));let spd=0;for(const d of devices){const c=catalog.find(c=>c.id===d.article);if(c?.kind==='SPD')spd+=d.qty*spdLoss(d);}overrides.set(SHEETS.fine+'!F49',spd);return calculateCell(sheets,SHEETS.fine,'F739',overrides);};
+  const deviceTotal=devices=>{const counts=new Map(catalog.map(c=>[c.id,0]));for(const d of devices){if(!counts.has(d.article))continue;counts.set(d.article,(counts.get(d.article)||0)+d.qty);}const overrides=new Map(catalog.map(c=>[c.sheet+'!A'+c.row,counts.get(c.id)||0]));let spd=0;for(const d of devices){const c=catalog.find(c=>c.id===d.article);if(c?.kind==='SPD')spd+=d.qty*spdLoss(d);}overrides.set(SHEETS.fine+'!F49',spd);return calculateCell(sheets,SHEETS.fine,'F739',overrides)+unassignedLoss(devices,catalog);};
   return {zip,book,rels,sheets,catalog,towns,get,deviceTotal,corrections};
 }
 function put(w,sheet,addr,value,formula){
@@ -72,6 +72,8 @@ export async function exportWorkbook(original,Zip,data){
   for(const [id,qty] of counts){const c=w.catalog.find(c=>c.id===id);if(c)put(w,c.sheet,'A'+c.row,qty);}
   for(const c of w.catalog.filter(c=>c.kind==='SPD')){const ds=data.devices.filter(d=>d.article===c.id);if(ds.length){const q=ds.reduce((n,d)=>n+d.qty,0);put(w,c.sheet,'E'+c.row,ds.reduce((n,d)=>n+d.qty*spdLoss(d),0)/q);put(w,c.sheet,'F'+c.row,null,'A'+c.row+'*E'+c.row);}}
   put(w,SHEETS.fine,'F49',null,'SUM(F37,F39,F41,F43,F45)');
+  const fallback=unassignedLoss(data.devices,w.catalog);
+  if(fallback){const formula=w.sheets.get(SHEETS.fine).cells.get('F739')?.formula;if(!formula)throw Error('Excel-Totalformel F739 fehlt.');put(w,SHEETS.fine,'F739',null,'('+formula+')+'+fallback);}
   for(let i=0;i<5;i++){
     const f=data.fields[i];put(w,SHEETS.sbr,'B'+(28+i),f?.type==='SBR'?f.max:null);put(w,SHEETS.ars,'B'+(30+i),f&&f.type!=='SBR'?f.max:null);
     put(w,SHEETS.fine,'F'+(746+i),f?f.selected:null);
@@ -87,7 +89,7 @@ export async function exportWorkbook(original,Zip,data){
   // Add a transparent record of every field's dimensions, calculation mode and device sources.
   const rid='rIdWaermeExport',sheetId=Math.max(...tags(w.book,'sheet').map(n=>+n.getAttribute('sheetId')))+1;
   const name='Webapp Eingaben';if(w.sheets.has(name))throw Error('Bitte die ursprüngliche Vorlage auswählen, nicht einen bereits erzeugten Webapp-Export.');
-  const rows=[['Drahtwerk Wärmeberechnung – Eingaben'],['Feld','Typ','Breite mm','Höhe mm','Tiefe mm','Max. Pv W','Einbaugrad %','Methode','Übernommen inkl. Zuschlag W','Grundwert W','Zuschlag %','Zuschlag W'],...data.fields.map((f,i)=>[i+1,f.type,f.b,f.h,f.t,f.max,f.percent,f.mode,f.selected,f.base??f.selected,f.surchargePercent??0,f.surchargeW??0]),[],['Gerät','PDF-Quelle','Feld','Anzahl','Referenzartikel','Pv je Gerät W','Verd./Kl. je Gerät W','Zuordnung / Annahmen'],...data.devices.map(d=>{const c=w.catalog.find(c=>c.id===d.article);return[d.ref,d.source,d.field,d.qty,c?c.label+' / '+c.code:'Nicht zugeordnet',c?.kind==='SPD'?spdLoss(d):c?.pv??'',c?.wire??'',[d.note,d.referenceNote].filter(Boolean).join(' ')];}),[],['Gerätemethode: Excel-Formeln bis F739 mit Feldmengen. Doppelte Smissline-Zählung in F727 korrigiert. SPD: Vorgabe 5 W je Gerät, sofern kein abweichender Wert eingetragen.'],['Schätzung: Max. Pv × Einbaugrad. Keine Geräteberechnung.'],['Zuschlag je Feld: Grundwert × Zuschlag % / 100. Der Feldwert enthält den Zuschlag einmal; Artikelmengen und Max. Pv bleiben unverändert.'],['Die Max.-Pv-Rechenblätter zeigen jeweils die Masse des ersten Felds der Bauart. Alle Felder sind hier dokumentiert.']];
+  const rows=[['Drahtwerk Wärmeberechnung – Eingaben'],['Feld','Typ','Breite mm','Höhe mm','Tiefe mm','Max. Pv W','Einbaugrad %','Methode','Übernommen inkl. Zuschlag W','Grundwert W','Zuschlag %','Zuschlag W'],...data.fields.map((f,i)=>[i+1,f.type,f.b,f.h,f.t,f.max,f.percent,f.mode,f.selected,f.base??f.selected,f.surchargePercent??0,f.surchargeW??0]),[],['Gerät','PDF-Quelle','Feld','Anzahl','Referenzartikel','Pv je Gerät W','Verd./Kl. je Gerät W','Zuordnung / Annahmen'],...data.devices.map(d=>{const c=w.catalog.find(c=>c.id===d.article);return[d.ref,d.source,d.field,d.qty,c?c.label+' / '+c.code:'Pauschale – nicht zugeordnet',c?.kind==='SPD'?spdLoss(d):c?.pv??UNASSIGNED_LOSS_W,c?.wire??0,[d.note,d.referenceNote,!c?'Automatisch 8 W pro Stück (Pauschale)':''].filter(Boolean).join(' ')];}),[],['Gerätemethode: Excel-Formeln bis F739 mit Feldmengen. Doppelte Smissline-Zählung in F727 korrigiert. SPD: Vorgabe 5 W je Gerät, sofern kein abweichender Wert eingetragen.'],['Nicht zugeordnete Geräte: pauschal 8 W pro Stück, einmal zum Gerätetotal addiert.'],['Schätzung: Max. Pv × Einbaugrad. Keine Geräteberechnung.'],['Zuschlag je Feld: Grundwert × Zuschlag % / 100. Der Feldwert enthält den Zuschlag einmal; Artikelmengen und Max. Pv bleiben unverändert.'],['Die Max.-Pv-Rechenblätter zeigen jeweils die Masse des ersten Felds der Bauart. Alle Felder sind hier dokumentiert.']];
   const doc=xml('<worksheet xmlns="'+NS+'"><sheetData/></worksheet>'),sd=tags(doc,'sheetData')[0];
   rows.forEach((values,i)=>{const row=el(doc,'row');row.setAttribute('r',i+1);values.forEach((v,j)=>{const c=el(doc,'c');c.setAttribute('r',String.fromCharCode(65+j)+(i+1));if(typeof v==='number')c.appendChild(el(doc,'v',v));else{c.setAttribute('t','inlineStr');const is=el(doc,'is');is.appendChild(el(doc,'t',String(v)));c.appendChild(is);}row.appendChild(c);});sd.appendChild(row);});
   const sh=el(w.book,'sheet');sh.setAttribute('name',name);sh.setAttribute('sheetId',sheetId);sh.setAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','r:id',rid);tags(w.book,'sheets')[0].appendChild(sh);
