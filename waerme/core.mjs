@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-11';
-import {reserveStatus} from './drawing.mjs?v=20261029-11';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-13';
+import {reserveStatus} from './drawing.mjs?v=20261029-13';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -75,7 +75,7 @@ export function parsePages(pages){
   for(const page of pages){
     let lines=page.text.split('\n').flatMap(s=>{const m=s.trim().match(/^([-+]?\d+[FSPKYQAG]\d+(?:\.\d+)*[A-Za-z]?)\s+(.+)$/);return m?[m[1],m[2]]:[s.trim()];}).filter(Boolean),text=lines.join('\n'), source=page.file+' · PDF-Seite '+page.number;
     if(/Anschluss-?\s*und\s*Umgebungsbedingungen/i.test(text)){result.ignored.push(source);continue;}
-    if(/Symbolverzeichnis|Allgemeine Hinweise|Inhaltsverzeichnis|Deckblatt/i.test(text))continue;
+    if(/Symbolverzeichnis|Allgemeine Hinweise|Inhaltsverzeichnis|Deckblatt|Materialliste|Prinzipschema|IP-\s*\/\s*Slave/i.test(text))continue;
     const dims=[...text.matchAll(/B\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*H\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*T\s*(\d+(?:[.,]\d+)?)\s*mm/gi)];
     for(const d of dims)result.dimensions.push({b:+d[1].replace(',','.'),h:+d[2].replace(',','.'),t:+d[3].replace(',','.'),source});
     if(/Alu[ -]Selbstbaurahmen/i.test(text))result.project.type='SBR';
@@ -92,17 +92,17 @@ export function parsePages(pages){
     for(let k=0;k<refs.length;k++){
       const {i,ref}=refs[k];
       if(/[FSKQ]\d/.test(ref)&&reserveStatus(page,ref)==='unwired'){result.ignored.push(source+': '+ref+' – Reserve ohne angeschlossene Stromlinien; nicht eingebaut und ausgeschlossen.');continue;}
-      if(seen.has(ref)&&!/\d*K\d/.test(ref))continue;
+      if(lines.slice(i+1,i+3).some(x=>/^\+Ext$/i.test(x))){result.ignored.push(source+': '+ref+' – externes Betriebsmittel (+Ext).');continue;}
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.slice(0,4).find(x=>/^\d+\s*A$/.test(x));
       const ratingText=block.slice(0,12).join(' ');const ocrAmp=ratingText.match(/(?:\b|[x×BCD])(\d+)\s*A\b/i)||ratingText.match(/\bLS[BCD]?\s+[BCD](\d+)\b/i);
-      const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=ampLine?parseInt(ampLine):ocrAmp?+ocrAmp[1]:before?+before[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
+      const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=before&&/^[-+]/.test(ref)?+before[1]:ampLine?parseInt(ampLine):ocrAmp?+ocrAmp[1]:before?+before[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
       const ma=maLine?parseInt(maLine):Number(block.join(' ').match(/(\d+)\s*mA\b/i)?.[1])||null;
       const preceding=lines.slice(Math.max(refs[k-1]?.i+1||0,i-10),i).join(' ');
-      const spd=/^(?:ÜSS|SPD)\b/i.test(block[1]||'')||block.slice(1,4).some(s=>/^T[12]\s*\/\s*T[12]$/i.test(s.trim()))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(lines.slice(Math.max(0,i-2),i).join(' '));
+      const spd=/F\d/.test(ref)&&(/\b(?:PX\s*)?Typ(?:e)?\s*1\s*\+\s*2/i.test(block.slice(1,6).join(' '))||/^(?:ÜSS|SPD)\b/i.test(block[1]||'')||block.slice(1,4).some(s=>/^T[12]\s*\/\s*T[12]$/i.test(s.trim()))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(lines.slice(Math.max(0,i-(/^[-+]/.test(ref)?5:2)),i).join(' ')));
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD](?:\s*\d+\s*mA)?$/i.test(x))||/\bLS[BCD]?\b/i.test(block.join(' '));
       const local=block.join(' ');const letter=ref.match(/([FSPKYQAG])\d/)[1];
-      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter|Bypass-Umschalter/i.test(local)||letter==='Q'&&(/Hauptschalter|Lasttrennschalter/i.test(preceding)||/Einspeisung\s+von\s+HAK/i.test(text)&&amp&&['1','2','3','4','5','6'].every(pin=>lines.slice(Math.max(0,i-12),i).includes(pin))))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter|Bypass-Umschalter/i.test(local)||letter==='Q'&&(/Hauptschalter|Lasttrennschalter/i.test(preceding)||/Einspeisung\s+(?:von\s+HAK|ab)|Zuleitung\s+ab|von\s+HAK/i.test(text)&&amp&&['1','2','3','4','5','6'].every(pin=>lines.slice(Math.max(0,i-12),i).includes(pin))))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:(page.ocr?'Texterkennung: Angaben prüfen. ':'')+(other?block.slice(0,5).join(' '):'')};
       // Explicit ratings belong to this device, including rotated labels and 3x13A notation.
@@ -112,6 +112,14 @@ export function parsePages(pages){
         device.amp=Number(label.match(/(?:\b|[x×BCD])(\d+)\s*A\b/i)?.[1])||device.amp;
         device.ma=Number(label.match(/(\d+)\s*mA\b/i)?.[1])||device.ma;
         device.poles=/\b(?:3[x×]|[34]P\b)/i.test(label)?'3LN':/\b(?:[12]P|1[x×])\b/i.test(label)||/Phase\s+L[123]/i.test(block.slice(1,5).join(' '))?'LN':device.poles;
+      }
+      // EPLAN labels are commonly emitted BEFORE the reference, including decimal RCD ratings.
+      if(letter==='F'&&/^[-+]/.test(ref)&&!label){
+        const lead=lines.slice(Math.max(refs[k-1]?.i+1||0,i-12),i).join(' ');
+        const combined=lead.match(/(?:\b|[ -])(\d+)\s*A?\s*\/\s*(0[.,]\d+)\s*A\b/i);
+        if(/Leitungsschutzschalter/i.test(lead))device.kind='LS';
+        if(/FI\s*[-/]\s*LS|FS4\d+\s*M-C/i.test(lead)){device.kind='FILS';if(combined){device.amp=+combined[1];device.ma=Math.round(Number(combined[2].replace(',','.'))*1000);}}
+        if(/Überspannungs(?:ableiter|schutz)/i.test(lead)){device.kind='SPD';device.poles='4P';}
       }
       if(!device.poles&&['FILS','FI','LS'].includes(device.kind)&&page.poleHints?.[ref]){device.poles=page.poleHints[ref];device.note+=' Polzahl anhand gezeichneter Zuleitungen. ';}
       if(device.kind==='OTHER'&&letter==='K'&&page.symbols?.[ref]==='clock'){device.kind='CLOCK';device.note+=' Uhrsymbol erkannt. ';}
@@ -148,7 +156,7 @@ export function parsePages(pages){
   if(!result.devices.length)result.warnings.push('Keine Geräte sicher erkannt. Bei Dispo oder Scan Geräte manuell hinzufügen; es wird kein vollständiger Gerätebestand angenommen.');
   return result;
 }
-export function validateFields(fields){return fields.length>0&&fields.length<=5&&fields.every(f=>['SBR','ARS','GZK'].includes(f.type)&&[f.b,f.h,f.t].every(n=>Number.isFinite(n)&&n>0)&&Number.isFinite(f.percent)&&f.percent>=0&&f.percent<=100&&validSurcharge(f.surchargePercent));}
+export function validateFields(fields){return fields.length>0&&fields.length<=5&&fields.every(f=>['SBR','ARS','GZK','Hager'].includes(f.type)&&[f.b,f.h,f.t].every(n=>Number.isFinite(n)&&n>0)&&Number.isFinite(f.percent)&&f.percent>=0&&f.percent<=100&&validSurcharge(f.surchargePercent));}
 
 export function defaultIcp(devices=[],smisslineInstalled=false){return smisslineInstalled||devices.some(d=>d.system==='smissline'&&d.qty>0)?10:6;}
 export function peakCurrent(icp){const n=Number(icp);return Number.isFinite(n)&&n>0?Math.round(n*1.7):null;}
