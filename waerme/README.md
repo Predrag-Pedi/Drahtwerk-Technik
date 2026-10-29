@@ -158,3 +158,12 @@ Validiert im Browser mit vollständigem Schema, separater Dispo und der Original
 - Der interne Projektleiter C14 und bestehende Deckblatt-Formeln bleiben erhalten. Ältere Vorlagen ohne Deckblatt Neu bleiben unterstützt.
 - Stücknachweis 11.9: bis einschliesslich 250 A C37, darüber C36. Die jeweils andere Markierung wird gelöscht, das Wingdings-Format bleibt erhalten.
 - Prüfung: Node-Tests sowie tests/cover-browser.html mit neuer Originalvorlage (Export/Rückimport bei 160, 250 und 400 A).
+
+### Gemeinsamer Excel-/PDF-Export (20261029-9)
+Der Export erzeugt pro Anlage die Excel-Datei und «Auftragsnummer - Konformität - Anlage.pdf». Das PDF enthält Bauartnachweis, Stücknachweis, Temperaturnachweis und Konformität in dieser Reihenfolge, jeweils eine A4-Seite. Beide Dateien sind einzeln und zusammen im ZIP verfügbar; auch der Mehranlagen-Export enthält beide Formate.
+
+Die PDF-Ausgabe liest die frisch exportierte Excel-Datei und wertet die benötigten Formelbezüge neu aus (keine alten Excel-Caches). Druckbereiche, Zelltexte, Rahmen, Schriftattribute, verbundene Zellen, Haken und unterstützte Vorlagenbilder werden im Browser dargestellt. Die PDF-Seiten sind hochauflösende Rasterseiten (ca. 216 dpi), keine native Excel-Druckausgabe; Schriftmetriken können von Excel abweichen. Eingebettete Rasterbilder, Excel-In-Cell-Bilder und Bitmap-EMFs werden unterstützt. Unbekannte Formeln/Bildformate oder fehlende Druckbereiche brechen den PDF-Export mit einer sichtbaren Meldung ab; die Excel-Datei bleibt verfügbar. Kundendaten werden nicht an einen Konvertierungsdienst gesendet.
+
+Die Berechnungen und die Feldbezüge bleiben diejenigen der Vorlage: Insbesondere zeigt deren Temperaturnachweis die dort verknüpften Felder (aktuelle Vorlage: Feld 1); dieser Export ändert die Blattlogik nicht. Bestehende Prüfmarkierungen und eingebettete Bilder werden lediglich wiedergegeben, nicht neu ergänzt.
+
+Prüfung: `node --test tests/*.test.mjs`; `tests/pdf-browser.html` mit der Originalvorlage prüft aktuelle Projektdaten, Wärmeleistung/Reserve und die 315-A-Markierung, parst das erzeugte PDF mit PDF.js und bietet alle vier Seiten zur Sichtkontrolle an.
