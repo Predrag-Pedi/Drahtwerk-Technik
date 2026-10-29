@@ -1,6 +1,24 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261029-5';
+import {parsePages,defaultIcp} from './core.mjs?v=20261029-6';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
+// Extract installation addresses, preferring explicit project blocks over company addresses.
+export function objectAddress(pages){
+ const candidates=[];
+ for(const page of pages){
+  const text=page.text||'', re=/([A-ZÄÖÜ][\p{L}.-]*(?:strasse|straße|weg|gasse|platz|rain|halde|boden|allee)\s+\d+[a-z]?(?:\s*[\/–-]\s*\d+[a-z]?)?)\s*[,\n ]+\s*(\d{4})\s+([A-ZÄÖÜ][\p{L}.-]*(?:[ \t]+(?:am|an|im|in|ob|unter|bei|der|den|[A-ZÄÖÜ][\p{L}.-]*))*)/gu;
+  // Some CAD title blocks emit their three address lines in reverse reading order.
+  const reverse=/^([A-ZÄÖÜ][\p{L} .-]+)\n(\d{4})\n([A-ZÄÖÜ][\p{L}.-]*(?:strasse|straße|weg|gasse|platz|rain|halde|boden|allee)\s+\d+[a-z]?(?:[\/–-]\d+[a-z]?)?)$/gmu;
+  for(const m of text.matchAll(reverse))candidates.push({value:m[3]+', '+m[2]+' '+m[1],score:5});
+  for(const m of text.matchAll(re)){
+   const before=text.slice(Math.max(0,m.index-180),m.index);
+   const company=/\b(?:AG|GmbH)\s*$/.test(before.trim());
+   const project=/Objekt|Projekt|Bauvorhaben|Bauobjekt|Installationsadresse/i.test(before);
+   if(company&&!project)continue;
+   candidates.push({value:m[1].replace(/\s+/g,' ') + ', '+m[2]+' '+m[3].trim(),score:(project?10:0)});
+  }
+ }
+ return candidates.sort((a,b)=>b.score-a.score)[0]?.value||'';
+}
 export function identity(text){
  const house=text.match(/(?:HV\s*)?Haus\s+([A-Z]|\d+)\b/i)||text.match(/\bHV([A-Z])\b/);if(house)return 'HV Haus '+house[1].toUpperCase();
  if(/Dispo\s+(?:UV\s+)?Linke\s+Wand/i.test(text))return 'UV Linke Wand Allgemein';
@@ -93,7 +111,7 @@ export function buildPortfolio(documents,overrides={},links={}){
   if(best?.uncertain)p.warnings.push('Feldmasse aus Massbeschriftungen vorgeschlagen. Tiefe und Aufteilung prüfen.');
   if(ranked.length>1)p.warnings.push('Mehrere Dispos vorhanden. Separate Dispo hat Vorrang; ältere Zeichnungen bitte abgleichen.');
   const schema=p.pages.filter(page=>!disposition(page)),parsed=parsePages(schema);
-  const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;if(best&&/smissline/i.test(best.page.text))for(const d of p.devices)if(['LS','FILS','FI'].includes(d.kind)){d.system='smissline';d.note+=' Smissline gemäss zugeordnetem Dispo.';}p.warnings.push(...parsed.warnings,...parsed.ignored.filter(s=>s.includes('kein Privatzähler')||s.includes('gemäss Vorgabe ausgeschlossen')||s.includes('Reserve ohne angeschlossene Stromlinien')));
+  const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.project.object=objectAddress(schema)||objectAddress(best?[best.page]:[])||objectAddress(p.cover?[p.cover]:[]);p.devices=parsed.devices;if(best&&/smissline/i.test(best.page.text))for(const d of p.devices)if(['LS','FILS','FI'].includes(d.kind)){d.system='smissline';d.note+=' Smissline gemäss zugeordnetem Dispo.';}p.warnings.push(...parsed.warnings,...parsed.ignored.filter(s=>s.includes('kein Privatzähler')||s.includes('gemäss Vorgabe ausgeschlossen')||s.includes('Reserve ohne angeschlossene Stromlinien')));
   p.sources=[...new Set(p.pages.map(page=>page.file))].map(file=>`${file} (${p.pages.filter(page=>page.file===file).length} Seiten)`);p.layoutSource=best?`${best.page.file} · Seite ${best.page.number}`:'Keine Dispo';
   const supply=best?[...best.page.text.matchAll(/(?:Zuleitung|HAK)[^\n]*?\s(\d+)\s*A\b/gi)].map(m=>+m[1]):[];const currents=[...new Set(supply.length?supply:parsed.currents.map(c=>c.amp))];if(currents.length===1)p.project.amp=currents[0];
   const refs=new Map();if(best)for(const item of best.page.items||[]){for(const match of item.str.matchAll(/(?<![\w])[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Za-z]?(?![\w])/g)){const ref=match[0].replace(/^[-+]/,'');const list=refs.get(ref)||[];list.push(item.x+(item.width||0)*match.index/Math.max(1,item.str.length));refs.set(ref,list);}}

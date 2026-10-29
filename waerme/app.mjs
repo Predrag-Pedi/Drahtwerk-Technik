@@ -1,10 +1,10 @@
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-5';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-5';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-5';
-import {buildPortfolio} from './portfolio.mjs?v=20261029-5';
-import {templateStore} from './storage.mjs?v=20261029-5';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss} from './core.mjs?v=20261029-5';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-5';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-6';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-6';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-6';
+import {buildPortfolio} from './portfolio.mjs?v=20261029-6';
+import {templateStore} from './storage.mjs?v=20261029-6';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss} from './core.mjs?v=20261029-6';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-6';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -60,7 +60,7 @@ function drawDevices(){
  }).join('');update();
 }
 const documents=[],overrides={},links={};let plants=[],active=-1,importsPending=false,edited=false;
-const projectKeys=['customer','customerNo','pl','name','order','city','amp','icp','date'];
+const projectKeys=['customer','customerNo','pl','name','order','city','amp','icp','date','object','deliveryDate','timeBudget'];
 function invalidateDownloads(){ $('downloads').querySelectorAll('a').forEach(a=>URL.revokeObjectURL(a.href));$('downloads').replaceChildren(); }
 function saveActive(){if(active<0)return;Object.assign(plants[active],{fields:state.fields,devices:state.devices,warnings:state.warnings,icpManual:state.icpManual,reviewed:$('reviewed').checked,project:Object.fromEntries(projectKeys.map(k=>[k,$(k).value]))});}
 function selectPlant(i){saveActive();active=i;const p=plants[i];if(!p)return;state.icpManual=!!p.icpManual;state.fields=p.fields;state.devices=p.devices;state.warnings=[...p.warnings,...(state.book?.corrections||[])];for(const key of projectKeys)$(key).value=p.project[key]??(key==='icp'?'6':'');$('reviewed').checked=p.reviewed;$('sources').textContent='Verwendete Dispo: '+p.layoutSource+'. Quellen: '+p.sources.join(' · ');warnings();drawFields();drawDevices();}

@@ -151,3 +151,10 @@ Validiert im Browser mit vollständigem Schema, separater Dispo und der Original
 - Nicht zugeordnete Geräte mit A-Kennzeichen (z. B. 27A1, -27A1) erhalten 5 W pro Stück; andere bleiben bei 8 W. Zugeordnete Excel-Artikel haben Vorrang.
 - Berechnung, Zeilenhinweis und Excel-Dokumentation verwenden denselben Pauschalwert. Mengen und Prozentzuschlag werden wie bisher berücksichtigt.
 - Release 20261029-5 / Service Worker v28.
+
+### Deckblatt Neu (20261029-6)
+- Objekt: Schemaadresse bevorzugt, danach Dispo; Strasse/Hausnummer und PLZ/Ort. Im Tool pro Anlage korrigierbar.
+- Liefertermin und Zeitvorgabe werden pro Anlage eingegeben; Export nach C16 (Excel-Datum) bzw. C18. Objekt nach C12. Leere Angaben löschen die Beispieldaten der Vorlage.
+- Der interne Projektleiter C14 und bestehende Deckblatt-Formeln bleiben erhalten. Ältere Vorlagen ohne Deckblatt Neu bleiben unterstützt.
+- Stücknachweis 11.9: bis einschliesslich 250 A C37, darüber C36. Die jeweils andere Markierung wird gelöscht, das Wingdings-Format bleibt erhalten.
+- Prüfung: Node-Tests sowie tests/cover-browser.html mit neuer Originalvorlage (Export/Rückimport bei 160, 250 und 400 A).
