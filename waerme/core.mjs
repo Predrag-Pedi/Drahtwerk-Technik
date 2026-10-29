@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-10';
-import {reserveStatus} from './drawing.mjs?v=20261029-10';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-11';
+import {reserveStatus} from './drawing.mjs?v=20261029-11';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -102,7 +102,7 @@ export function parsePages(pages){
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD](?:\s*\d+\s*mA)?$/i.test(x))||/\bLS[BCD]?\b/i.test(block.join(' '));
       const local=block.join(' ');const letter=ref.match(/([FSPKYQAG])\d/)[1];
-      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter|Bypass-Umschalter/i.test(local)||letter==='Q'&&/Hauptschalter|Lasttrennschalter/i.test(preceding))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter|Bypass-Umschalter/i.test(local)||letter==='Q'&&(/Hauptschalter|Lasttrennschalter/i.test(preceding)||/Einspeisung\s+von\s+HAK/i.test(text)&&amp&&['1','2','3','4','5','6'].every(pin=>lines.slice(Math.max(0,i-12),i).includes(pin))))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:(page.ocr?'Texterkennung: Angaben prüfen. ':'')+(other?block.slice(0,5).join(' '):'')};
       // Explicit ratings belong to this device, including rotated labels and 3x13A notation.

@@ -167,3 +167,7 @@ Die PDF-Ausgabe liest die frisch exportierte Excel-Datei und wertet die benötig
 Die Berechnungen und die Feldbezüge bleiben diejenigen der Vorlage: Insbesondere zeigt deren Temperaturnachweis die dort verknüpften Felder (aktuelle Vorlage: Feld 1); dieser Export ändert die Blattlogik nicht. Bestehende Prüfmarkierungen und eingebettete Bilder werden lediglich wiedergegeben, nicht neu ergänzt.
 
 Prüfung: `node --test tests/*.test.mjs`; `tests/pdf-browser.html` mit der Originalvorlage prüft aktuelle Projektdaten, Wärmeleistung/Reserve und die 315-A-Markierung, parst das erzeugte PDF mit PDF.js und bietet alle vier Seiten zur Sichtkontrolle an.
+
+
+### Mehrere Schränke auf einer Dispo (20261029-11)
+Separate Schemas können anhand übereinstimmender Objektadresse und gemeinsamer Gerätekennzeichen zugeordnet werden, auch bei unterschiedlichen Dateinamen. Masslinien bis zur Seitenmitte werden berücksichtigt; benachbarte vertikale Massangaben liefern unterschiedliche Feldhöhen. Eine auf derselben Dispo gezeichnete UV Allgemein wird als weiteres Feld der HV gemeinsam berechnet. Ein erkannter Hauptschalter an der HAK-Einspeisung hat beim Bemessungsstrom Vorrang vor nachgeordneten Sicherungen. Fehlende Tiefe und SBR-Bauart können aus der zugeordneten Auftragsbestätigung ergänzt werden; die Feldbreiten bleiben gemäss Dispo. Die Tiefe der UV wird dabei aus derselben Auftragsposition übernommen. Nicht über Kennzeichen lokalisierte Geräte werden weiterhin näherungsweise nach Feldbreite verteilt.
