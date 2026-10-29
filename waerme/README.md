@@ -129,3 +129,10 @@ Validiert im Browser mit vollständigem Schema, separater Dispo und der Original
 - Grundwert, Zuschlag in Watt und Total werden getrennt angezeigt. Excel-Feldwerte enthalten den Zuschlag einmal; «Webapp Eingaben» dokumentiert alle Werte.
 - Negative, leere oder ungültige Zuschläge verhindern den Export.
 - Service Worker v25; OCR-Cache bleibt v4.
+
+### Ergänzung 20261029-3 – Pauschale für nicht zugeordnete Geräte
+
+- Ohne Excel-Artikelzuordnung automatisch 8 W pro Stück, weiterhin farblich hervorgehoben. Eine spätere Zuordnung ersetzt die Pauschale durch die Excel-Berechnung.
+- Pauschalen fliessen je Feld vor dem Prozentzuschlag ein; Excel F739 und die Eingabedokumentation berücksichtigen sie ebenfalls.
+- Prüfungshäkchen optional; fehlende Artikelzuordnung blockiert den Export nicht. Fehlende Projektdaten, ungültige Mengen oder Feldzuordnungen werden weiterhin gemeldet.
+- Release 20261029-3 / Service Worker v26; OCR-Cache unverändert.
