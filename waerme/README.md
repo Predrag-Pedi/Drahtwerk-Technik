@@ -136,3 +136,12 @@ Validiert im Browser mit vollständigem Schema, separater Dispo und der Original
 - Pauschalen fliessen je Feld vor dem Prozentzuschlag ein; Excel F739 und die Eingabedokumentation berücksichtigen sie ebenfalls.
 - Prüfungshäkchen optional; fehlende Artikelzuordnung blockiert den Export nicht. Fehlende Projektdaten, ungültige Mengen oder Feldzuordnungen werden weiterhin gemeldet.
 - Release 20261029-3 / Service Worker v26; OCR-Cache unverändert.
+
+### Ergänzung 20261029-4 – native Beschriftungen und Dispo am Dokumentende
+
+- Bei einer einzelnen internen Dispo bleiben auch davorliegende Schaltplanseiten erhalten. Separate Ausführungsdispos haben weiterhin Vorrang.
+- Inline-Kennzeichen und kompakte Angaben wie LS C 3x25A, FI/LS C13A 30mA und FI 4P 63A 300mA werden getrennt ausgewertet.
+- Nummerierte A-/G-Baugruppen werden erfasst; kurze Anschluss-/Kanalbezeichnungen A1, A2, Q1 und S1 werden bei nummerierten Kennzeichen nicht als zusätzliche Geräte gezählt. Nicht zugeordnete Baugruppen verwenden die bestehende 8-W-Pauschale.
+- Ausdrücklich mit +AZK bezeichnete Aussenzählerkasten-Seiten bleiben von HV-Steuerseiten getrennt; BxHxT-Beschriebe ohne Buchstabenpräfix und HAK-Nennstrom werden gelesen.
+- Gemeinsame Projektadresse und überlappende Gerätekennzeichen verknüpfen getrennte Dispos mit dem Schema. Zusammengesetzte Auftragsnummern werden mit der passenden Schrankbeschreibung abgeglichen.
+- Release 20261029-4 / Service Worker v27; keine zusätzliche OCR für native Beschriftungen.
