@@ -145,3 +145,9 @@ Validiert im Browser mit vollständigem Schema, separater Dispo und der Original
 - Ausdrücklich mit +AZK bezeichnete Aussenzählerkasten-Seiten bleiben von HV-Steuerseiten getrennt; BxHxT-Beschriebe ohne Buchstabenpräfix und HAK-Nennstrom werden gelesen.
 - Gemeinsame Projektadresse und überlappende Gerätekennzeichen verknüpfen getrennte Dispos mit dem Schema. Zusammengesetzte Auftragsnummern werden mit der passenden Schrankbeschreibung abgeglichen.
 - Release 20261029-4 / Service Worker v27; keine zusätzliche OCR für native Beschriftungen.
+
+### Ergänzung 20261029-5 – A-Geräte mit 5 W Pauschale
+
+- Nicht zugeordnete Geräte mit A-Kennzeichen (z. B. 27A1, -27A1) erhalten 5 W pro Stück; andere bleiben bei 8 W. Zugeordnete Excel-Artikel haben Vorrang.
+- Berechnung, Zeilenhinweis und Excel-Dokumentation verwenden denselben Pauschalwert. Mengen und Prozentzuschlag werden wie bisher berücksichtigt.
+- Release 20261029-5 / Service Worker v28.
