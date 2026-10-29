@@ -1,10 +1,10 @@
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-7';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-7';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-7';
-import {buildPortfolio} from './portfolio.mjs?v=20261029-7';
-import {templateStore} from './storage.mjs?v=20261029-7';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss} from './core.mjs?v=20261029-7';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-7';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-8';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-8';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-8';
+import {buildPortfolio} from './portfolio.mjs?v=20261029-8';
+import {templateStore} from './storage.mjs?v=20261029-8';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261029-8';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-8';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -113,8 +113,8 @@ async function runExport(all){if(!state.book||state.busy)return;saveActive();try
  if(importsPending)throw Error('Neue Imports zuerst auswerten, damit alle Unterlagen berücksichtigt werden.');
  if($('pending').children.length)throw Error('Zuerst alle Dateien einer Anlage zuordnen.');
  const selected=all?plants:active>=0?[plants[active]]:[{name:$('name').value||'Anlage',fields:state.fields,devices:state.devices,reviewed:$('reviewed').checked,project:Object.fromEntries(projectKeys.map(k=>[k,$(k).value]))}];
- if(!selected.length)throw Error('Keine Anlagen vorhanden.');const data=selected.map(exportData);state.busy=true;update();invalidateDownloads();const zip=new JSZip();
- for(let i=0;i<data.length;i++){status(`Excel ${i+1} von ${data.length} wird erstellt …`);const blob=await exportWorkbook(state.buffer,JSZip,data[i]);const name=String(i+1).padStart(2,'0')+'_Drahtwerk_'+(data[i].project.name||'Anlage').replace(/[^a-zA-Z0-9_-]/g,'_')+'.xlsx';zip.file(name,blob);download(blob,name);}
+ if(!selected.length)throw Error('Keine Anlagen vorhanden.');const data=selected.map(exportData);state.busy=true;update();invalidateDownloads();const zip=new JSZip(),usedNames=new Set();
+ for(let i=0;i<data.length;i++){status(`Excel ${i+1} von ${data.length} wird erstellt …`);const blob=await exportWorkbook(state.buffer,JSZip,data[i]);const name=exportFilename(data[i].project,usedNames);zip.file(name,blob);download(blob,name);}
  if(all)download(await zip.generateAsync({type:'blob'}),'Drahtwerk_Waerme_Anlagen.zip');status('Excel-Dateien erstellt. Über die Links speichern und in Excel öffnen.');
  }catch(e){status(e.message,true);}finally{state.busy=false;update();}}
 $('projectForm').addEventListener('submit',e=>{e.preventDefault();runExport(false);});$('exportAll').onclick=()=>runExport(true);
