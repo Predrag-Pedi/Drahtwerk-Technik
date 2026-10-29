@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261028-7';
-import {reserveStatus} from './drawing.mjs?v=20261028-7';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-1';
+import {reserveStatus} from './drawing.mjs?v=20261029-1';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -104,6 +104,8 @@ export function parsePages(pages){
       const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter/i.test(local)||letter==='Q'&&/Hauptschalter|Lasttrennschalter/i.test(preceding))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:(page.ocr?'Texterkennung: Angaben prüfen. ':'')+(other?block.slice(0,5).join(' '):'')};
+      if(!device.poles&&['FILS','FI','LS'].includes(device.kind)&&page.poleHints?.[ref]){device.poles=page.poleHints[ref];device.note+=' Polzahl anhand gezeichneter Zuleitungen. ';}
+      if(device.kind==='OTHER'&&letter==='K'&&page.symbols?.[ref]==='clock'){device.kind='CLOCK';device.note+=' Uhrsymbol erkannt. ';}
       if(device.kind==='OTHER'&&letter==='K'&&page.symbols?.[ref]==='coil'){device.kind='CONTACTOR';device.note+=' Rechteckige Relaisspule erkannt; Hager-Schütz als Referenz. ';}
       if(pageConfirmed[ref]){Object.assign(device,pageConfirmed[ref]);device.confirmed=true;device.note='Symbol-/Gerätezuordnung für dieses Schema visuell geprüft.';}
       if(confirmed[ref]){Object.assign(device,confirmed[ref]);device.note='Symbolzuordnung für dieses Schema bestätigt. '+device.note;}
