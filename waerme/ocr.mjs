@@ -1,4 +1,4 @@
-import {detectRelaySymbol,findRelaySymbols,protectivePoles} from './symbols.mjs?v=20261029-1';
+import {detectRelaySymbol,findRelaySymbols,protectivePoles} from './symbols.mjs?v=20261029-2';
 // OCR is loaded only for pages whose text layer contains no useful drawing labels.
 export function needsOcr(items){const text=items.map(x=>x.str).join(' ');return !/\b\d*[FSPKYQ]\d+(?:\.\d+)*\b/i.test(text)&&items.filter(x=>/[a-zäöü]{3}/i.test(x.str)).length<4;}
 const refPattern=/^[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Z]?$/;
