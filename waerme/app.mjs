@@ -1,11 +1,11 @@
-import {exportReportPdf} from './report-pdf.mjs?v=20261029-10';
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-10';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-10';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-10';
-import {buildPortfolio} from './portfolio.mjs?v=20261029-10';
-import {templateStore} from './storage.mjs?v=20261029-10';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261029-10';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-10';
+import {exportReportPdf} from './report-pdf.mjs?v=20261029-11';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-11';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-11';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-11';
+import {buildPortfolio} from './portfolio.mjs?v=20261029-11';
+import {templateStore} from './storage.mjs?v=20261029-11';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261029-11';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-11';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
