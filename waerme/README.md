@@ -179,3 +179,7 @@ Separate Schemas können anhand übereinstimmender Objektadresse und gemeinsamer
 - EPLAN-Beschriftungen vor dem Kennzeichen (Nennstrom, Leitungsschutz und FI/LS mit 0,03 A) werden berücksichtigt. Materiallisten, Prinzipschemas und IP-/Slave-Listen werden nicht als zusätzliche Geräte gezählt. Mit +Ext markierte externe Betriebsmittel werden ausgeschlossen. Spätere eindeutige Gerätemerkmale können frühere unbestimmte Treffer verbessern.
 - Objektadressen tolerieren leere Textfragmente und Strassennamen wie «In der Beispielwiese». Abweichende Postleitzahlen zwischen Schema und Dispo werden angezeigt. Ein fehlendes Schema wird ausdrücklich gemeldet.
 - Prüfung: vier private Beispielprojekte; acht Excel-/PDF-Exporte im Browser erfolgreich; bei einer weiteren Anlage fehlte das Schema. Automatische Erkennung ist keine Bestätigung vollständiger Geräteinventare; unzugeordnete Einträge behalten die vorgesehenen 5-/8-W-Pauschalen. Private Quelldokumente werden nicht eingecheckt.
+
+### Mehrere Ansichten eines Feldes (20261029-14)
+
+Explizite B×H×T-Angaben werden auch mit Höhenzusätzen wie «(inkl. Sockel)» gelesen. Dadurch werden Innenmasse und eine zusätzliche geschlossene Türansicht nicht als weiteres Feld interpretiert, wenn die Schrankbeschreibung ein einzelnes Feld ausweist. Explizite geteilte Breiten (z. B. B1000/800) bleiben mehrere Felder. Der ARS-Typ kann aus einer eindeutigen Auftragsbeschreibung ergänzt werden.

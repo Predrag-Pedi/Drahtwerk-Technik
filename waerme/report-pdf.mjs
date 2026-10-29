@@ -1,4 +1,4 @@
-import {readWorkbook} from './workbook.mjs?v=20261029-13';
+import {readWorkbook} from './workbook.mjs?v=20261029-14';
 export const REPORT_SHEETS=['Bauartnachweis','Stücknachweis','Temperaturnachweis','Konformität'];
 const tags=(n,t)=>Array.from(n?.getElementsByTagNameNS('*',t)||[]),first=(n,t)=>tags(n,t)[0],attr=(n,k,d='')=>n?.getAttribute(k)??d;
 const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(first(d,'parsererror'))throw Error('Ungültiges XML im PDF-Export');return d;};

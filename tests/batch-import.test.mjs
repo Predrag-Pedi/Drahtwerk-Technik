@@ -27,3 +27,10 @@ test('A main switch on the same sheet as SPD is not itself counted as SPD',()=>{
  const r=parsePages(doc('sample.pdf',['1\n2\n3\n4\n5\n6\n7\n8\n10Q0\n80A\nZuleitung ab UV Allgemein\nÜberspannungsschutz\n10F4']).pages);assert.deepEqual(r.devices.map(d=>d.kind),['MAIN','SPD']);
 });
 test('Reverse project address survives blank PDF text runs and alphabetic house ranges',()=>assert.equal(objectAddress([{text:'Objekt:\n\nWetzikon\n \n8623\nBahnhofstrasse 234A-D'}]),'Bahnhofstrasse 234A-D, 8623 Wetzikon'));
+test('Cabinet description with plinth annotation wins over inner-width and closed-door view dimensions',()=>{
+ const layout=doc('layout.pdf',['ELEKTROSCHEMA\nAU-98765', 'Dispo\nAU-98765\nB1650x H2100 (inkl. Sockel)x T400mm best. aus:\nBandung: Doppelflüglig\n100mm Sockel schwarz\nZuleitung 5x35mm2 100A']);
+ layout.pages[1].items=[{str:'1650',x:150,y:80},{str:'1600',x:150,y:100},{str:'2000',x:30,y:300,rotated:true},{str:'2100',x:350,y:300,rotated:true}];
+ const order=doc('order.pdf',['Auftragsbestätigung\nAU-98765\nAlu-Reihenschrank\nB1650x H2100x T400mm']);
+ const p=buildPortfolio([layout,order]).plants[0];assert.deepEqual(p.fields.map(f=>[f.type,f.b,f.h,f.t]),[['ARS',1650,2100,400]]);assert.equal(p.project.amp,100);
+ assert.equal(disposition({text:'Dispo\nB1000/800x H2100 (inkl. Sockel)x T400mm',height:600,items:[]}).fields.length,2);
+});

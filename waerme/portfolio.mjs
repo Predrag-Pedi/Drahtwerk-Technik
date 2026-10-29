@@ -1,4 +1,4 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261029-13';
+import {parsePages,defaultIcp} from './core.mjs?v=20261029-14';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 // Extract installation addresses, preferring explicit project blocks over company addresses.
@@ -34,7 +34,7 @@ export function identity(text){
 export function disposition(page){
  const text=page.text;if(/Allgemeine Hinweise|Symbolverzeichnis|Inhaltsverzeichnis|Anschluss-?\s*und\s*Umgebungsbedingungen|ELEKTROSCHEMA/i.test(text))return null;
  const bare=text.match(/(\d+)\s*[x×]\s*(\d+)\s*[x×]\s*(\d+)\s*mm\s*\(BxHxT\)/i);
- const m=text.match(/B\s*(\d+(?:\s*\/\s*\d+)*)\s*[x×]\s*H\s*(\d+)\s*[x×]\s*([TH])\s*(\d+)\s*mm/i)||(bare?[bare[0],bare[1],bare[2],'T',bare[3]]:null);
+ const m=text.match(/B\s*(\d+(?:\s*\/\s*\d+)*)\s*[x×]\s*H\s*(\d+)\s*(?:\([^)]*\)\s*)?[x×]\s*([TH])\s*(\d+)\s*mm/i)||(bare?[bare[0],bare[1],bare[2],'T',bare[3]]:null);
  if(!m&&!/^\s*(?:Dispo|Disposition)(?:\s*$|[ \t]+(?:HV|UV|Hauptverteilung|Unterverteilung|Rechte|Linke)\b)/im.test(text))return null;
  const lines=text.split('\n').map(s=>s.trim()).filter(Boolean), alu=lines.findIndex(s=>/Alu[ -](Selbstbau|Reihen)/i.test(s));
  const title=alu>0&&/[a-zäöü]/i.test(lines[alu-1])&&!/^\d*[FSPKYQ]\d+(?:\.\d+)*$/i.test(lines[alu-1])?lines[alu-1]:'';
@@ -140,7 +140,7 @@ export function buildPortfolio(documents,overrides={},links={}){
   assignFields(p.devices,p.fields,best?.page,refs);
   if(p.devices.some(d=>d.fieldMethod==='slots'))p.warnings.push('Nicht im Dispo lokalisierte Geräte automatisch nach Platzeinheiten und Feldbreiten verteilt (Näherung).');
   if(best){const hh=(best.page.items||[]).filter(x=>x.rotated&&/^\d{4}$/.test(x.str.trim())).map(x=>+x.str);if(hh.some(h=>p.fields.some(f=>f.h&&h!==f.h)))p.warnings.push('Höhe in Masslinie und Beschrieb weicht ab. Feldhöhe vor Export prüfen.');}p.reviewed=false;p.smisslineInstalled=!!best&&/smissline/i.test(best.page.text);p.project.icp=defaultIcp(p.devices,p.smisslineInstalled);p.icpManual=false;
-  for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name||best&&best.page.text.includes('/'+info.order.replace('AU-',''))&&(/Selbstbaurahmen/i.test(best.page.text)===/Selbstbaurahmen/i.test(order.pages.map(p=>p.text).join(' ')))){Object.assign(p.project,info);p.project.name=p.name;const construction=order.pages.map(x=>x.text).join(' '),depth=construction.match(/\bT\s*(\d+)\s*mm/i);for(const f of p.fields){if(!f.t&&depth)f.t=+depth[1];if(!best?.type&&/Alu[ -]Selbstbaurahmen/i.test(construction)&&!/Alu[ -]Reihenschrank/i.test(construction))f.type='SBR';}p.sources.push(order.file+' (Auftragsbestätigung)');}}
+  for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name||best&&best.page.text.includes('/'+info.order.replace('AU-',''))&&(/Selbstbaurahmen/i.test(best.page.text)===/Selbstbaurahmen/i.test(order.pages.map(p=>p.text).join(' ')))){Object.assign(p.project,info);p.project.name=p.name;const construction=order.pages.map(x=>x.text).join(' '),depth=construction.match(/\bT\s*(\d+)\s*mm/i);for(const f of p.fields){if(!f.t&&depth)f.t=+depth[1];if(!best?.type){const sbr=/Alu[ -]Selbstbaurahmen/i.test(construction),ars=/Alu[ -]Reihenschrank/i.test(construction);if(sbr&&!ars)f.type='SBR';if(ars&&!sbr)f.type='ARS';}}p.sources.push(order.file+' (Auftragsbestätigung)');}}
 
  }
  for(const order of orders)if(!plants.some(p=>p.sources.some(s=>s.startsWith(order.file+' ('))))pending.push({file:order.file,name:order.file});return {plants,pending};
