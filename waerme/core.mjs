@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-8';
-import {reserveStatus} from './drawing.mjs?v=20261029-8';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-9';
+import {reserveStatus} from './drawing.mjs?v=20261029-9';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -171,10 +171,10 @@ export function unassignedLoss(devices,catalog){
  },0);
 }
 
-export function exportFilename(project,used=new Set()){
+export function exportFilename(project,used=new Set(),pdf=false){
  const clean=value=>String(value??'').normalize('NFC').replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').replace(/\s+/g,' ').trim().replace(/[. ]+$/g,'');
- const base=clean(project.order||'Ohne Auftragsnummer')+' - '+clean(project.name||'Anlage');
- let name=base+'.xlsx',i=2;
- while(used.has(name.toLocaleLowerCase('de-CH')))name=base+' ('+(i++)+').xlsx';
+ const base=clean(project.order||'Ohne Auftragsnummer')+(pdf?' - Konformität - ':' - ')+clean(project.name||'Anlage'),extension=pdf?'.pdf':'.xlsx';
+ let name=base+extension,i=2;
+ while(used.has(name.toLocaleLowerCase('de-CH')))name=base+' ('+(i++)+')'+extension;
  used.add(name.toLocaleLowerCase('de-CH'));return name;
 }
