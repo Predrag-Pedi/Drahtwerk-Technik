@@ -1,4 +1,4 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261029-9';
+import {parsePages,defaultIcp} from './core.mjs?v=20261029-10';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 // Extract installation addresses, preferring explicit project blocks over company addresses.

@@ -1,11 +1,11 @@
-import {exportReportPdf} from './report-pdf.mjs?v=20261029-9';
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-9';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-9';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-9';
-import {buildPortfolio} from './portfolio.mjs?v=20261029-9';
-import {templateStore} from './storage.mjs?v=20261029-9';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261029-9';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-9';
+import {exportReportPdf} from './report-pdf.mjs?v=20261029-10';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-10';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-10';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-10';
+import {buildPortfolio} from './portfolio.mjs?v=20261029-10';
+import {templateStore} from './storage.mjs?v=20261029-10';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261029-10';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-10';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -109,7 +109,7 @@ function exportData(p){
  if(!state.book.towns.some(t=>t.name.toLocaleLowerCase('de-CH')===(project.city||'').trim().toLocaleLowerCase('de-CH')))throw Error(p.name+': Ort aus der Vorlage wählen.');
  return {project,fields,devices:p.devices};
 }
-function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.textContent=name+' speichern';a.className='home';a.style.display='inline-block';a.style.margin='8px';$('downloads').append(a);}
+function download(blob,name,autoStart=false){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.textContent=name+' speichern';a.className='home';a.style.display='inline-block';a.style.margin='8px';$('downloads').append(a);if(autoStart)a.click();}
 async function runExport(all){if(!state.book||state.busy)return;saveActive();try{
  if(importsPending)throw Error('Neue Imports zuerst auswerten, damit alle Unterlagen berücksichtigt werden.');
  if($('pending').children.length)throw Error('Zuerst alle Dateien einer Anlage zuordnen.');
@@ -119,12 +119,12 @@ async function runExport(all){if(!state.book||state.busy)return;saveActive();try
  for(let i=0;i<data.length;i++){
   status(`Excel und PDF ${i+1} von ${data.length} werden erstellt …`);
   const blob=await exportWorkbook(state.buffer,JSZip,data[i]),name=exportFilename(data[i].project,usedNames);firstName ||= name;
-  zip.file(name,blob);download(blob,name);
-  try{const pdf=await exportReportPdf(blob,JSZip),pdfName=exportFilename(data[i].project,usedNames,true);zip.file(pdfName,pdf);download(pdf,pdfName);}
+  zip.file(name,blob);download(blob,name,!all);
+  try{const pdf=await exportReportPdf(blob,JSZip),pdfName=exportFilename(data[i].project,usedNames,true);zip.file(pdfName,pdf);download(pdf,pdfName,!all);}
   catch(e){pdfErrors.push((data[i].project.name||'Anlage')+': '+e.message);}
  }
- download(await zip.generateAsync({type:'blob'}),all?'Drahtwerk_Waerme_Anlagen.zip':firstName.replace(/\.xlsx$/,'.zip'));
- status(pdfErrors.length?'Excel erstellt. PDF konnte nicht vollständig erstellt werden: '+pdfErrors.join(' · '):'Excel und Konformitäts-PDF erstellt. Einzeln oder gemeinsam als ZIP speichern.',pdfErrors.length>0);
+ download(await zip.generateAsync({type:'blob'}),all?'Drahtwerk_Waerme_Anlagen.zip':firstName.replace(/\.xlsx$/,'.zip'),all);
+ status(pdfErrors.length?'Excel erstellt. PDF konnte nicht vollständig erstellt werden: '+pdfErrors.join(' · '):(all?'ZIP-Download angefordert.':'Excel- und PDF-Downloads angefordert.')+' Die Dateien bleiben unten erneut abrufbar. Falls der Browser nachfragt, mehrere Downloads für diese Website erlauben.',pdfErrors.length>0);
  }catch(e){status(e.message,true);}finally{state.busy=false;update();}}
 $('projectForm').addEventListener('submit',e=>{e.preventDefault();runExport(false);});$('exportAll').onclick=()=>runExport(true);
 drawFields();
