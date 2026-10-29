@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-6';
-import {reserveStatus} from './drawing.mjs?v=20261029-6';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-7';
+import {reserveStatus} from './drawing.mjs?v=20261029-7';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){

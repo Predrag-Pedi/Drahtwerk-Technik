@@ -1,5 +1,5 @@
-import {shiftFormula,calculateCell} from './formula.mjs?v=20261029-6';
-import {SHEETS,classify,spdLoss,peakCurrent,unassignedLoss,unassignedUnitLoss} from './core.mjs?v=20261029-6';
+import {shiftFormula,calculateCell} from './formula.mjs?v=20261029-7';
+import {SHEETS,classify,spdLoss,peakCurrent,unassignedLoss,unassignedUnitLoss} from './core.mjs?v=20261029-7';
 const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)throw Error('Ungültiges XML in Excel-Datei');return d;};
 const tags=(n,t)=>Array.from(n.getElementsByTagNameNS('*',t));
@@ -58,6 +58,22 @@ function put(w,sheet,addr,value,formula){
   if(formula)cell.appendChild(el(s.doc,'f',formula));
   if(value!==null&&value!==undefined){if(typeof value==='number'){if(!Number.isFinite(value))throw Error('Ungültiger Zahlenwert '+addr);cell.appendChild(el(s.doc,'v',value));}else {cell.setAttribute('t','inlineStr');const is=el(s.doc,'is');is.appendChild(el(s.doc,'t',value));cell.appendChild(is);}}
 }
+async function formatAmperes(w){
+  const styles=xml(await w.zip.file('xl/styles.xml').async('string'));
+  let formats=tags(styles,'numFmts')[0];
+  if(!formats){formats=el(styles,'numFmts');styles.documentElement.insertBefore(formats,styles.documentElement.firstChild);}
+  const code='0"A"';
+  let format=tags(formats,'numFmt').find(n=>n.getAttribute('formatCode')===code);
+  if(!format){format=el(styles,'numFmt');format.setAttribute('numFmtId',Math.max(163,...tags(formats,'numFmt').map(n=>+n.getAttribute('numFmtId')))+1);format.setAttribute('formatCode',code);formats.appendChild(format);}
+  formats.setAttribute('count',tags(formats,'numFmt').length);
+  const cell=w.sheets.get(SHEETS.project).cells.get('H24').node;
+  const xfs=tags(styles,'cellXfs')[0],entries=tags(xfs,'xf');
+  const style=entries[Number(cell.getAttribute('s')||0)].cloneNode(true);
+  style.setAttribute('numFmtId',format.getAttribute('numFmtId'));style.setAttribute('applyNumberFormat','1');
+  // Clone only H24's style so borders/fonts survive and other cells stay unchanged.
+  cell.setAttribute('s',entries.length);xfs.appendChild(style);xfs.setAttribute('count',entries.length+1);
+  w.zip.file('xl/styles.xml',ser(styles));
+}
 export function coverEntries(p){
  let date=null;
  if(p.deliveryDate){
@@ -77,6 +93,7 @@ export async function exportWorkbook(original,Zip,data){
   if(w.sheets.has('Deckblatt Neu'))for(const [addr,value] of Object.entries(coverEntries(p)))put(w,'Deckblatt Neu',addr,value);
   if(w.sheets.has('Stücknachweis'))for(const [addr,value] of Object.entries(inspectionEntries(p.amp)))put(w,'Stücknachweis',addr,value);
   for(const [a,k] of Object.entries({B7:'customer',H7:'customerNo',B8:'pl',B9:'name',H8:'date',H9:'order',H10:'type',H14:'city',H24:'amp',D26:'icp'}))put(w,SHEETS.project,a,p[k]??'');
+  await formatAmperes(w);
   if(p.date){const dt=new Date(p.date+'T00:00:00Z');if(Number.isFinite(dt.getTime()))put(w,SHEETS.project,'H8',(dt.getTime()-Date.UTC(1899,11,30))/86400000);}
   if(peakCurrent(p.icp)===null)throw Error('Icp muss eine positive Zahl in kA sein.');
   put(w,SHEETS.project,'H26',peakCurrent(p.icp),'ROUND(D26*1.7,0)');
