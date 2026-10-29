@@ -1,4 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {unassignedLoss,applySurcharge} from '../waerme/core.mjs';
+import {unassignedLoss,applySurcharge,unassignedUnitLoss} from '../waerme/core.mjs';
 test('Unknown devices receive 8 W per unit, including stale article IDs',()=>{const catalog=[{id:'known'}];assert.equal(unassignedLoss([{qty:2,article:''},{qty:3,article:'missing'},{qty:4,article:'known'}],catalog),40);assert.equal(unassignedLoss([],catalog),0);});
 test('Assigning or removing a device removes its fallback, without double counting',()=>{assert.equal(unassignedLoss([{qty:2,article:'known'}],[{id:'known'}]),0);assert.equal(unassignedLoss([{qty:0,article:''}],[]),0);assert.equal(applySurcharge(unassignedLoss([{qty:3}],[]),10).selected,26.4);assert.throws(()=>unassignedLoss([{qty:-1}],[]));});
+
+test('A device designations use 5 W per unit, other references retain 8 W',()=>{for(const ref of ['27A1','-27A1','+27A16','27A1.2',' 27a1 '])assert.equal(unassignedUnitLoss({ref}),5);for(const ref of ['27K1','26G1','27F1','27F1A','Manuell 1','Anlage',undefined])assert.equal(unassignedUnitLoss({ref}),8);const devices=[{ref:'27A1',qty:2},{ref:'26G1',qty:3},{ref:'27A2',qty:4,article:'known'}];assert.equal(unassignedLoss(devices,[{id:'known'}]),34);assert.equal(applySurcharge(unassignedLoss(devices,[{id:'known'}]),10).selected,37.4);});

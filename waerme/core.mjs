@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-4';
-import {reserveStatus} from './drawing.mjs?v=20261029-4';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-5';
+import {reserveStatus} from './drawing.mjs?v=20261029-5';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -162,10 +162,11 @@ export function applySurcharge(base,percent=0){
 
 // User-defined allowance for devices without a matching Excel article.
 export const UNASSIGNED_LOSS_W=8;
+export function unassignedUnitLoss(d){return /^[-+]?\d*A\d+(?:\.\d+)*[A-Za-z]?$/i.test(String(d.ref??'').trim())?5:UNASSIGNED_LOSS_W;}
 export function unassignedLoss(devices,catalog){
  const ids=new Set(catalog.map(c=>c.id));
  return devices.reduce((total,d)=>{
   if(!Number.isInteger(d.qty)||d.qty<0)throw Error("Ungültige Geräteanzahl: "+d.ref);
-  return total+(ids.has(d.article)?0:d.qty*UNASSIGNED_LOSS_W);
+  return total+(ids.has(d.article)?0:d.qty*unassignedUnitLoss(d));
  },0);
 }
