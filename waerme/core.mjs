@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-1';
-import {reserveStatus} from './drawing.mjs?v=20261029-1';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-2';
+import {reserveStatus} from './drawing.mjs?v=20261029-2';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -138,7 +138,14 @@ export function parsePages(pages){
   if(!result.devices.length)result.warnings.push('Keine Geräte sicher erkannt. Bei Dispo oder Scan Geräte manuell hinzufügen; es wird kein vollständiger Gerätebestand angenommen.');
   return result;
 }
-export function validateFields(fields){return fields.length>0&&fields.length<=5&&fields.every(f=>['SBR','ARS','GZK'].includes(f.type)&&[f.b,f.h,f.t].every(n=>Number.isFinite(n)&&n>0)&&Number.isFinite(f.percent)&&f.percent>=0&&f.percent<=100);}
+export function validateFields(fields){return fields.length>0&&fields.length<=5&&fields.every(f=>['SBR','ARS','GZK'].includes(f.type)&&[f.b,f.h,f.t].every(n=>Number.isFinite(n)&&n>0)&&Number.isFinite(f.percent)&&f.percent>=0&&f.percent<=100&&validSurcharge(f.surchargePercent));}
 
 export function defaultIcp(devices=[],smisslineInstalled=false){return smisslineInstalled||devices.some(d=>d.system==='smissline'&&d.qty>0)?10:6;}
 export function peakCurrent(icp){const n=Number(icp);return Number.isFinite(n)&&n>0?Math.round(n*1.7):null;}
+
+export function validSurcharge(percent=0){return Number.isFinite(percent)&&percent>=0;}
+export function applySurcharge(base,percent=0){
+ if(!Number.isFinite(base)||base<0||!validSurcharge(percent))return {base,surchargeW:null,selected:null};
+ const surchargeW=base*percent/100,selected=base+surchargeW;
+ return Number.isFinite(selected)?{base,surchargeW,selected}:{base,surchargeW:null,selected:null};
+}

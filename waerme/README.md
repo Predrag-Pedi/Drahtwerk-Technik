@@ -121,3 +121,11 @@ Der komplette Import der Originaldateien (52 Schema-PDF-Seiten, separate Dispo u
 - Release 20261029-1 / Service Worker v24 / OCR-Cache v4. Eine sichtbare Versionszeile hilft beim Abgleich des geladenen Stands.
 
 Validiert im Browser mit vollständigem Schema, separater Dispo und der Original-Excel: 28F2/28F3 sowie 29F3/29F6 als FI/LS 13 A, 30 mA, 1P+N (ADA913C/ADA963C), 29F2 als 16 A (ADA916C/ADA966C), 29K4 als Schaltuhr (EG103), 29K3 und alle 14 finalen Schütze als ESC425S. Alle 21 genannten Geräte sind einmal vorhanden und einem Artikel zugeordnet. Insgesamt zeigt der Import 108 Positionen, davon 13 weiterhin unzugeordnet; dies ist ausdrücklich kein Nachweis vollständiger Erkennung der gesamten Anlage. Kein vollständiger Excel-Export wurde freigegeben, da diese weiteren Zuordnungen offen sind. 78 automatisierte Tests bestanden.
+
+### Ergänzung 20261029-2 – Zuschlag für nicht erfasste Geräte
+
+- Frei einstellbarer Zuschlag je Feld, standardmässig 0 %, auch mit Dezimalstellen.
+- Grundwert × (1 + Zuschlag / 100), unabhängig von der gewählten Berechnungsmethode. Max. Pv und Artikelmengen bleiben unverändert.
+- Grundwert, Zuschlag in Watt und Total werden getrennt angezeigt. Excel-Feldwerte enthalten den Zuschlag einmal; «Webapp Eingaben» dokumentiert alle Werte.
+- Negative, leere oder ungültige Zuschläge verhindern den Export.
+- Service Worker v25; OCR-Cache bleibt v4.

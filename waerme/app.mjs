@@ -1,12 +1,12 @@
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-1';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-1';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-1';
-import {buildPortfolio} from './portfolio.mjs?v=20261029-1';
-import {templateStore} from './storage.mjs?v=20261029-1';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent} from './core.mjs?v=20261029-1';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-1';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-2';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-2';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-2';
+import {buildPortfolio} from './portfolio.mjs?v=20261029-2';
+import {templateStore} from './storage.mjs?v=20261029-2';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge} from './core.mjs?v=20261029-2';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-2';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
-function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,mode:'devices',manual:null};}
+function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=v=>v===''?null:Number(v),fmt=n=>Number.isFinite(n)?n.toLocaleString('de-CH',{maximumFractionDigits:2})+' W':'–';
 function status(s,error=false){$('status').textContent=s;$('status').classList.toggle('error',error);}
@@ -16,11 +16,12 @@ function fieldResult(f,i){
  const max=state.book?maxPv(f.type,f.b,f.h,f.t,state.book.get):null;
  const dev=state.devices.filter(d=>d.field===i+1&&d.qty>0),unresolved=dev.some(d=>!d.article);
  let total=null,calculationError='';try{if(state.book&&dev.length&&!unresolved)total=state.book.deviceTotal(dev);}catch(e){calculationError=e.message;}
- return {...f,max,device:total,calculationError,unresolved,selected:f.mode==='devices'?total:f.mode==='manual'?f.manual:max===null?null:max*f.percent/100};
+ const base=f.mode==='devices'?total:f.mode==='manual'?f.manual:max===null?null:max*f.percent/100;
+ return {...f,max,device:total,calculationError,unresolved,...applySurcharge(base,f.surchargePercent)};
 }
 function update(){
  try{
-  state.fields.forEach((f,i)=>{const r=fieldResult(f,i);const card=document.querySelector('[data-field="'+i+'"]');if(card){card.querySelector('[data-key="percent"]').disabled=f.mode!=='estimate';card.querySelector('[data-key="manual"]').disabled=f.mode!=='manual';}$('max'+i).textContent=fmt(r.max);$('selected'+i).textContent=r.calculationError&&f.mode==='devices'?r.calculationError:fmt(r.selected);$('estimated'+i).textContent=f.mode==='estimate'?'Schätzung nach Einbaugrad':f.mode==='devices'?'Geräte gemäss Excel-Total':'Manueller Wattwert';});
+  state.fields.forEach((f,i)=>{const r=fieldResult(f,i);const card=document.querySelector('[data-field="'+i+'"]');if(card){card.querySelector('[data-key="percent"]').disabled=f.mode!=='estimate';card.querySelector('[data-key="manual"]').disabled=f.mode!=='manual';}$('max'+i).textContent=fmt(r.max);$('base'+i).textContent=fmt(r.base);$('surcharge'+i).textContent=fmt(r.surchargeW);$('selected'+i).textContent=r.calculationError&&f.mode==='devices'?r.calculationError:fmt(r.selected);$('estimated'+i).textContent=f.mode==='estimate'?'Schätzung nach Einbaugrad':f.mode==='devices'?'Geräte gemäss Excel-Total':'Manueller Wattwert';});
   const unresolved=state.devices.filter(d=>d.qty>0&&!d.article).length;
   $('deviceTotal').textContent=`${state.devices.reduce((s,d)=>s+d.qty,0)} Geräte · ${unresolved} nicht zugeordnet. Berechnung anhand der Excel-Formeln bis «Total Verlustleistung Pv». Fehlende Verlustleistungswerte müssen ergänzt werden.`;
   if(!state.icpManual)$('icp').value=defaultIcp(state.devices,plants[active]?.smisslineInstalled);
@@ -37,7 +38,7 @@ function updateEW(){
  $('ew').textContent=row?`${match.ew} · ${w.get('EW-Tabelle','B'+row)||'ZSK nicht hinterlegt'} · Zählerplatte: ${w.get('EW-Tabelle','F'+row)||'nicht hinterlegt'} · Rohre: ${w.get('EW-Tabelle','G'+row)||'–'}`:match.ew+' · EW-Daten nicht hinterlegt';
 }
 function drawFields(){
- $('fields').innerHTML=state.fields.map((f,i)=>`<div class="field-card" data-field="${i}"><div class="section-head"><h3>Feld ${i+1}</h3>${i===state.fields.length-1&&i>0?'<button type="button" data-remove-field="'+i+'">Feld entfernen</button>':''}</div><div class="grid"><label>Typ<select data-key="type">${['SBR','ARS','GZK'].map(x=>`<option ${x===f.type?'selected':''}>${x}</option>`).join('')}</select></label>${[['b','Breite (mm)'],['h','Höhe (mm)'],['t','Tiefe (mm)']].map(([key,label])=>`<label>${label}<input type="number" min="1" step="any" data-key="${key}" value="${f[key]??''}" required></label>`).join('')}<label>Methode<select data-key="mode">${[['estimate','Schätzung nach Einbaugrad'],['devices','Erfasste Geräte'],['manual','Wattwert manuell']].map(([k,v])=>`<option value="${k}" ${k===f.mode?'selected':''}>${v}</option>`).join('')}</select></label><label>Einbaugrad (%)<input type="number" min="0" max="100" step="any" data-key="percent" value="${f.percent}"></label><label>Manueller Wert (W)<input type="number" min="0" step="any" data-key="manual" value="${f.manual??''}"></label></div><div class="results"><div>Max. Pv<strong id="max${i}">–</strong></div><div><span id="estimated${i}">Übernahme</span><strong id="selected${i}">–</strong></div></div></div>`).join('');update();
+ $('fields').innerHTML=state.fields.map((f,i)=>`<div class="field-card" data-field="${i}"><div class="section-head"><h3>Feld ${i+1}</h3>${i===state.fields.length-1&&i>0?'<button type="button" data-remove-field="'+i+'">Feld entfernen</button>':''}</div><div class="grid"><label>Typ<select data-key="type">${['SBR','ARS','GZK'].map(x=>`<option ${x===f.type?'selected':''}>${x}</option>`).join('')}</select></label>${[['b','Breite (mm)'],['h','Höhe (mm)'],['t','Tiefe (mm)']].map(([key,label])=>`<label>${label}<input type="number" min="1" step="any" data-key="${key}" value="${f[key]??''}" required></label>`).join('')}<label>Methode<select data-key="mode">${[['estimate','Schätzung nach Einbaugrad'],['devices','Erfasste Geräte'],['manual','Wattwert manuell']].map(([k,v])=>`<option value="${k}" ${k===f.mode?'selected':''}>${v}</option>`).join('')}</select></label><label>Einbaugrad (%)<input type="number" min="0" max="100" step="any" data-key="percent" value="${f.percent}"></label><label>Manueller Wert (W)<input type="number" min="0" step="any" data-key="manual" value="${f.manual??''}"></label><label>Zuschlag (%)<input type="number" min="0" step="any" data-key="surchargePercent" value="${f.surchargePercent??0}" required></label></div><p class="hint">Zusatz für nicht erfasste Geräte, bezogen auf den Grundwert dieses Felds. Beispiel: 100 W + 10 % = 110 W.</p><div class="results"><div>Max. Pv<strong id="max${i}">–</strong></div><div><span id="estimated${i}">Übernahme</span><strong id="base${i}">–</strong></div><div>Zuschlag<strong id="surcharge${i}">–</strong></div><div>Total inkl. Zuschlag<strong id="selected${i}">–</strong></div></div></div>`).join('');update();
 }
 function suggest(d){
  if(d.kind==='SPD'&&d.manualLoss==null)d.manualLoss=5;
@@ -97,7 +98,7 @@ $('devices').addEventListener('change',e=>{const row=e.target.closest('[data-dev
 $('devices').addEventListener('click',e=>{if(e.target.dataset.remove!==undefined){state.devices.splice(+e.target.dataset.remove,1);dirty();drawDevices();}});
 $('projectForm').addEventListener('input',e=>{if(e.target.id==='icp')state.icpManual=true;if(e.target.id!=='reviewed')dirty();else edited=true;update();});
 function exportData(p){
- if(!validateFields(p.fields))throw Error(p.name+': Feldmasse oder Einbaugrad fehlen.');
+ if(!validateFields(p.fields))throw Error(p.name+': Feldmasse, Einbaugrad oder Zuschlag sind ungültig.');
  if(!p.reviewed)throw Error(p.name+': Angaben noch nicht geprüft.');
  if(!p.devices.every(d=>Number.isInteger(d.qty)&&d.qty>0&&Number.isInteger(d.field)&&d.field>=1&&d.field<=p.fields.length))throw Error(p.name+': Geräte einem gültigen Feld zuordnen.');
  const previous=state.devices;let fields;try{state.devices=p.devices;fields=p.fields.map(fieldResult);}finally{state.devices=previous;}
