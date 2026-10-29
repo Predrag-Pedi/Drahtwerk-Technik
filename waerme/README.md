@@ -109,3 +109,15 @@ Ergebnisse von bis zu acht OCR-PDFs werden in einer separaten lokalen IndexedDB 
 - Bei F-Kennzeichen ohne lesbare Geräteart wird nur der schmale Beschriftungsausschnitt erneut erkannt. Eine Korrektur wird nur übernommen, wenn Kennzeichen und Schutzgerätebezeichnung zusammen gelesen wurden.
 - OCR-Cacheversion 3 erzwingt nach diesem Update eine neue Analyse; nachfolgende identische Importe nutzen wieder den Cache.
 - Validierung: Original-PDF lokal mit Tesseract ausgelesen, finale Schützreihen zusätzlich mit Rasterprüfung gegen Originalseiten und Excel-Referenzartikel geprüft; automatisierte Regressionstests. Kein vollständiger Browser-Ende-zu-Ende-Test dieser Version.
+
+
+### Ergänzung 20261029-1 – im Browser reproduziert
+
+Der komplette Import der Originaldateien (52 Schema-PDF-Seiten, separate Dispo und originale Excel-Vorlage) zeigte im bisherigen Stand nur 3 der 14 finalen Schütze. Die lokale Tesseract-Auswertung war kein verlässlicher Ersatz für die tatsächliche PDF.js/Tesseract.js-Pipeline.
+
+- Symbolsuche erfolgt jetzt auch ohne zuvor gelesenes K-Kennzeichen. Ungefüllte rechteckige Spulen und Uhrsymbole (Kreis plus Zeiger) werden im gerenderten Seitenbereich gesucht. Das Kennzeichen links daneben wird separat gelesen; ungültige oder unsichere Ergebnisse erzeugen kein erfundenes Gerät.
+- Lesbare Typbezeichnungen mit fehlendem Nennstrom lösen ebenfalls die gezielte FI/LS-Nachprüfung aus. Der Ausschnitt umfasst die längere, links überstehende Stromangabe. Kompakte eingehende Leitergruppen liefern Polzahlhinweise, soweit keine explizite Polzahl vorhanden ist.
+- Keine zusätzlichen projektspezifischen Gerätekennzeichen wurden für diese Korrektur hinterlegt.
+- Release 20261029-1 / Service Worker v24 / OCR-Cache v4. Eine sichtbare Versionszeile hilft beim Abgleich des geladenen Stands.
+
+Validiert im Browser mit vollständigem Schema, separater Dispo und der Original-Excel: 28F2/28F3 sowie 29F3/29F6 als FI/LS 13 A, 30 mA, 1P+N (ADA913C/ADA963C), 29F2 als 16 A (ADA916C/ADA966C), 29K4 als Schaltuhr (EG103), 29K3 und alle 14 finalen Schütze als ESC425S. Alle 21 genannten Geräte sind einmal vorhanden und einem Artikel zugeordnet. Insgesamt zeigt der Import 108 Positionen, davon 13 weiterhin unzugeordnet; dies ist ausdrücklich kein Nachweis vollständiger Erkennung der gesamten Anlage. Kein vollständiger Excel-Export wurde freigegeben, da diese weiteren Zuordnungen offen sind. 78 automatisierte Tests bestanden.
