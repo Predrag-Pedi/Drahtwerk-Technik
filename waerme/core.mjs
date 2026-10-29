@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-3';
-import {reserveStatus} from './drawing.mjs?v=20261029-3';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261029-4';
+import {reserveStatus} from './drawing.mjs?v=20261029-4';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -73,9 +73,9 @@ export function parsePages(pages){
    '61K7':{kind:'CONTACTOR'}
   }:{};
   for(const page of pages){
-    let lines=page.text.split('\n').map(s=>s.trim()).filter(Boolean),text=lines.join('\n'), source=page.file+' · PDF-Seite '+page.number;
+    let lines=page.text.split('\n').flatMap(s=>{const m=s.trim().match(/^([-+]?\d+[FSPKYQAG]\d+(?:\.\d+)*[A-Za-z]?)\s+(.+)$/);return m?[m[1],m[2]]:[s.trim()];}).filter(Boolean),text=lines.join('\n'), source=page.file+' · PDF-Seite '+page.number;
     if(/Anschluss-?\s*und\s*Umgebungsbedingungen/i.test(text)){result.ignored.push(source);continue;}
-    if(/Symbolverzeichnis|Allgemeine Hinweise/i.test(text))continue;
+    if(/Symbolverzeichnis|Allgemeine Hinweise|Inhaltsverzeichnis|Deckblatt/i.test(text))continue;
     const dims=[...text.matchAll(/B\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*H\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*T\s*(\d+(?:[.,]\d+)?)\s*mm/gi)];
     for(const d of dims)result.dimensions.push({b:+d[1].replace(',','.'),h:+d[2].replace(',','.'),t:+d[3].replace(',','.'),source});
     if(/Alu[ -]Selbstbaurahmen/i.test(text))result.project.type='SBR';
@@ -87,28 +87,38 @@ export function parsePages(pages){
     if(/\bDispo\b|Disposition/i.test(text)){result.warnings.push(source+': Dispo liefert Masse und Aufbau. Gerätebilder bitte mit dem Schema abgleichen oder manuell ergänzen.');continue;}
     if(page.ocr){result.warnings.push(source+': Mit Texterkennung gelesen. Kennzeichen, Nennstrom und Vollständigkeit prüfen.');lines=(page.ocrDeviceText||'').split('\n').filter(Boolean);}
     const pageConfirmed=confirmedDrawingDevices(page,sourceText);for(const ref of Object.keys(pageConfirmed))if(!lines.includes(ref))lines.push(ref);
-    const refs=[];for(let i=0;i<lines.length;i++)if(/^[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i]))refs.push({i,ref:lines[i]});
+    const hasNumberedRefs=lines.some(l=>/^[-+]\d+[FSPKYQAG]\d/.test(l));
+    const refs=[];for(let i=0;i<lines.length;i++)if(/^(?:[-+]?\d*[FSPKYQ]|[-+]?\d+[AG])\d+(?:\.\d+)*[A-Za-z]?$/.test(lines[i])&&(!hasNumberedRefs||/^[-+]?\d+[FSPKYQAG]\d/.test(lines[i])))refs.push({i,ref:lines[i]});
     for(let k=0;k<refs.length;k++){
       const {i,ref}=refs[k];
       if(/[FSKQ]\d/.test(ref)&&reserveStatus(page,ref)==='unwired'){result.ignored.push(source+': '+ref+' – Reserve ohne angeschlossene Stromlinien; nicht eingebaut und ausgeschlossen.');continue;}
       if(seen.has(ref)&&!/\d*K\d/.test(ref))continue;
       const block=lines.slice(i,refs[k+1]?.i??lines.length),ampLine=block.slice(0,4).find(x=>/^\d+\s*A$/.test(x));
-      const ratingText=block.slice(0,12).join(' ');const ocrAmp=ratingText.match(/\b(\d+)\s*A\b/i)||ratingText.match(/\bLS[BCD]?\s+[BCD](\d+)\b/i);
+      const ratingText=block.slice(0,12).join(' ');const ocrAmp=ratingText.match(/(?:\b|[x×BCD])(\d+)\s*A\b/i)||ratingText.match(/\bLS[BCD]?\s+[BCD](\d+)\b/i);
       const before=lines[i-1]?.match(/^(\d+)\s*A$/);const amp=ampLine?parseInt(ampLine):ocrAmp?+ocrAmp[1]:before?+before[1]:null,maLine=block.find(x=>/^\d+\s*mA$/.test(x));
       const ma=maLine?parseInt(maLine):Number(block.join(' ').match(/(\d+)\s*mA\b/i)?.[1])||null;
       const preceding=lines.slice(Math.max(refs[k-1]?.i+1||0,i-10),i).join(' ');
-      const spd=block.slice(1,4).some(s=>/^T[12]\s*\/\s*T[12]$/i.test(s.trim()))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(lines.slice(Math.max(0,i-2),i).join(' '));
+      const spd=/^(?:ÜSS|SPD)\b/i.test(block[1]||'')||block.slice(1,4).some(s=>/^T[12]\s*\/\s*T[12]$/i.test(s.trim()))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(block.join(' '))||/Überspannungs(?:ableiter|schutz)|\bSPD\b/i.test(lines.slice(Math.max(0,i-2),i).join(' '));
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD](?:\s*\d+\s*mA)?$/i.test(x))||/\bLS[BCD]?\b/i.test(block.join(' '));
-      const local=block.join(' ');const letter=ref.match(/([FSPKYQ])\d/)[1];
-      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter/i.test(local)||letter==='Q'&&/Hauptschalter|Lasttrennschalter/i.test(preceding))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const local=block.join(' ');const letter=ref.match(/([FSPKYQAG])\d/)[1];
+      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter|Bypass-Umschalter/i.test(local)||letter==='Q'&&/Hauptschalter|Lasttrennschalter/i.test(preceding))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:(page.ocr?'Texterkennung: Angaben prüfen. ':'')+(other?block.slice(0,5).join(' '):'')};
+      // Explicit ratings belong to this device, including rotated labels and 3x13A notation.
+      const label=block.slice(1,4).find(t=>/^(?:FI[\s/-]*LS|LS[BCD]?|FI)\b/i.test(t));
+      if(label&&letter==='F'){
+        device.kind=/^FI[\s/-]*LS/i.test(label)?'FILS':/^FI\b/i.test(label)?'FI':'LS';
+        device.amp=Number(label.match(/(?:\b|[x×BCD])(\d+)\s*A\b/i)?.[1])||device.amp;
+        device.ma=Number(label.match(/(\d+)\s*mA\b/i)?.[1])||device.ma;
+        device.poles=/\b(?:3[x×]|[34]P\b)/i.test(label)?'3LN':/\b(?:[12]P|1[x×])\b/i.test(label)||/Phase\s+L[123]/i.test(block.slice(1,5).join(' '))?'LN':device.poles;
+      }
       if(!device.poles&&['FILS','FI','LS'].includes(device.kind)&&page.poleHints?.[ref]){device.poles=page.poleHints[ref];device.note+=' Polzahl anhand gezeichneter Zuleitungen. ';}
       if(device.kind==='OTHER'&&letter==='K'&&page.symbols?.[ref]==='clock'){device.kind='CLOCK';device.note+=' Uhrsymbol erkannt. ';}
       if(device.kind==='OTHER'&&letter==='K'&&page.symbols?.[ref]==='coil'){device.kind='CONTACTOR';device.note+=' Rechteckige Relaisspule erkannt; Hager-Schütz als Referenz. ';}
       if(pageConfirmed[ref]){Object.assign(device,pageConfirmed[ref]);device.confirmed=true;device.note='Symbol-/Gerätezuordnung für dieses Schema visuell geprüft.';}
       if(confirmed[ref]){Object.assign(device,confirmed[ref]);device.note='Symbolzuordnung für dieses Schema bestätigt. '+device.note;}
+      if(['A','G'].includes(letter)&&/Kom-Box|Glasfaserdose|\bLSG\b/i.test(block.slice(1,5).join(' '))){seen.add(ref);continue;}
       const ownLabels=equipmentLabels(page,ref),previousLabel=lines[i-1]||'';
       const utilityLabel=ownLabels+' '+block.slice(1,4).join(' ')+' '+(/^(?:RS\s*485|RSE|NKE|ZFA|Res\.|Reserve)$/i.test(previousLabel)?previousLabel:'');
       if(['P','Y'].includes(letter)&&(/\b(?:RSE|NKE|ZFA|RS\s*485)\b/i.test(utilityLabel)||/\bRes\.|\bReserve\b/i.test(utilityLabel))){seen.add(ref);result.ignored.push(source+': '+ref+' – Messkommunikation/Reserve gemäss Vorgabe ausgeschlossen.');continue;}

@@ -1,4 +1,4 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261029-3';
+import {parsePages,defaultIcp} from './core.mjs?v=20261029-4';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 export function identity(text){
@@ -10,12 +10,13 @@ export function identity(text){
 }
 export function disposition(page){
  const text=page.text;if(/Allgemeine Hinweise|Symbolverzeichnis|Inhaltsverzeichnis|Anschluss-?\s*und\s*Umgebungsbedingungen|ELEKTROSCHEMA/i.test(text))return null;
- const m=text.match(/B\s*(\d+(?:\s*\/\s*\d+)*)\s*[x×]\s*H\s*(\d+)\s*[x×]\s*([TH])\s*(\d+)\s*mm/i);
+ const bare=text.match(/(\d+)\s*[x×]\s*(\d+)\s*[x×]\s*(\d+)\s*mm\s*\(BxHxT\)/i);
+ const m=text.match(/B\s*(\d+(?:\s*\/\s*\d+)*)\s*[x×]\s*H\s*(\d+)\s*[x×]\s*([TH])\s*(\d+)\s*mm/i)||(bare?[bare[0],bare[1],bare[2],'T',bare[3]]:null);
  if(!m&&!/\bDispo\b|\bDisposition\b/i.test(text))return null;
  const lines=text.split('\n').map(s=>s.trim()).filter(Boolean), alu=lines.findIndex(s=>/Alu[ -](Selbstbau|Reihen)/i.test(s));
  const title=alu>0&&/[a-zäöü]/i.test(lines[alu-1])&&!/^\d*[FSPKYQ]\d+(?:\.\d+)*$/i.test(lines[alu-1])?lines[alu-1]:'';
- const heading=lines.find(s=>/^Dispo(?:sition)?\s+.+/i.test(s))?.replace(/^Dispo(?:sition)?\s+/i,'')||'';const name=identity(title)||identity(text)||title||heading;
- const type=/Selbstbaurahmen/i.test(text)?'SBR':/Reihenschrank/i.test(text)?'ARS':null;
+ const heading=lines.find(s=>/^Dispo(?:sition)?\s+.+/i.test(s))?.replace(/^Dispo(?:sition)?\s+/i,'')||'';const cabinet=/Alu-Aussenzählerkasten/i.test(text)?'Aussenzählerkasten':lines.find(s=>/^(?:Unterverteilung|Hauptverteilung)\s+Auftrag:/i.test(s))?.split(/\s+Auftrag:/i)[0];const name=identity(title)||identity(text)||cabinet||title||heading;
+ const type=/Selbstbaurahmen/i.test(text)?'SBR':/Alu-Aussenzählerkasten/i.test(text)?'GZK':/Reihenschrank/i.test(text)?'ARS':null;
  let fields=m?m[1].split('/').map(b=>({...blankField(),type:type||'SBR',b:+b.trim(),h:+m[2],t:+m[4]})):[];
  let uncertain=false;
  if(!fields.length){
@@ -43,11 +44,14 @@ function mergeScore(layout,schema){
  const la=projectAddress(layout.cover?.text||''),sa=projectAddress(schema.cover?.text||'');
  const designation=t=>t.match(/^(?:Hauptverteilung|Unterverteilung|HV|UV)\s+[^\n]+/im)?.[0]?.trim().toLowerCase();
  const ld=designation(layout.cover?.text||''),sd=designation(schema.cover?.text||'');
+ const cabinetId=t=>t?.match(/\b[A-Z]\d{2,}\b/i)?.[0];if(cabinetId(ld)&&cabinetId(sd)&&cabinetId(ld)!==cabinetId(sd))return 0;
  const sameAddress=la&&la===sa&&ld&&ld===sd;
  const street=f=>f.match(/([a-zäöü]+(?:weg|strasse|straße|gasse))\s+(\d+[a-z]?)/i)?.[0]?.toLowerCase();
  const layoutStreet=street(layout.pages[0].file),schemaStreet=street(schema.pages[0].file);
  const sameFileAddress=layoutStreet&&layoutStreet===schemaStreet;
- return (related||shared||sameAddress||sameFileAddress||a&&a===b)&&overlap/Math.min(ar.size,br.size)>=.4?overlap:0;
+ const streets=t=>[...t.matchAll(/([a-zäöü]+(?:weg|strasse|straße|gasse))\s+(\d+[a-z]?)/gi)].map(m=>norm(m[0]));
+ const sharedStreet=streets(layout.cover?.text||'').some(a=>streets(schema.cover?.text||'').includes(a));
+ return (related||shared||sameAddress||sameFileAddress||sharedStreet||a&&a===b)&&overlap/Math.min(ar.size,br.size)>=.4?overlap:0;
 }
 export function buildPortfolio(documents,overrides={},links={}){
  const plants=[],pending=[];const add=(name)=>{let p=plants.find(p=>norm(p.name)===norm(name));if(!p){p={id:norm(name),name,pages:[],dispos:[],warnings:[],hasSchema:false};plants.push(p);}return p;};
@@ -61,9 +65,11 @@ export function buildPortfolio(documents,overrides={},links={}){
   let current=null;
   for(const page of doc.pages){
    const d=disposition(page);
+   if(!d&&/^\+AZK\s+Aussenzählerkasten\s*$/m.test(page.text)&&!/^\+HV\s+Hauptverteilung/m.test(page.text)){const p=add('Aussenzählerkasten');p.pages.push(page);p.cover=doc.pages[0];p.hasSchema=true;continue;}
    if(d){const name=overrides[doc.file]||(drawings.length===1?identity(cover):'')||d.name||defaultName;current=add(name);current.dispos.push({...d,priority});current.pages.push(page);current.cover=doc.pages[0];current.hasSchema ||= hasSchema;}
    else if(hasSchema){
     if(current)current.pages.push(page);
+    else if(drawings.length===1){const layout=disposition(drawings[0]);const name=overrides[doc.file]||identity(cover)||layout.name||defaultName;current=add(name);current.pages.push(page);current.cover=doc.pages[0];current.hasSchema=true;}
     else if(drawings.length)continue;
     else {const chosen=overrides[doc.file]||identity(cover);if(chosen){const p=add(chosen);p.pages.push(page);p.cover=doc.pages[0];p.hasSchema=true;}else if(!pending.some(p=>p.file===doc.file))pending.push({file:doc.file,name:defaultName});}
    }
@@ -89,12 +95,12 @@ export function buildPortfolio(documents,overrides={},links={}){
   const schema=p.pages.filter(page=>!disposition(page)),parsed=parsePages(schema);
   const meta=parsePages(p.cover?[p.cover]:[]).project;const own=best?parsePages([best.page]).project:{};p.project={...meta,...parsed.project,...own,name:p.name};p.devices=parsed.devices;if(best&&/smissline/i.test(best.page.text))for(const d of p.devices)if(['LS','FILS','FI'].includes(d.kind)){d.system='smissline';d.note+=' Smissline gemäss zugeordnetem Dispo.';}p.warnings.push(...parsed.warnings,...parsed.ignored.filter(s=>s.includes('kein Privatzähler')||s.includes('gemäss Vorgabe ausgeschlossen')||s.includes('Reserve ohne angeschlossene Stromlinien')));
   p.sources=[...new Set(p.pages.map(page=>page.file))].map(file=>`${file} (${p.pages.filter(page=>page.file===file).length} Seiten)`);p.layoutSource=best?`${best.page.file} · Seite ${best.page.number}`:'Keine Dispo';
-  const supply=best?[...best.page.text.matchAll(/Zuleitung[^\n]*?\s(\d+)\s*A\b/gi)].map(m=>+m[1]):[];const currents=[...new Set(supply.length?supply:parsed.currents.map(c=>c.amp))];if(currents.length===1)p.project.amp=currents[0];
+  const supply=best?[...best.page.text.matchAll(/(?:Zuleitung|HAK)[^\n]*?\s(\d+)\s*A\b/gi)].map(m=>+m[1]):[];const currents=[...new Set(supply.length?supply:parsed.currents.map(c=>c.amp))];if(currents.length===1)p.project.amp=currents[0];
   const refs=new Map();if(best)for(const item of best.page.items||[]){for(const match of item.str.matchAll(/(?<![\w])[-+]?\d*[FSPKYQ]\d+(?:\.\d+)*[A-Za-z]?(?![\w])/g)){const ref=match[0].replace(/^[-+]/,'');const list=refs.get(ref)||[];list.push(item.x+(item.width||0)*match.index/Math.max(1,item.str.length));refs.set(ref,list);}}
   assignFields(p.devices,p.fields,best?.page,refs);
   if(p.devices.some(d=>d.fieldMethod==='slots'))p.warnings.push('Nicht im Dispo lokalisierte Geräte automatisch nach Platzeinheiten und Feldbreiten verteilt (Näherung).');
   if(best){const hh=(best.page.items||[]).filter(x=>x.rotated&&/^\d{4}$/.test(x.str.trim())).map(x=>+x.str);if(hh.some(h=>p.fields.some(f=>f.h&&h!==f.h)))p.warnings.push('Höhe in Masslinie und Beschrieb weicht ab. Feldhöhe vor Export prüfen.');}p.reviewed=false;p.smisslineInstalled=!!best&&/smissline/i.test(best.page.text);p.project.icp=defaultIcp(p.devices,p.smisslineInstalled);p.icpManual=false;
-  for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name){Object.assign(p.project,info);p.project.name=p.name;p.sources.push(order.file+' (Auftragsbestätigung)');}}
+  for(const order of orders){const info=parseOrder(order);if(info.order===p.project.order||overrides[order.file]===p.name||best&&best.page.text.includes('/'+info.order.replace('AU-',''))&&(/Selbstbaurahmen/i.test(best.page.text)===/Selbstbaurahmen/i.test(order.pages.map(p=>p.text).join(' ')))){Object.assign(p.project,info);p.project.name=p.name;p.sources.push(order.file+' (Auftragsbestätigung)');}}
 
  }
  for(const order of orders)if(!plants.some(p=>p.sources.some(s=>s.startsWith(order.file+' ('))))pending.push({file:order.file,name:order.file});return {plants,pending};
