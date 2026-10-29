@@ -1,5 +1,5 @@
-import {shiftFormula,calculateCell} from './formula.mjs?v=20261029-5';
-import {SHEETS,classify,spdLoss,peakCurrent,unassignedLoss,unassignedUnitLoss} from './core.mjs?v=20261029-5';
+import {shiftFormula,calculateCell} from './formula.mjs?v=20261029-6';
+import {SHEETS,classify,spdLoss,peakCurrent,unassignedLoss,unassignedUnitLoss} from './core.mjs?v=20261029-6';
 const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)throw Error('Ungültiges XML in Excel-Datei');return d;};
 const tags=(n,t)=>Array.from(n.getElementsByTagNameNS('*',t));
@@ -58,8 +58,24 @@ function put(w,sheet,addr,value,formula){
   if(formula)cell.appendChild(el(s.doc,'f',formula));
   if(value!==null&&value!==undefined){if(typeof value==='number'){if(!Number.isFinite(value))throw Error('Ungültiger Zahlenwert '+addr);cell.appendChild(el(s.doc,'v',value));}else {cell.setAttribute('t','inlineStr');const is=el(s.doc,'is');is.appendChild(el(s.doc,'t',value));cell.appendChild(is);}}
 }
+export function coverEntries(p){
+ let date=null;
+ if(p.deliveryDate){
+  const ms=Date.parse(p.deliveryDate+'T00:00:00Z');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(p.deliveryDate)||!Number.isFinite(ms)||new Date(ms).toISOString().slice(0,10)!==p.deliveryDate)throw Error('Ungültiger Liefertermin.');
+  date=(ms-Date.UTC(1899,11,30))/86400000;
+ }
+ return {C12:p.object||'',C16:date,C18:p.timeBudget||''};
+}
+export function inspectionEntries(amp){
+ if(!(Number(amp)>0)||!Number.isFinite(Number(amp)))throw Error('Bemessungsstrom fehlt.');
+ // The template uses Wingdings: ü renders as its existing check mark.
+ return {C36:Number(amp)>250?'ü':'',C37:Number(amp)<=250?'ü':''};
+}
 export async function exportWorkbook(original,Zip,data){
   const w=await readWorkbook(original,Zip),p=data.project;
+  if(w.sheets.has('Deckblatt Neu'))for(const [addr,value] of Object.entries(coverEntries(p)))put(w,'Deckblatt Neu',addr,value);
+  if(w.sheets.has('Stücknachweis'))for(const [addr,value] of Object.entries(inspectionEntries(p.amp)))put(w,'Stücknachweis',addr,value);
   for(const [a,k] of Object.entries({B7:'customer',H7:'customerNo',B8:'pl',B9:'name',H8:'date',H9:'order',H10:'type',H14:'city',H24:'amp',D26:'icp'}))put(w,SHEETS.project,a,p[k]??'');
   if(p.date){const dt=new Date(p.date+'T00:00:00Z');if(Number.isFinite(dt.getTime()))put(w,SHEETS.project,'H8',(dt.getTime()-Date.UTC(1899,11,30))/86400000);}
   if(peakCurrent(p.icp)===null)throw Error('Icp muss eine positive Zahl in kA sein.');
