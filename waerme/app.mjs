@@ -1,11 +1,11 @@
-import {exportReportPdf} from './report-pdf.mjs?v=20261029-14';
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-14';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-14';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-14';
-import {buildPortfolio} from './portfolio.mjs?v=20261029-14';
-import {templateStore} from './storage.mjs?v=20261029-14';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261029-14';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-14';
+import {exportReportPdf} from './report-pdf.mjs?v=20261029-15';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261029-15';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261029-15';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261029-15';
+import {buildPortfolio} from './portfolio.mjs?v=20261029-15';
+import {templateStore} from './storage.mjs?v=20261029-15';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261029-15';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261029-15';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -22,6 +22,9 @@ function fieldResult(f,i){
 }
 function update(){
  try{
+  const types=[...new Set(state.fields.map(f=>f.type))];
+  $('plantType').value=types.length===1?types[0]:'';
+  $('plantType').disabled=state.busy;
   state.fields.forEach((f,i)=>{const r=fieldResult(f,i);const card=document.querySelector('[data-field="'+i+'"]');if(card){card.querySelector('[data-key="percent"]').disabled=f.mode!=='estimate';card.querySelector('[data-key="manual"]').disabled=f.mode!=='manual';}$('max'+i).textContent=fmt(r.max);$('base'+i).textContent=fmt(r.base);$('surcharge'+i).textContent=fmt(r.surchargeW);$('selected'+i).textContent=r.calculationError&&f.mode==='devices'?r.calculationError:fmt(r.selected);$('estimated'+i).textContent=f.mode==='estimate'?'Schätzung nach Einbaugrad':f.mode==='devices'?'Geräte gemäss Excel-Total':'Manueller Wattwert';});
   const unresolved=state.devices.filter(d=>d.qty>0&&!d.article).length;
   $('deviceTotal').textContent=`${state.devices.reduce((s,d)=>s+d.qty,0)} Geräte · ${unresolved} nicht zugeordnet. Berechnung anhand der Excel-Formeln bis «Total Verlustleistung Pv». Nicht zugeordnete Geräte: A-Kennzeichen 5 W, sonst 8 W pro Stück.`;
@@ -39,7 +42,7 @@ function updateEW(){
  $('ew').textContent=row?`${match.ew} · ${w.get('EW-Tabelle','B'+row)||'ZSK nicht hinterlegt'} · Zählerplatte: ${w.get('EW-Tabelle','F'+row)||'nicht hinterlegt'} · Rohre: ${w.get('EW-Tabelle','G'+row)||'–'}`:match.ew+' · EW-Daten nicht hinterlegt';
 }
 function drawFields(){
- $('fields').innerHTML=state.fields.map((f,i)=>`<div class="field-card" data-field="${i}"><div class="section-head"><h3>Feld ${i+1}</h3>${i===state.fields.length-1&&i>0?'<button type="button" data-remove-field="'+i+'">Feld entfernen</button>':''}</div><div class="grid"><label>Typ<select data-key="type">${['SBR','ARS','GZK','Hager'].map(x=>`<option ${x===f.type?'selected':''}>${x}</option>`).join('')}</select></label>${[['b','Breite (mm)'],['h','Höhe (mm)'],['t','Tiefe (mm)']].map(([key,label])=>`<label>${label}<input type="number" min="1" step="any" data-key="${key}" value="${f[key]??''}" required></label>`).join('')}<label>Methode<select data-key="mode">${[['estimate','Schätzung nach Einbaugrad'],['devices','Erfasste Geräte'],['manual','Wattwert manuell']].map(([k,v])=>`<option value="${k}" ${k===f.mode?'selected':''}>${v}</option>`).join('')}</select></label><label>Einbaugrad (%)<input type="number" min="0" max="100" step="any" data-key="percent" value="${f.percent}"></label><label>Manueller Wert (W)<input type="number" min="0" step="any" data-key="manual" value="${f.manual??''}"></label><label>Zuschlag (%)<input type="number" min="0" step="any" data-key="surchargePercent" value="${f.surchargePercent??0}" required></label></div><p class="hint">Zusatz für nicht erfasste Geräte, bezogen auf den Grundwert dieses Felds. Beispiel: 100 W + 10 % = 110 W.</p><div class="results"><div>Max. Pv<strong id="max${i}">–</strong></div><div><span id="estimated${i}">Übernahme</span><strong id="base${i}">–</strong></div><div>Zuschlag<strong id="surcharge${i}">–</strong></div><div>Total inkl. Zuschlag<strong id="selected${i}">–</strong></div></div></div>`).join('');update();
+ $('fields').innerHTML=state.fields.map((f,i)=>`<div class="field-card" data-field="${i}"><div class="section-head"><h3>Feld ${i+1}</h3>${i===state.fields.length-1&&i>0?'<button type="button" data-remove-field="'+i+'">Feld entfernen</button>':''}</div><div class="grid"><label>Anlagentyp dieses Felds<select data-key="type">${['SBR','ARS','GZK','Hager'].map(x=>`<option ${x===f.type?'selected':''}>${x}</option>`).join('')}</select></label>${[['b','Breite (mm)'],['h','Höhe (mm)'],['t','Tiefe (mm)']].map(([key,label])=>`<label>${label}<input type="number" min="1" step="any" data-key="${key}" value="${f[key]??''}" required></label>`).join('')}<label>Methode<select data-key="mode">${[['estimate','Schätzung nach Einbaugrad'],['devices','Erfasste Geräte'],['manual','Wattwert manuell']].map(([k,v])=>`<option value="${k}" ${k===f.mode?'selected':''}>${v}</option>`).join('')}</select></label><label>Einbaugrad (%)<input type="number" min="0" max="100" step="any" data-key="percent" value="${f.percent}"></label><label>Manueller Wert (W)<input type="number" min="0" step="any" data-key="manual" value="${f.manual??''}"></label><label>Zuschlag (%)<input type="number" min="0" step="any" data-key="surchargePercent" value="${f.surchargePercent??0}" required></label></div><p class="hint">Zusatz für nicht erfasste Geräte, bezogen auf den Grundwert dieses Felds. Beispiel: 100 W + 10 % = 110 W.</p><div class="results"><div>Max. Pv<strong id="max${i}">–</strong></div><div><span id="estimated${i}">Übernahme</span><strong id="base${i}">–</strong></div><div>Zuschlag<strong id="surcharge${i}">–</strong></div><div>Total inkl. Zuschlag<strong id="selected${i}">–</strong></div></div></div>`).join('');update();
 }
 function suggest(d){
  if(d.kind==='SPD'&&d.manualLoss==null)d.manualLoss=5;
@@ -74,6 +77,7 @@ function analyze(){
  $('mergeTarget').replaceChildren(new Option('Zielanlage wählen',''),...plants.map(p=>new Option(p.name,p.id)));$('mergePlant').disabled=plants.length<2;if(plants.length)selectPlant(0);status(`${plants.length} Anlagen erkannt. ${result.pending.length} Dateien noch zuzuordnen. Angaben und Feldvorschläge prüfen.`);
 }
 $('plant').onchange=e=>selectPlant(+e.target.value);
+$('plantType').addEventListener('change',e=>{if(!['SBR','ARS','GZK','Hager'].includes(e.target.value))return;for(const field of state.fields)field.type=e.target.value;dirty();drawFields();});
 $('mergePlant').onclick=()=>{if(active<0||!$('mergeTarget').value)return;const source=plants[active].id,target=$('mergeTarget').value;if(source===target){status('Eine andere Zielanlage wählen.',true);return;}if(edited&&$('mergePlant').dataset.confirm!=='yes'){$('mergePlant').dataset.confirm='yes';status('Zusammenführen baut die Auswertung neu auf. Erneut klicken, um bearbeitete Eingaben zu ersetzen.');return;}delete $('mergePlant').dataset.confirm;links[source]=target;analyze();};
 $('reanalyze').onclick=()=>{if(plants.some(p=>p.reviewed)&&$('reanalyze').dataset.confirm!=='yes'){ $('reanalyze').dataset.confirm='yes';status('Erneut klicken, um die Auswertung neu aufzubauen und bearbeitete Eingaben zu ersetzen.');return;}delete $('reanalyze').dataset.confirm;analyze();};
 $('newProject').onclick=()=>{documents.length=0;plants=[];active=-1;importsPending=false;Object.keys(overrides).forEach(k=>delete overrides[k]);Object.keys(links).forEach(k=>delete links[k]);state.icpManual=false;state.fields=[newField()];state.devices=[];state.warnings=[];projectKeys.forEach(k=>$(k).value=k==='icp'?'6':'');$('plant').replaceChildren();$('pending').replaceChildren();$('sources').textContent='';dirty();warnings();drawFields();drawDevices();status('Neuer Auftrag. Gespeicherte Vorlage bleibt verfügbar.');};
@@ -97,7 +101,7 @@ $('addField').onclick=()=>{if(state.fields.length>=5)return;state.fields.push(ne
 $('addDevice').onclick=()=>{state.devices.push({ref:'Manuell '+(state.devices.length+1),source:'Manuell',field:1,qty:1,system:'hager',kind:'OTHER',poles:'',amp:null,ma:null,article:''});dirty();drawDevices();};
 $('devices').addEventListener('change',e=>{const row=e.target.closest('[data-device]'),key=e.target.dataset.key;if(!row||!key)return;const d=state.devices[+row.dataset.device];d[key]=['field','qty','amp','ma','manualLoss'].includes(key)?number(e.target.value):e.target.value;if(['system','kind','poles','amp','ma'].includes(key))suggest(d);dirty();drawDevices();});
 $('devices').addEventListener('click',e=>{if(e.target.dataset.remove!==undefined){state.devices.splice(+e.target.dataset.remove,1);dirty();drawDevices();}});
-$('projectForm').addEventListener('input',e=>{if(e.target.id==='icp')state.icpManual=true;if(e.target.id!=='reviewed')dirty();else edited=true;update();});
+$('projectForm').addEventListener('input',e=>{if(e.target.id==='plantType')return;if(e.target.id==='icp')state.icpManual=true;if(e.target.id!=='reviewed')dirty();else edited=true;update();});
 function exportData(p){
  if(!validateFields(p.fields))throw Error(p.name+': Feldmasse, Einbaugrad oder Zuschlag sind ungültig.');
  if(!p.devices.every(d=>Number.isInteger(d.qty)&&d.qty>0&&Number.isInteger(d.field)&&d.field>=1&&d.field<=p.fields.length))throw Error(p.name+': Geräte einem gültigen Feld zuordnen.');
