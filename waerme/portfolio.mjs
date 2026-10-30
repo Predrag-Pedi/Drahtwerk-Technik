@@ -1,4 +1,4 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261029-15';
+import {parsePages,defaultIcp} from './core.mjs?v=20261030-1';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 // Extract installation addresses, preferring explicit project blocks over company addresses.
@@ -29,6 +29,13 @@ export function identity(text){
  if(/Dispo\s+(?:UV\s+)?Linke\s+Wand/i.test(text))return 'UV Linke Wand Allgemein';
  if(/Dispo\s+Rechte\s+Wand/i.test(text))return 'Rechte Wand';
  if(/00-HV_ALLG|HV Allgemein|Allgemein\s+Hauptverteilung/i.test(text))return 'HV Allgemein';
+ // CAD exports may emit all cover labels before their values instead of row by row.
+ const description=text.match(/Projektbeschreibung:[ \t]*(?:\r?\n[ \t]*)?(Hauptverteilung|Unterverteilung)([^\r\n]*)/i);
+ if(description)return (description[1]+description[2]).trim();
+ if(/ELEKTROSCHEMA/i.test(text)&&/Projektbeschreibung:/i.test(text)){
+  const names=[...text.matchAll(/^[ \t]*(Hauptverteilung|Unterverteilung)[ \t]*$/gim)].map(m=>m[1]);
+  if(new Set(names.map(n=>n.toLowerCase())).size===1)return names[0];
+ }
  return '';
 }
 export function disposition(page){
