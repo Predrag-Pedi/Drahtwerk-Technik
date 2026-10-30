@@ -34,3 +34,12 @@ test('Cabinet description with plinth annotation wins over inner-width and close
  const p=buildPortfolio([layout,order]).plants[0];assert.deepEqual(p.fields.map(f=>[f.type,f.b,f.h,f.t]),[['ARS',1650,2100,400]]);assert.equal(p.project.amp,100);
  assert.equal(disposition({text:'Dispo\nB1000/800x H2100 (inkl. Sockel)x T400mm',height:600,items:[]}).fields.length,2);
 });
+
+test('Cover project description supplies plant name while address remains object',()=>{
+ for(const cover of ['ELEKTROSCHEMA\nProjektbeschreibung:\nHauptverteilung\nObjekt:\nBeispielweg 8\n8000 Zürich', 'Objekt:\nProjektbeschreibung:\nELEKTROSCHEMA\nHauptverteilung\nZürich\n8000\nBeispielweg 8']){
+  const r=buildPortfolio([doc('2026-10-29_Beispielweg 8.pdf',[cover,'Dispo\nB1000x H2000x T400mm\nAlu-Reihenschrank','10F2\nLS C13A'])]);
+  assert.equal(r.plants.length,1);assert.equal(r.plants[0].name,'Hauptverteilung');assert.equal(r.plants[0].project.name,'Hauptverteilung');assert.equal(r.plants[0].project.object,'Beispielweg 8, 8000 Zürich');
+ }
+ assert.equal(identity('ELEKTROSCHEMA\nProjektbeschreibung:\nUnterverteilung Garage'),'Unterverteilung Garage');
+ assert.equal(identity('ELEKTROSCHEMA\nProjektbeschreibung:\nHauptverteilung\nHaus B'),'HV Haus B');
+});
