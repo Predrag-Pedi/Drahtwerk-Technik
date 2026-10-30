@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261030-1';
-import {reserveStatus} from './drawing.mjs?v=20261030-1';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261030-2';
+import {reserveStatus} from './drawing.mjs?v=20261030-2';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -102,7 +102,7 @@ export function parsePages(pages){
       const other=/Trennmesser|DIN00|Überspannung|NH\b/.test(block.join(' '));
       const characteristic=block.some(x=>/^[BCD](?:\s*\d+\s*mA)?$/i.test(x))||/\bLS[BCD]?\b/i.test(block.join(' '));
       const local=block.join(' ');const letter=ref.match(/([FSPKYQAG])\d/)[1];
-      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter|Bypass-Umschalter/i.test(local)||letter==='Q'&&(/Hauptschalter|Lasttrennschalter/i.test(preceding)||/Einspeisung\s+(?:von\s+HAK|ab)|Zuleitung\s+ab|von\s+HAK/i.test(text)&&amp&&['1','2','3','4','5','6'].every(pin=>lines.slice(Math.max(0,i-12),i).includes(pin))))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&characteristic?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
+      const kind=spd?'SPD':['Q','S'].includes(letter)&&(/Hauptschalter|Lasttrennschalter|Bypass-Umschalter/i.test(local)||letter==='Q'&&(/Hauptschalter|Lasttrennschalter/i.test(preceding)||/Einspeisung\s+(?:von\s+HAK|ab)|Zuleitung\s+ab|von\s+HAK/i.test(text)&&amp&&['1','2','3','4','5','6'].every(pin=>lines.slice(Math.max(0,i-12),i).includes(pin))))?'MAIN':letter==='S'&&(/Steuerschalter|Steuer-Schalter/i.test(local)||['H','A'].every(v=>block.includes(v)))?'CONTROL':/Dämmerungs[ -]*schalter|Dämmerungsautomat/i.test(local)?'TWILIGHT':/Schaltuhr|Astro(?:uhr)?|Atrouhr/i.test(local)?'CLOCK':/Privatzähler|Power Analyser/i.test(local)&&['P','Y'].includes(letter)?'METER':/Minuterie|Zeitrelais|Treppenlicht/i.test(local)&&letter==='K'?'TIMER':(/Schütz|Relais/i.test(local)||lines.slice(Math.max(0,i-3),i+4).includes('A1'))&&letter==='K'?'CONTACTOR':letter!=='F'?'OTHER':/FI[\s/-]*LS/i.test(local)?'FILS':ma&&(characteristic||ma===30)?'FILS':ma?'FI':/\bLS[BCD]?\b/i.test(local)?'LS':amp&&characteristic?'LS':amp?(amp>63?'NH':'FUSE'):'OTHER';
       const pins=lines.slice(Math.max(0,i-6),refs[k+1]?.i??lines.length);const poles=spd?'4P':pins.includes('5')&&pins.includes('6')?'3LN':pins.includes('N')&&pins.includes('1')&&pins.includes('2')?'LN':'';
       const device={ref,amp,ma,kind,poles,system:/smissline/i.test(text)?'smissline':'hager',qty:1,field:1,source,article:'',note:(page.ocr?'Texterkennung: Angaben prüfen. ':'')+(other?block.slice(0,5).join(' '):'')};
       // Explicit ratings belong to this device, including rotated labels and 3x13A notation.
@@ -120,6 +120,18 @@ export function parsePages(pages){
         if(/Leitungsschutzschalter/i.test(lead))device.kind='LS';
         if(/FI\s*[-/]\s*LS|FS4\d+\s*M-C/i.test(lead)){device.kind='FILS';if(combined){device.amp=+combined[1];device.ma=Math.round(Number(combined[2].replace(',','.'))*1000);}}
         if(/Überspannungs(?:ableiter|schutz)/i.test(lead)){device.kind='SPD';device.poles='4P';}
+      }
+      // Some CAD writers emit the complete protection rating and terminals before the BMK.
+      // Match only the contiguous suffix, so neighbouring circuit labels cannot leak in.
+      if(letter==='F'){
+        const prefix=lines.slice(Math.max(refs[k-1]?.i+1||0,i-16),i).join(' ');
+        const rating=prefix.match(/(?:^|\s)(?:(\d+)\s*mA\s+)?(\d+)\s*A\s+([BCD])\s+((?:[1-8N]\s*)+)$/i);
+        if(rating){
+          device.amp=+rating[2];device.ma=rating[1]?+rating[1]:null;
+          device.kind=device.ma?'FILS':'LS';
+          const terminals=rating[4].trim().split(/\s+/);
+          device.poles=terminals.includes('5')&&terminals.includes('6')?'3LN':terminals.includes('N')&&terminals.includes('1')&&terminals.includes('2')?'LN':'';
+        }
       }
       if(!device.poles&&['FILS','FI','LS'].includes(device.kind)&&page.poleHints?.[ref]){device.poles=page.poleHints[ref];device.note+=' Polzahl anhand gezeichneter Zuleitungen. ';}
       if(device.kind==='OTHER'&&letter==='K'&&page.symbols?.[ref]==='clock'){device.kind='CLOCK';device.note+=' Uhrsymbol erkannt. ';}

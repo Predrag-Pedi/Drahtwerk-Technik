@@ -43,3 +43,12 @@ test('Cover project description supplies plant name while address remains object
  assert.equal(identity('ELEKTROSCHEMA\nProjektbeschreibung:\nUnterverteilung Garage'),'Unterverteilung Garage');
  assert.equal(identity('ELEKTROSCHEMA\nProjektbeschreibung:\nHauptverteilung\nHaus B'),'HV Haus B');
 });
+
+test('Protection ratings before references belong to their own circuit including the final device',()=>{
+ const p=doc('schema.pdf',['30mA\n13A\nC\nN\nN\n2\n1\n-65F2\n30mA\n16A\nC\nN\nN\n2\n1\n-65F4\n16A\nD\n1\n3\n5\nN\n2\n4\n6\nN\n-95F2\n30mA\n13A\nC\n1\n3\n5\nN\n2\n4\n6\nN\n-95F5']);
+ const ds=parsePages(p.pages).devices;
+ const values=ref=>{const d=ds.find(d=>d.ref===ref);return[d.kind,d.amp,d.ma,d.poles];};
+ assert.deepEqual(values('-65F2'),['FILS',13,30,'LN']);assert.deepEqual(values('-65F4'),['FILS',16,30,'LN']);assert.deepEqual(values('-95F2'),['LS',16,null,'3LN']);assert.deepEqual(values('-95F5'),['FILS',13,30,'3LN']);
+ const simple=parsePages(doc('simple.pdf',['10F2\n13A\n30mA\n11F2\nFI 40A 30mA']).pages).devices;
+ assert.equal(simple.find(d=>d.ref==='10F2').kind,'FILS');assert.equal(simple.find(d=>d.ref==='11F2').kind,'FI');
+});
