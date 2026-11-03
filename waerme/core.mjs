@@ -1,5 +1,5 @@
-import {confirmedDrawingDevices} from './confirmed.mjs?v=20261030-2';
-import {reserveStatus} from './drawing.mjs?v=20261030-2';
+import {confirmedDrawingDevices} from './confirmed.mjs?v=20261103-1';
+import {reserveStatus} from './drawing.mjs?v=20261103-1';
 // Pure calculations and conservative text extraction. No network or document state.
 export const SHEETS={fine:'Pv Feinab.,Steuer.,Mess.',supply:'PV Zul.,Speis.,BezSich.,Grobab.',sbr:'max. Pv  TAL, MT',ars:'max. Pv  ARS,AL,GZK',project:'Projektdaten'};
 export function maxPv(type,b,h,t,get){
@@ -120,6 +120,16 @@ export function parsePages(pages){
         if(/Leitungsschutzschalter/i.test(lead))device.kind='LS';
         if(/FI\s*[-/]\s*LS|FS4\d+\s*M-C/i.test(lead)){device.kind='FILS';if(combined){device.amp=+combined[1];device.ma=Math.round(Number(combined[2].replace(',','.'))*1000);}}
         if(/Überspannungs(?:ableiter|schutz)/i.test(lead)){device.kind='SPD';device.poles='4P';}
+      }
+      // DIAZED ratings can precede the reference in either order (25A DII / DIII 63A).
+      if(letter==='F'){
+        const lead=lines.slice(Math.max(refs[k-1]?.i+1||0,i-20),i).join(' ');
+        const fuse=lead.match(/(?:^|\s)(?:(DII|DIII)\s+(\d+)\s*A|(\d+)\s*A\s+(DII|DIII))\s*$/i);
+        if(fuse){device.kind='FUSE';device.amp=Number(fuse[2]||fuse[3]);device.ma=null;
+          if(/\bL2\b/.test(lead)&&/\bL3\b/.test(lead)&&/\bN\b/.test(lead))device.poles='3LN';
+          const terminal=(page.items||[]).find(x=>x.str.trim()===ref.replace('F','X'));
+          if(terminal){const labels=(page.items||[]).filter(x=>x.rotated&&x.x>terminal.x&&x.x-terminal.x<120&&Math.abs(x.y-terminal.y)<30).map(x=>x.str.trim());if(['L1','L2','L3','N'].every(x=>labels.includes(x)))device.poles='3LN';}
+        }
       }
       // Some CAD writers emit the complete protection rating and terminals before the BMK.
       // Match only the contiguous suffix, so neighbouring circuit labels cannot leak in.
