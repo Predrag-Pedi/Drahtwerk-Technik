@@ -52,3 +52,14 @@ test('Protection ratings before references belong to their own circuit including
  const simple=parsePages(doc('simple.pdf',['10F2\n13A\n30mA\n11F2\nFI 40A 30mA']).pages).devices;
  assert.equal(simple.find(d=>d.ref==='10F2').kind,'FILS');assert.equal(simple.find(d=>d.ref==='11F2').kind,'FI');
 });
+
+test('House parts remain separate and repeated references belong to their own installation',()=>{
+ assert.equal(identity('HV/ Messung Haus\n7\nTeil\n2'),'HV Haus 7 Teil 2');
+ const r=buildPortfolio([doc('part1.pdf',['HV/ Messung Haus 7 Teil 1','25A\nDII\n-20F2']),doc('part2.pdf',['HV/ Messung Haus 7 Teil 2','25A\nDII\n-20F2'])]);
+ assert.equal(r.plants.length,2);assert.deepEqual(r.plants.map(p=>p.devices.length),[1,1]);
+});
+test('DII and DIII preceding reference supply fuse current in both text orders',()=>{
+ const p=doc('fuses.pdf',['L2\nL3\nN\n25A\nDII\n-20F2\nDIII\n63A\n-13F5\n25A\nDII\n-30F2']);
+ p.pages[0].items=[{str:'-30X2',x:170,y:680},{str:'L1',x:216,y:680,rotated:true},{str:'L2',x:230,y:680,rotated:true},{str:'L3',x:244,y:680,rotated:true},{str:'N',x:258,y:680,rotated:true}];
+ const ds=parsePages(p.pages).devices;assert.deepEqual(ds.map(d=>[d.kind,d.amp]),[['FUSE',25],['FUSE',63],['FUSE',25]]);assert.equal(ds[2].poles,'3LN');
+});

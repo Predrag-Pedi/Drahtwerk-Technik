@@ -1,4 +1,4 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261030-2';
+import {parsePages,defaultIcp} from './core.mjs?v=20261103-1';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 // Extract installation addresses, preferring explicit project blocks over company addresses.
@@ -20,6 +20,7 @@ export function objectAddress(pages){
  return candidates.sort((a,b)=>b.score-a.score)[0]?.value||'';
 }
 export function identity(text){
+ const part=text.match(/Haus\s+([A-Z]|\d+)\s+Teil\s+(\d+)\b/i);if(part)return 'HV Haus '+part[1].toUpperCase()+' Teil '+part[2];
  if(/Unterverteilung\s+Neubau\s+Haus\s+[A-Z]\s*[-–]\s*[A-Z]/i.test(text))return text.match(/Unterverteilung\s+Neubau\s+Haus\s+[A-Z]\s*[-–]\s*[A-Z]/i)[0].replace(/\s+/g,' ');
  if(/Unterverteilung\s+E-Mobility/i.test(text))return 'Unterverteilung E-Mobility';
  if(/Einspeisefeld\s+EVU/i.test(text))return 'Einspeisefeld EVU';
