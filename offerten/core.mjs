@@ -17,8 +17,9 @@ export function line(item,doc){
  if(!item.name?.trim())throw Error('Eine Position hat keine Bezeichnung.');
  for(const [v,label] of [[item.qty,'Menge'],[item.price,'Grundpreis'],[item.minutes,'Montagezeit'],[doc.markup,'Materialzuschlag'],[doc.rate,'Stundensatz'],[doc.discount,'Rabatt']])if(!Number.isFinite(v)||v<0)throw Error(`${item.name}: ${label} fehlt oder ist ungültig.`);
  if(doc.discount>100)throw Error('Rabatt darf höchstens 100 % betragen.');
- if(item.minutes>0&&doc.rate===0)throw Error('Für Montagezeiten bitte einen Stundensatz eingeben.');
- const unit=round(item.price*(1+doc.markup/100)+item.minutes*doc.rate/60);
+ const rate=item.rate??doc.rate;if(!Number.isFinite(rate)||rate<0)throw Error('Artikel-Stundensatz ist ungültig.');
+ if(item.minutes>0&&rate===0)throw Error('Für Montagezeiten bitte einen Stundensatz eingeben.');
+ const unit=round(item.price*(1+doc.markup/100)+item.minutes*rate/60);
  const total=round(unit*item.qty);if(!Number.isFinite(total)||total>1e12)throw Error('Positionsbetrag zu gross. Bitte Eingaben prüfen.');return {unit,total};
 }
 export function totals(doc){
@@ -51,7 +52,8 @@ export function catalogRows(rows,map){
  const article=get('article'),name=get('name'),price=number(get('price')),base=get('per')?number(get('per')):1,minutes=get('minutes')?number(get('minutes')):0;
  if(!article||!name||price===null||base===null||base<=0||minutes===null)throw Error(`CSV-Zeile ${idx+2}: Artikel, Bezeichnung, Preis, Preiseinheit oder Minuten ungültig.`);
  if(seen.has(article))throw Error(`CSV-Zeile ${idx+2}: doppelte Artikelnummer ${article}. Bitte eindeutige Artikelnummern verwenden.`);seen.add(article);
- return {article,name,price:price/base,minutes,unit:get('unit')||'Stk.',category:get('category')||'Allgemein',brand:get('brand')};});
+ const rate=get('rate')?number(get('rate')):null;if(get('rate')&&rate===null)throw Error(`CSV-Zeile ${idx+2}: Stundensatz ungültig.`);
+ return {article,name,price:price/base,minutes,rate,type:get('type')||'Artikel',source:'import',unit:get('unit')||'Stk.',category:get('category')||'Allgemein',brand:get('brand')};});
 }
 // Reconstruct imported backups from explicitly allowed fields, never assign arbitrary keys.
 export function validateOffer(raw){
@@ -59,5 +61,5 @@ export function validateOffer(raw){
  const num=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:fail();
  if(!raw||!Array.isArray(raw.plants)||!raw.plants.length)fail();
  const d={id:uid()};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();
- d.plants=raw.plants.map(p=>{const q={id:uid()};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes)}))};});return q;});return d;
+ d.plants=raw.plants.map(p=>{const q={id:uid()};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
 }
