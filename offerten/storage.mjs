@@ -1,0 +1,3 @@
+const db=new Promise((resolve,reject)=>{const r=indexedDB.open('drahtwerk-offerten',1);r.onupgradeneeded=()=>{r.result.createObjectStore('data');};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+export async function read(key){const d=await db;return new Promise((resolve,reject)=>{const r=d.transaction('data').objectStore('data').get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+export async function write(key,value){const d=await db;return new Promise((resolve,reject)=>{const t=d.transaction('data','readwrite');t.objectStore('data').put(value,key);t.oncomplete=()=>resolve();t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});}
