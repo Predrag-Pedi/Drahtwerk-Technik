@@ -1,5 +1,5 @@
 export function workspace({onClose=()=>{}}={}){
- const ids=['offerDrawer','plantDrawer','partDrawer','catalogDrawer','articleDrawer'];
+ const ids=['offerDrawer','plantDrawer','partDrawer','catalogDrawer','productDrawer','articleDrawer'];
  const dialogs=ids.map(id=>document.getElementById(id));
  function closeFrom(index){for(let i=dialogs.length-1;i>=index;i--)if(dialogs[i].open)dialogs[i].close();onClose();}
  function open(id,trail=''){const index=ids.indexOf(id),d=dialogs[index];closeFrom(index+1);document.getElementById(id+'Trail').textContent=trail;if(!d.open)d.showModal();}
