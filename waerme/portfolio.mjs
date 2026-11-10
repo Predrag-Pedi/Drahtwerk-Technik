@@ -1,4 +1,4 @@
-import {parsePages,defaultIcp} from './core.mjs?v=20261110-5';
+import {parsePages,defaultIcp} from './core.mjs?v=20261110-8';
 export const blankField=()=>({type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null});
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöü]+/g,' ').trim();
 // Extract installation addresses, preferring explicit project blocks over company addresses.
@@ -39,6 +39,13 @@ export function identity(text){
  }
  return '';
 }
+// CAD drawings may occupy only the lower half of an otherwise blank sheet.
+// Dimension labels still sit above the devices, irrespective of page position.
+function dimensionLimit(page){
+ const refs=(page.items||[]).filter(x=>!x.rotated&&/^\d+[FSPKYQ]\d+(?:\.\d+)*$/.test(x.str.trim()));
+ const first=refs.length?Math.min(...refs.map(x=>x.y)):0;
+ return Math.max(page.height*.5,Math.min(first,page.height*.85));
+}
 export function disposition(page){
  const text=page.text;if(/Allgemeine Hinweise|Symbolverzeichnis|Inhaltsverzeichnis|Anschluss-?\s*und\s*Umgebungsbedingungen|ELEKTROSCHEMA/i.test(text))return null;
  const bare=text.match(/(\d+)\s*[x×]\s*(\d+)\s*[x×]\s*(\d+)\s*mm\s*\(BxHxT\)/i);
@@ -52,7 +59,7 @@ export function disposition(page){
  let uncertain=false;
  if(!fields.length){
   // Only propose isolated dimension labels along the upper drawing edge; review is mandatory.
-  const items=page.items||[], widths=items.filter(x=>/^\d{3,4}$/.test(x.str.trim())&&+x.str>=400&&!x.rotated&&x.y<page.height*.5&&x.y>page.height*.07).sort((a,b)=>a.x-b.x);
+  const items=page.items||[], widths=items.filter(x=>/^\d{3,4}$/.test(x.str.trim())&&+x.str>=400&&!x.rotated&&x.y<dimensionLimit(page)&&x.y>page.height*.07).sort((a,b)=>a.x-b.x);
   const heights=items.filter(x=>/^\d{4}$/.test(x.str.trim())&&x.rotated);
   const h=[...new Set(heights.map(x=>+x.str))];
   const heightFor=x=>{const left=heights.filter(a=>a.x<x.x).sort((a,b)=>b.x-a.x)[0];return left?+left.str:h.length===1?h[0]:null;};
@@ -171,7 +178,7 @@ export function moduleUnits(d){
 }
 export function assignFields(devices,fields,page,refs=new Map()){
  if(!fields.length)return;
- const labels=(page?.items||[]).filter(x=>!x.rotated&&x.y<page.height*.5&&fields.some(f=>String(f.b)===x.str.trim())).sort((a,b)=>a.x-b.x);
+ const labels=(page?.items||[]).filter(x=>!x.rotated&&x.y<dimensionLimit(page)&&fields.some(f=>String(f.b)===x.str.trim())).sort((a,b)=>a.x-b.x);
  const centres=labels.length===fields.length&&labels.every((x,i)=>+x.str===fields[i].b)?labels.map(x=>x.x+(x.width||0)/2):[];
  const boundaries=centres.slice(1).map((x,i)=>(centres[i]*fields[i+1].b+x*fields[i].b)/(fields[i].b+fields[i+1].b));
  const loads=fields.map(()=>0),widths=fields.map(f=>f.b>0?f.b:1);

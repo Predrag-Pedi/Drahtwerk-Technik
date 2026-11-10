@@ -1,5 +1,5 @@
-import {ready,calculationBusy,captureCalculation,restoreCalculation,resetCalculation} from './app.mjs?v=20261110-5';
-import {projectRepository,projectSummary} from './projects.mjs?v=20261110-5';
+import {ready,calculationBusy,captureCalculation,restoreCalculation,resetCalculation} from './app.mjs?v=20261110-8';
+import {projectRepository,projectSummary} from './projects.mjs?v=20261110-8';
 const $=id=>document.getElementById(id),editor=$('heatEditor');
 let records=[],current=null,changed=false,working=false,applying=false;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

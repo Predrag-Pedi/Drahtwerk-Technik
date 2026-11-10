@@ -21,3 +21,15 @@ test('A rated Q switch at the HAK incoming supply is the main switch, unrelated 
  assert.equal(parsePages(schema.pages).devices.find(d=>d.ref==='102Q1').kind,'MAIN');
  assert.equal(parsePages([page('102Q1\n125A')]).devices[0].kind,'OTHER');
 });
+
+test('Lower-half disposition detects four widths including the utility supply field',()=>{
+ const items=[...[['2100',162],['1350',351],['600',456],['1350',558]].map(([str,x])=>({str,x,y:312,width:12})),{str:'2000',x:643,y:436,rotated:true},{str:'100',x:646,y:551,rotated:true},{str:'6761',x:444,y:378},{str:'37F2',x:180,y:363},{str:'60F2',x:355,y:363},{str:'91F2',x:460,y:363},{str:'92F2',x:565,y:363}];
+ const layout=doc('lower-layout.pdf',[page(cover+'\nAU-12345'),page('Dispo\nHauptverteilung\nAU-12345\n37F2\n60F2\n91F2\n92F2',2,items)]);
+ const schema=doc('lower-schema.pdf',[page(cover),page('37F2\n125A\n60F2\n25A\n91F2\n80A\n92F2\n40A',2)]);
+ const order=doc('lower-order.pdf',[page('Auftragsbestätigung\nAU-12345\nAlu-Reihenschrank\nB2100/1350/1350x H2100x T165mm\n100mm Sockel')]);
+ for(const docs of [[layout,schema,order],[order,schema,layout]]){
+  const r=buildPortfolio(docs);assert.equal(r.plants.length,1);assert.deepEqual(r.pending,[]);
+  const p=r.plants[0];assert.deepEqual(p.fields.map(f=>[f.b,f.h,f.t]),[[2100,2000,165],[1350,2000,165],[600,2000,165],[1350,2000,165]]);
+  assert.deepEqual(p.devices.map(d=>d.field),[1,2,3,4]);assert.ok(p.devices.every(d=>d.fieldMethod==='dispo'));
+ }
+});
