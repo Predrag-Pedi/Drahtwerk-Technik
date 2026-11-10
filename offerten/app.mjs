@@ -1,3 +1,4 @@
+import {filterCatalog} from './catalog-filters.mjs?v=20261110-11';
 import {offerHTML} from './offer-document.mjs?v=20261110-10';
 import {isVSAS} from './vsas.mjs?v=20261110-9';
 import {workspace} from './workspace.mjs?v=20261110-1';
@@ -36,9 +37,13 @@ function draw(){$('textMode').value=doc.outputMode||'plant';options();form($('me
 const searchTexts=new WeakMap();
 function searchText(p){if(!searchTexts.has(p))searchTexts.set(p,[p.article,p.supplierArticle,p.orderNumber,p.name,p.brand,p.type,p.category].join(' ').toLocaleLowerCase());return searchTexts.get(p);}
 function products(){
- const source=$('sourceFilter').value;
- const query=$('search').value.toLocaleLowerCase().split(/\s+/).filter(Boolean);
- const found=catalog.filter(p=>(!source||p.source===source)&&(!$('category').value||p.category===$('category').value)&&(!$('brandFilter').value||p.brand===$('brandFilter').value)&&(!$('typeFilter').value||(p.type||'Artikel')===$('typeFilter').value)&&query.every(w=>searchText(p).includes(w)));
+ const filters={source:$('sourceFilter').value,category:$('category').value,brand:$('brandFilter').value,type:$('typeFilter').value};
+ const {found,facets}=filterCatalog(catalog,filters,$('search').value,searchText);
+ for(const [id,key] of [['category','category'],['brandFilter','brand'],['typeFilter','type']]){
+  const select=$(id),value=filters[key],first=select.options[0].text;
+  select.innerHTML='<option value="">'+esc(first)+'</option>'+facets[key].map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')+(value&&!facets[key].includes(value)?`<option value="${esc(value)}">${esc(value)} (keine Treffer)</option>`:'');
+  select.value=value;
+ }
  $('catalogInfo').textContent=found.length+' Artikel';
  $('products').innerHTML=found.length?'<div class="scroll"><table class="catalog-table"><thead><tr><th>Artikel / Bezeichnung</th><th>Typ / Quelle</th><th>Preis / Einheit</th><th></th></tr></thead><tbody>'+found.slice(0,limit).map((p,i)=>`<tr><td><button class="article-link" data-detail="${i}"><span class="article-number">${esc(p.article)}</span><strong>${esc(p.name)}</strong><small>${esc(p.brand||p.category)}${p.supplierArticle?' · '+esc(p.supplierArticle):''}</small></button></td><td>${esc(p.type||'Artikel')}<br><span class="source-badge">${p.source==='own'?'Eigener Artikel':p.source==='vsas'?'VSAS · CSV':'Import'}</span></td><td class="price-cell">CHF ${money(p.price)}<small>/ ${esc(p.unit)}</small></td><td><button data-detail="${i}" aria-label="Details zu ${esc(p.name)}">Öffnen ›</button></td></tr>`).join('')+'</tbody></table></div>':'<div class="empty"><h3>'+ (catalog.length?'Keine passenden Artikel':'Dein Artikelstamm beginnt hier')+'</h3><p>'+ (catalog.length?'Passe die Suche oder die Filter an.':'Erstelle deinen ersten eigenen Artikel. Preis und Arbeitszeit kannst du frei festlegen.')+'</p></div>';
  $('products').querySelectorAll('[data-detail]').forEach(b=>b.onclick=()=>openProduct(found[Number(b.dataset.detail)]));$('more').hidden=found.length<=limit;
