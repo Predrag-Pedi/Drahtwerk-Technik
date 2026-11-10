@@ -36,3 +36,7 @@ Version 20261104-2: Übersicht und fünf Dialogebenen, eigene Artikel erstellen/
 Tabellarischer Artikelstamm mit Suche, Hersteller-, Typ-, Kategorie- und Quellenfilter. Artikel öffnen eine eigene rechte Detailansicht mit Stammdaten, Materialpreis, Zeiten und optionalem Artikel-Stundensatz. Innerhalb einer Offerte: Menge, kalkulierter Positionsbetrag vor Rabatt und Übernahme in den ausgewählten Anlagenteil. Eigene Artikel können von dort bearbeitet, importierte Artikel als eigene Kopie übernommen werden. VSAS zeigt ohne Zugang nur den ehrlichen Verbindungsstatus, keine Beispieldaten als echte VSAS-Ergebnisse.
 
 Browserprüfung mit synthetischem Artikel: Anlegen, VSAS-Status, Rückkehr zu eigenen Artikeln, Detailansicht, 2 × (CHF 40 + 15 Min. à CHF 120/h) = CHF 140, Übernahme als Menge 2 in Stückliste.
+
+## Gestaltung 20261110-1
+
+Modernisierte Übersicht mit Seitennavigation, tatsächlichen Bestandszahlen, Suche und gestaltetem Leerzustand. Tabellen, Formularflächen und gestaffelte Seitenfenster verwenden ein gemeinsames Design. Der gemeinsame Header bleibt erhalten. Responsive Layouts und reduzierte Bewegung werden berücksichtigt. Kalkulation und Datenformat bleiben unverändert.
