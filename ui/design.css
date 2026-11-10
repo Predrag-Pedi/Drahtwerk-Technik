@@ -53,3 +53,62 @@ body.suite-page{margin:0;background:radial-gradient(ellipse at 80% 0%,#deebfc88,
 @media screen{
 .suite-offerten main #offerSearch{padding-left:38px}.suite-waermeberechnung section>button+button{margin-left:7px}.suite-offerten .offer-table td:last-child>span:last-child:not(.table-amount){font-family:Arial,sans-serif}
 }
+/* Complete cut list, with compact desktop rows and no nested vertical scrolling. */
+@media screen{
+.suite-schienenrechner .tablewrap{max-height:none;overflow:visible}
+.suite-schienenrechner main td,.suite-schienenrechner main th{padding:4px 8px}
+.suite-schienenrechner main td.qty input{min-height:34px;padding:5px;margin:0}
+.suite-schienenrechner .stats{padding:12px 16px;margin-top:12px}
+.suite-menu-toggle,.suite-menu-shade{display:none}
+.heat-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:26px}
+.suite-waermeberechnung .heat-heading h1{font-size:44px;letter-spacing:-1.7px;margin:8px 0 12px}
+.suite-waermeberechnung .heat-heading .intro{margin:0}
+.heat-start{display:flex;gap:24px;align-items:center;background:#2864df;color:white;padding:14px 20px;border-radius:12px;text-decoration:none;font-weight:650;white-space:nowrap;box-shadow:0 6px 18px #2864df25}
+.heat-steps{display:flex;gap:6px;padding:7px;background:#fff;border:1px solid #dfe7f1;border-radius:16px;position:sticky;top:12px;z-index:5;box-shadow:0 8px 25px #1937580a;margin:0 0 24px;overflow:auto}
+.heat-steps a{display:flex;align-items:center;gap:10px;flex:1;padding:12px;border-radius:10px;text-decoration:none;color:#64788f;white-space:nowrap;font-size:12px;font-weight:600}
+.heat-steps b{font-size:11px;color:#3b70bb;background:#edf3fc;border-radius:7px;padding:5px 7px}
+.heat-steps a:hover,.heat-steps a[aria-current]{background:#edf4ff;color:#245ab0}
+.suite-waermeberechnung section[id]{scroll-margin-top:100px}
+.suite-waermeberechnung main>section,.suite-waermeberechnung #projectForm>section{padding:30px;border-radius:20px}
+.suite-waermeberechnung #heat-documents{background:linear-gradient(120deg,#fff,#f7faff)}
+.suite-waermeberechnung #heat-documents .grid>label{padding:20px;border:1px solid #dce7f7;background:white;border-radius:14px;color:#23456a}
+.suite-waermeberechnung #heat-documents input[type=file]{margin-top:8px}
+.suite-waermeberechnung .heat-sources{border-left:3px solid #5a88d5}
+.suite-waermeberechnung .field-card{padding:24px;background:#f7f9fd;border:1px solid #dfe7f1;border-radius:16px}
+.suite-waermeberechnung .field-card h3{font-size:18px;margin:0}
+.suite-waermeberechnung .results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid #dce6f2}
+.suite-waermeberechnung .results>div{font-size:11px;color:#6a7e96;padding:12px;background:white;border-radius:12px}
+.suite-waermeberechnung .results>div:last-child{background:#173d6c;color:#c0d6ee}.suite-waermeberechnung .results>div:last-child strong{color:white}
+.suite-waermeberechnung #heat-export{border-color:#bed2ed;background:linear-gradient(115deg,#edf4ff,#fff)}
+}
+@media screen and (min-width:1181px) and (max-height:900px){
+.suite-schienenrechner>main{padding-top:18px;padding-bottom:18px}.suite-schienenrechner .suite-breadcrumb{margin-bottom:10px}.suite-schienenrechner main>h1{font-size:28px}.suite-schienenrechner main>.intro{margin-bottom:16px}.suite-schienenrechner main>.panel{padding:16px}.suite-schienenrechner main td,.suite-schienenrechner main th{padding:2px 8px}.suite-schienenrechner main td.qty input{min-height:30px;padding:3px}
+}
+/* Tablet and phone: full-width work surface and an on-demand tool drawer. */
+@media screen and (max-width:1180px){
+:root{--dw-sidebar:0px}
+.suite-page header.dw-header,.suite-page header.top.dw-header{position:sticky;top:0;z-index:31;padding:6px 16px!important;gap:12px}
+.suite-menu-toggle{display:block;flex:none;width:44px;height:44px;border:1px solid #ffffff30;background:#ffffff10;color:white;border-radius:12px;font-size:23px;cursor:pointer}
+.suite-page header.dw-header .dw-brand,.suite-page header.dw-header .brand{font-size:21px!important;margin-right:auto!important}
+.suite-sidebar,.suite-offerten .suite-sidebar{display:none;position:fixed!important;top:57px;bottom:0;left:0;width:280px;max-width:85vw;min-height:0;overflow:auto;z-index:30;padding:24px 16px}
+.suite-menu-open .suite-sidebar{display:flex;flex-direction:column}.suite-sidebar nav{display:flex;flex-direction:column;overflow:visible;gap:5px}.suite-nav-link,.suite-sidebar .rail-link{width:100%;font-size:14px;padding:13px 12px;white-space:normal}.suite-identity{display:flex}.suite-nav-label{display:block}.suite-sidebar-foot{display:block}.suite-menu-open .suite-menu-shade{display:block;position:fixed;inset:57px 0 0;z-index:29;background:#091a35aa;border:0;width:100%;backdrop-filter:blur(3px)}
+.suite-page:not(.suite-offerten)>main{margin:0;width:100%;padding:22px 24px 40px}.suite-offerten .app-shell{margin:0}.suite-offerten .offer-home{padding:24px}
+.suite-breadcrumb{margin-bottom:14px}.heat-steps{top:68px}.suite-waermeberechnung section[id]{scroll-margin-top:155px}
+.suite-waermeberechnung .grid.four,.suite-waermeberechnung .field-card .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.suite-schienenrechner>main{display:block}.suite-schienenrechner .fields{grid-template-columns:repeat(3,minmax(0,1fr))}.suite-schienenrechner .actions{display:flex}.suite-schienenrechner main td.qty input{min-height:44px}.suite-schienenrechner main td,.suite-schienenrechner main th{padding:5px 8px}
+}
+@media screen and (max-width:600px){
+.suite-page:not(.suite-offerten)>main{padding:18px 14px 30px}.suite-page header.dw-header .dw-brand,.suite-page header.dw-header .brand{font-size:18px!important}.suite-page .dw-brand .dw-bolt{display:none}.suite-page header .dw-home-link{font-size:0;gap:0;padding:10px}.suite-page header .dw-home-link svg{display:block;width:20px}
+.suite-page main input:not([type=checkbox]),.suite-page main select,.suite-page main textarea{font-size:16px}
+.suite-page main .panel,.suite-page main .card,.suite-page .ew-card,.suite-waermeberechnung main>section,.suite-waermeberechnung #projectForm>section{padding:18px;border-radius:16px}
+.suite-index .tiles,.suite-index .tiles[aria-label=Büro]{grid-template-columns:1fr}.suite-index .tile{min-height:88px;padding:18px 44px 18px 76px;justify-content:center}.suite-index .tile-icon{position:absolute;left:18px;top:22px}.suite-index .tile strong{font-size:15px}.suite-index .tile small{font-size:12px}
+.suite-schienenrechner .fields{gap:10px}.suite-schienenrechner .fields label{font-size:11px}.suite-schienenrechner .fields input{padding:10px 7px!important}.suite-schienenrechner table{table-layout:fixed;width:100%}.suite-schienenrechner th:first-child{width:36%}.suite-schienenrechner td.qty{width:auto}.suite-schienenrechner main td,.suite-schienenrechner main th{font-size:11px;padding:5px 3px;overflow-wrap:anywhere}.suite-schienenrechner td.qty input{min-width:0!important;width:100%;padding:7px 2px!important}.suite-schienenrechner .actions{display:grid}.suite-schienenrechner .stats{gap:7px;font-size:12px}
+.heat-heading{display:block;margin-bottom:20px}.suite-waermeberechnung .heat-heading h1{font-size:31px;letter-spacing:-1px}.heat-start{display:none}.heat-steps{border-radius:12px;gap:0}.heat-steps a{padding:8px;font-size:11px;gap:6px}.heat-steps b{padding:4px}.suite-waermeberechnung .grid,.suite-waermeberechnung .grid.four{grid-template-columns:1fr}.suite-waermeberechnung #heat-documents .grid>label{padding:14px}.suite-waermeberechnung .field-card{padding:14px}.suite-waermeberechnung .results{grid-template-columns:1fr 1fr}.suite-waermeberechnung .results strong{font-size:20px}.suite-waermeberechnung section>button{width:100%;margin:8px 0 0!important}.suite-waermeberechnung #heat-export button{width:100%;margin:8px 0 0!important}
+.suite-waermeberechnung #heat-devices .tablewrap{overflow:visible}.suite-waermeberechnung #heat-devices table,.suite-waermeberechnung #devices{display:block}.suite-waermeberechnung #heat-devices thead{display:none}.suite-waermeberechnung #devices tr{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid #dce5f0;border-radius:14px;padding:14px;margin:14px 0}.suite-waermeberechnung #devices td{display:block;min-width:0;padding:0;border:0}.suite-waermeberechnung #devices td:first-child,.suite-waermeberechnung #devices td:nth-child(5),.suite-waermeberechnung #devices td:nth-child(6),.suite-waermeberechnung #devices td:last-child{grid-column:1/-1}.suite-waermeberechnung #devices td:before{display:block;font-size:10px;color:#6b7e94;margin:0 0 5px}.suite-waermeberechnung #devices td:nth-child(2):before{content:'Feld'}.suite-waermeberechnung #devices td:nth-child(3):before{content:'Anzahl'}.suite-waermeberechnung #devices td:nth-child(4):before{content:'System'}.suite-waermeberechnung #devices td:nth-child(5):before{content:'Art / Polzahl / A'}.suite-waermeberechnung #devices td:nth-child(6):before{content:'Referenzartikel'}.suite-waermeberechnung #devices input,.suite-waermeberechnung #devices select{min-width:0;max-width:100%}.suite-waermeberechnung #devices .mini>*{flex:1;width:0}
+}
+@media print{.suite-menu-toggle,.suite-menu-shade,.heat-steps,.heat-start{display:none!important}}
+@media screen and (min-width:1181px){.suite-schienenrechner main td.qty input{min-height:30px!important;height:30px;padding:3px 6px!important;font-size:14px!important}.suite-schienenrechner main td,.suite-schienenrechner main th{padding:2px 8px}.suite-schienenrechner main>.panel:nth-of-type(1){align-self:start}.suite-schienenrechner main>.panel:nth-of-type(3){align-self:start}}
+@media screen{.heat-start span{font-size:0;width:8px;height:8px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg)}}
+@media screen and (min-width:900px) and (max-width:1180px) and (orientation:landscape){
+.suite-schienenrechner>main{display:grid;grid-template-columns:240px minmax(0,1fr);gap:0 16px;padding-top:12px}.suite-schienenrechner main>.suite-breadcrumb{display:none}.suite-schienenrechner main>h1,.suite-schienenrechner main>.intro,.suite-schienenrechner main>footer{grid-column:1/-1}.suite-schienenrechner main>h1{font-size:25px}.suite-schienenrechner main>.intro{margin-bottom:14px}.suite-schienenrechner main>.panel:nth-of-type(1){grid-column:1;grid-row:3}.suite-schienenrechner main>.panel:nth-of-type(2){grid-column:2;grid-row:3/span 2}.suite-schienenrechner main>.panel:nth-of-type(3){grid-column:1;grid-row:4}.suite-schienenrechner main>.panel{padding:14px}.suite-schienenrechner .fields{grid-template-columns:1fr}.suite-schienenrechner .actions{display:grid}.suite-schienenrechner main td,.suite-schienenrechner main th{padding:1px 5px}.suite-schienenrechner main td.qty input{min-height:36px!important;height:36px;padding:4px!important}.suite-schienenrechner main h2{font-size:16px;margin-bottom:10px}
+}
