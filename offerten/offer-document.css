@@ -1,0 +1,11 @@
+.offer-preview{margin-top:24px;padding:28px;background:#fff;border:1px solid #dce4ee;border-radius:12px;overflow-x:auto;}
+.offer-preview .quote-document{max-width:960px;margin:auto;}
+.offer-preview .quote-document h1,.offer-preview .quote-document h2{letter-spacing:normal;}
+.offer-preview .quote-document table{min-width:480px;table-layout:auto;}
+.offer-preview .quote-document th{font-size:12px;text-transform:none;letter-spacing:normal;}
+.offer-preview .quote-document tbody tr:hover{background:transparent;}
+.offer-preview .quote-document td:nth-child(2){overflow-wrap:anywhere;}
+.offer-preview .document-total{background:#f1f5fa;}
+.offer-preview .document-summary{max-width:620px;margin-left:auto;}
+#plainText{margin-top:18px;}#plainText textarea{min-height:340px;font-family:ui-monospace,monospace;font-size:12px;white-space:pre;}
+@media(max-width:650px){.offer-preview{padding:14px;}.offer-preview .quote-document table{min-width:420px;}}

@@ -12,7 +12,7 @@ export function number(value){
 }
 export const part=(name='Feld 1')=>({id:uid(),name,notes:'',items:[]});
 export const plant=(name='Hauptverteilung')=>({id:uid(),name,type:'',width:'',height:'',depth:'',ip:'',colour:'',notes:'',parts:[part()]});
-export const offer=()=>({id:uid(),number:'',customer:'',address:'',project:'',date:new Date().toLocaleDateString('sv-SE'),intro:'Wir offerieren Ihnen die nachfolgend beschriebenen Schaltanlagen.',closing:'',markup:0,rate:0,discount:0,plants:[plant()]});
+export const offer=()=>({id:uid(),number:'',customer:'',address:'',project:'',date:new Date().toLocaleDateString('sv-SE'),intro:'Wir offerieren Ihnen die nachfolgend beschriebenen Schaltanlagen.',closing:'',markup:0,rate:0,discount:0,outputMode:'plant',plants:[plant()]});
 export function line(item,doc){
  if(!item.name?.trim())throw Error('Eine Position hat keine Bezeichnung.');
  for(const [v,label] of [[item.qty,'Menge'],[item.price,'Grundpreis'],[item.minutes,'Montagezeit'],[doc.markup,'Materialzuschlag'],[doc.rate,'Stundensatz'],[doc.discount,'Rabatt']])if(!Number.isFinite(v)||v<0)throw Error(`${item.name}: ${label} fehlt oder ist ungültig.`);
@@ -29,13 +29,20 @@ export function totals(doc){
  return {plants,subtotal,discount,total:round(subtotal-discount)};
 }
 export function description(p){return [p.type,[p.width,p.height,p.depth].some(Boolean)?`B × H × T: ${p.width||'–'} × ${p.height||'–'} × ${p.depth||'–'} mm`:'',p.ip?`Schutzart: ${p.ip}`:'',p.colour?`Farbe: ${p.colour}`:'',p.notes].filter(Boolean).join('\n');}
-export function offerText(doc,detailed=true){
- const t=totals(doc);if(!doc.plants.some(p=>p.parts.some(s=>s.items.length)))throw Error('Bitte zuerst Positionen hinzufügen.');
- const out=[`Offerte${doc.number?' '+doc.number:''}`,doc.project,doc.customer,doc.address,doc.date?`Datum: ${doc.date}`:'','',doc.intro,''];
- doc.plants.forEach((p,pi)=>{out.push(`${pi+1}. ${p.name}`,description(p));p.parts.forEach((s,si)=>{out.push('',`${pi+1}.${si+1} ${s.name}`,s.notes);if(detailed)s.items.forEach((i,ii)=>{const l=line(i,doc);out.push(`${pi+1}.${si+1}.${ii+1} ${i.name}${i.article?' · Art. '+i.article:''}`,`${i.qty} ${i.unit||'Stk.'} × CHF ${money(l.unit)} = CHF ${money(l.total)}`);});out.push(`Total ${s.name}: CHF ${money(t.plants[pi].parts[si].total)}`);});out.push('',`Total ${p.name}: CHF ${money(t.plants[pi].total)}`,'');});
+export const priceMode=value=>value===true?'detail':value===false?'summary':['detail','plant','summary'].includes(value)?value:'plant';
+export function offerText(doc,mode=true){
+ mode=priceMode(mode);const t=totals(doc);if(!doc.plants.some(p=>p.parts.some(s=>s.items.length)))throw Error('Bitte zuerst Positionen hinzufügen.');
+ const out=[`OFFERTE${doc.number?' '+doc.number:''}`,doc.project,doc.customer,doc.address,doc.date?`Datum: ${doc.date}`:'','',doc.intro,''];
+ doc.plants.forEach((p,pi)=>{out.push(`${pi+1}. ${p.name}`,description(p),'');
+ out.push(mode==='detail'?'Pos. / Artikelbezeichnung\tMenge\tEinheit\tEinzelpreis CHF\tBetrag CHF':'Pos. / Artikelbezeichnung\tMenge\tEinheit');
+ p.parts.forEach((s,si)=>{out.push('',`${pi+1}.${si+1} ${s.name}`,s.notes);
+ s.items.forEach((i,ii)=>{const l=line(i,doc);out.push(`${pi+1}.${si+1}.${ii+1} ${i.name}\t${i.qty}\t${i.unit||'Stk.'}${mode==='detail'?'\t'+money(l.unit)+'\t'+money(l.total):''}`);});
+ if(mode!=='plant')out.push(`Total ${s.name}: CHF ${money(t.plants[pi].parts[si].total)}`);});out.push('',`Total ${p.name}: CHF ${money(t.plants[pi].total)}`,'');});
+ out.push('ZUSAMMENSTELLUNG');t.plants.forEach((p,i)=>out.push(`${i+1}. ${doc.plants[i].name}\tCHF ${money(p.total)}`));
  out.push(`Zwischentotal: CHF ${money(t.subtotal)}`);if(doc.discount)out.push(`Rabatt ${doc.discount} %: −CHF ${money(t.discount)}`);out.push(`Angebotstotal exkl. MWST: CHF ${money(t.total)}`,'',doc.closing);
  return out.filter(x=>x!==undefined).join('\n').replace(/\n{3,}/g,'\n\n');
 }
+
 export function parseCSV(text,delimiter){
  text=text.replace(/^\uFEFF/,'');
  if(!delimiter){const head=text.split(/\r?\n/)[0];delimiter=[';','\t',','].sort((a,b)=>head.split(b).length-head.split(a).length)[0];}
@@ -60,6 +67,6 @@ export function validateOffer(raw){
  const fail=()=>{throw Error('Ungültige Offertendatei.');};const str=v=>typeof v==='string'&&v.length<50000?v:fail();
  const num=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:fail();
  if(!raw||!Array.isArray(raw.plants)||!raw.plants.length)fail();
- const d={id:uid()};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();
+ const d={id:uid(),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();
  d.plants=raw.plants.map(p=>{const q={id:uid()};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
 }
