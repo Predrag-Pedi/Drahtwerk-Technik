@@ -1,10 +1,10 @@
 import {offerItemName} from './sbr.mjs?v=20261111-8';
 import {logoData} from './logo.mjs?v=20261111-4';
-import {totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-10';
+import {visibleInTotals,totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-11';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=v=>esc(v).replace(/\n/g,'<br>');
 // Inline table styles also travel with the rich-text clipboard representation.
-export function offerHTML(doc,value='plant',editing=false,actions=false){
+export function offerHTML(doc,value='plant',editing=false){
  const mode=priceMode(value);offerText(doc,mode);const t=totals(doc),detail=mode==='detail',cols=detail?5:4;
  const editable=(text,key)=>editing?' <span data-offer-text="'+key+'" contenteditable="plaintext-only" role="textbox" aria-label="Angebotstext '+key+'" style="display:block;white-space:pre-wrap;min-height:1.5em;padding:6px;border:1px dashed #7297c6;background:#f4f8ff;">'+esc(text)+'</span>':lines(text);
  const cell='padding:9px 8px;border-bottom:1px solid #e2e7ed;vertical-align:top;';
@@ -16,6 +16,11 @@ export function offerHTML(doc,value='plant',editing=false,actions=false){
  if(mode==='totals'){
  html+='<section class="document-plant"><h2 style="font-size:18px;border-bottom:2px solid #173f70;padding-bottom:8px;margin:28px 0 12px;">'+(pi+1)+'. '+editable(p.name,'p'+pi+'name')+'</h2>';
  if(description(p)||editing)html+='<p>'+editable(description(p),'p'+pi+'desc')+'</p>';
+ p.parts.forEach((part,si)=>{
+ html+='<h3 style="font-size:14px;">'+(pi+1)+'.'+(si+1)+' '+editable(part.name,'p'+pi+'s'+si+'name')+'</h3>';
+ if(part.notes||editing)html+='<p>'+editable(part.notes,'p'+pi+'s'+si+'notes')+'</p>';
+ part.items.forEach((item,ii)=>{if(visibleInTotals(item))html+='<div style="margin:12px 0;"><strong>'+esc((pi+1)+'.'+(si+1)+'.'+(ii+1))+'</strong> '+editable(offerItemName(item),'p'+pi+'s'+si+'i'+ii)+'<p>'+esc(item.qty)+' '+esc(item.unit||'Stk.')+'</p></div>';});
+ });
  html+='<table style="border-collapse:collapse;width:100%;font-size:13px;"><tbody><tr>'+td('<strong>'+esc('Total '+p.name)+'</strong>')+td('<strong>CHF '+money(t.plants[pi].total)+'</strong>','right')+'</tr></tbody></table></section>';
  return;
  }
@@ -25,7 +30,7 @@ export function offerHTML(doc,value='plant',editing=false,actions=false){
  // Five columns in detailed mode; four in grouped modes.
  p.parts.forEach((s,si)=>{
  html+=`<tr><td colspan="${detail?5:4}" style="padding:18px 8px 8px;font-weight:700;">${pi+1}.${si+1} ${editable(s.name,'p'+pi+'s'+si+'name')}${(s.notes||editing)?'<div style="font-weight:400;">'+editable(s.notes,'p'+pi+'s'+si+'notes')+'</div>':''}</td></tr>`;
- s.items.forEach((i,ii)=>{const l=line(i,doc);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(editable(offerItemName(i),'p'+pi+'s'+si+'i'+ii)+(actions?'<br><button type="button" data-replace-position="'+pi+'-'+si+'-'+ii+'">Produkt ersetzen</button>':''))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
+ s.items.forEach((i,ii)=>{const l=line(i,doc);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(editable(offerItemName(i),'p'+pi+'s'+si+'i'+ii))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
  if(mode!=='plant')html+=totalRow('Total '+s.name,t.plants[pi].parts[si].total);
  });html+=totalRow('Total '+p.name,t.plants[pi].total)+'</tbody></table></section>';
  });

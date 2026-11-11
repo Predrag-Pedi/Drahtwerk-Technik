@@ -30,12 +30,22 @@ export function totals(doc){
  return {plants,subtotal,discount,total:round(subtotal-discount)};
 }
 export function description(p){if(typeof p.offerDescription==='string')return p.offerDescription;return [p.type,[p.width,p.height,p.depth].some(Boolean)?`B × H × T: ${p.width||'–'} × ${p.height||'–'} × ${p.depth||'–'} mm`:'',p.ip?`Schutzart: ${p.ip}`:'',p.colour?`Farbe: ${p.colour}`:'',p.notes].filter(Boolean).join('\n');}
+// Imported catalogs often classify cabinets simply as "Artikel".
+export function visibleInTotals(i){
+ if(i.sbr||/^(schrank|gehäuse|feldverteiler|sbr(?:\s*[–-]\s*dynamisch)?)$/i.test(String(i.type||'').trim()))return true;
+ const name=String(i.name||'');
+ if(/\b(profil|profile|schiene|schienen|zubehör|seitenwand|sockel|tür|türen)\b/i.test(name.split(/[,;]/)[0]))return false;
+ return /(?:^|[\s-])(?:standardschrank|standschrank|lagerschrank|schaltschrank|wandschrank|verteilerschrank|schrank|feldverteiler|SBR)(?=$|[\s,;–-])/i.test(name);
+}
 export const priceMode=value=>value===true?'detail':value===false?'summary':['detail','plant','summary','totals'].includes(value)?value:'plant';
 export function offerText(doc,mode=true){
  mode=priceMode(mode);const t=totals(doc);if(!doc.plants.some(p=>p.parts.some(s=>s.items.length)))throw Error('Bitte zuerst Positionen hinzufügen.');
  const out=[`OFFERTE${doc.number?' '+doc.number:''}`,doc.project,doc.customer,doc.address,doc.date?`Datum: ${doc.date}`:'','',doc.intro,''];
  doc.plants.forEach((p,pi)=>{out.push(`${pi+1}. ${p.name}`,description(p),'');
- if(mode==='totals'){out.push('Total '+p.name+': CHF '+money(t.plants[pi].total),'');return;}
+ if(mode==='totals'){
+ p.parts.forEach((s,si)=>{out.push(`${pi+1}.${si+1} ${s.name}`,s.notes);
+ s.items.forEach((i,ii)=>{if(visibleInTotals(i))out.push(`${pi+1}.${si+1}.${ii+1} ${offerItemName(i)}\t${i.qty} ${i.unit||'Stk.'}`);});});
+ out.push('Total '+p.name+': CHF '+money(t.plants[pi].total),'');return;}
  out.push(mode==='detail'?'Pos. / Artikelbezeichnung\tMenge\tEinheit\tEinzelpreis CHF\tBetrag CHF':'Pos. / Artikelbezeichnung\tMenge\tEinheit');
  p.parts.forEach((s,si)=>{out.push('',`${pi+1}.${si+1} ${s.name}`,s.notes);
  s.items.forEach((i,ii)=>{const l=line(i,doc);out.push(`${pi+1}.${si+1}.${ii+1} ${offerItemName(i)}\t${i.qty}\t${i.unit||'Stk.'}${mode==='detail'?'\t'+money(l.unit)+'\t'+money(l.total):''}`);});
