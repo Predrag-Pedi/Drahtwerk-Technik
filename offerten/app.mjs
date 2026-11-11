@@ -1,13 +1,13 @@
 import {replaceItem} from './replace-item.mjs?v=20261111-9';
-import {editOfferTexts} from './offer-edit.mjs?v=20261111-8';
+import {editOfferTexts} from './offer-edit.mjs?v=20261111-10';
 import {SBR,isSbr,sbrSnapshot} from './sbr.mjs?v=20261111-8';
 import {profileEditor,configuration} from './sbr-ui.mjs?v=20261111-7';
 import {filterCatalog} from './catalog-filters.mjs?v=20261110-11';
-import {offerHTML} from './offer-document.mjs?v=20261111-9';
+import {offerHTML} from './offer-document.mjs?v=20261111-10';
 import {isVSAS} from './vsas.mjs?v=20261110-9';
 import {workspace} from './workspace.mjs?v=20261110-1';
 import {ownArticle,articleSnapshot,validateArticle,articleMinutes} from './articles.mjs?v=20261111-6';
-import {uid,offer,plant,part,money,number,line,totals,description,offerText,parseCSV,catalogRows,validateOffer} from './core.mjs?v=20261111-8';
+import {uid,offer,plant,part,money,number,line,totals,description,offerText,parseCSV,catalogRows,validateOffer} from './core.mjs?v=20261111-10';
 import {read,write} from './storage.mjs?v=20261110-1';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let docs=[],doc,catalog=[],importedCatalog=[],ownCatalog=[],editingArticle=null,detailArticle=null,selectedPlant,selectedPart,limit=30,csvRows=null,saveQueue=Promise.resolve(),ready=false;
@@ -167,6 +167,6 @@ $('productQuantity').oninput=updateProductCalculation;
 $('editProductDetail').onclick=()=>editArticle(detailArticle);
 $('addProductDetail').onclick=()=>{const qty=number($('productQuantity').value);if(!detailArticle||!panels.isOpen('partDrawer')||qty===null||!Number.isFinite(qty)||qty<=0){$('detailError').textContent='Bitte eine Menge grösser als 0 eingeben.';return;}try{const snapshot=selectedSnapshot();line({...snapshot,qty},doc);if(replacingPosition){if(replacingPosition.part!==currentPart())throw Error('Bitte die ursprüngliche Anlage öffnen.');replaceItem(currentPart().items,replacingPosition.id,snapshot,doc);}else if(editingPosition)Object.assign(editingPosition,snapshot,{qty});else currentPart().items.push({...snapshot,id:uid(),qty});}catch(e){$('detailError').textContent=e.message;return;}const replaced=!!replacingPosition;replacingPosition=null;save();drawSelection();panels.close(replaced?'catalogDrawer':'productDrawer');notice(replaced?'Produkt ersetzt. Menge und Anlagenzuordnung wurden beibehalten.':editingPosition?'SBR-Konfiguration und Preis aktualisiert.':qty+' × '+detailArticle.name+' hinzugefügt zu '+currentPart().name+'.');};
 
-$('downloadPdf').onclick=async()=>{if(pdfBusy)return;pdfBusy=true;const button=$('downloadPdf'),snapshot=structuredClone(doc),mode=$('textMode').value,name=filename();button.disabled=true;button.textContent='PDF wird erstellt …';try{const {exportOfferPdf}=await import('./offer-pdf.mjs?v=20261111-8');const blob=await exportOfferPdf(snapshot,mode);download(name+'.pdf',blob,'application/pdf');notice('Offerte als PDF erstellt. Der Download wurde gestartet.');}catch(e){notice('PDF konnte nicht erstellt werden: '+e.message);}finally{pdfBusy=false;button.textContent='Offerte als PDF herunterladen';calculate();}};
+$('downloadPdf').onclick=async()=>{if(pdfBusy)return;pdfBusy=true;const button=$('downloadPdf'),snapshot=structuredClone(doc),mode=$('textMode').value,name=filename();button.disabled=true;button.textContent='PDF wird erstellt …';try{const {exportOfferPdf}=await import('./offer-pdf.mjs?v=20261111-10');const blob=await exportOfferPdf(snapshot,mode);download(name+'.pdf',blob,'application/pdf');notice('Offerte als PDF erstellt. Der Download wurde gestartet.');}catch(e){notice('PDF konnte nicht erstellt werden: '+e.message);}finally{pdfBusy=false;button.textContent='Offerte als PDF herunterladen';calculate();}};
 
 $('editOfferTexts').onclick=()=>editOfferTexts(doc,$('textMode').value,()=>{draw();save();notice('Angebotstexte gespeichert und für alle Exporte übernommen.');});
