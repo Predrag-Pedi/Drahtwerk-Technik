@@ -4,7 +4,7 @@ import {totals,line,description,money,priceMode,offerText} from './core.mjs?v=20
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=v=>esc(v).replace(/\n/g,'<br>');
 // Inline table styles also travel with the rich-text clipboard representation.
-export function offerHTML(doc,value='plant',editing=false){
+export function offerHTML(doc,value='plant',editing=false,actions=false){
  const mode=priceMode(value);offerText(doc,mode);const t=totals(doc),detail=mode==='detail',cols=detail?5:4;
  const editable=(text,key)=>editing?' <span data-offer-text="'+key+'" contenteditable="plaintext-only" role="textbox" aria-label="Angebotstext '+key+'" style="display:block;white-space:pre-wrap;min-height:1.5em;padding:6px;border:1px dashed #7297c6;background:#f4f8ff;">'+esc(text)+'</span>':lines(text);
  const cell='padding:9px 8px;border-bottom:1px solid #e2e7ed;vertical-align:top;';
@@ -18,7 +18,7 @@ export function offerHTML(doc,value='plant',editing=false){
  // Five columns in detailed mode; four in grouped modes.
  p.parts.forEach((s,si)=>{
  html+=`<tr><td colspan="${detail?5:4}" style="padding:18px 8px 8px;font-weight:700;">${pi+1}.${si+1} ${editable(s.name,'p'+pi+'s'+si+'name')}${(s.notes||editing)?'<div style="font-weight:400;">'+editable(s.notes,'p'+pi+'s'+si+'notes')+'</div>':''}</td></tr>`;
- s.items.forEach((i,ii)=>{const l=line(i,doc);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(editable(offerItemName(i),'p'+pi+'s'+si+'i'+ii))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
+ s.items.forEach((i,ii)=>{const l=line(i,doc);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(editable(offerItemName(i),'p'+pi+'s'+si+'i'+ii)+(actions?'<br><button type="button" data-replace-position="'+pi+'-'+si+'-'+ii+'">Produkt ersetzen</button>':''))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
  if(mode!=='plant')html+=totalRow('Total '+s.name,t.plants[pi].parts[si].total);
  });html+=totalRow('Total '+p.name,t.plants[pi].total)+'</tbody></table></section>';
  });
