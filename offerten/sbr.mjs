@@ -24,7 +24,7 @@ export function sbrDescription(s){
  const dimensions=[s.width,s.height,...(s.depth!=null?[s.depth]:[])].join(' × ');
  return [s.template.name+' · '+dimensions+' mm'+(s.depth!=null?' (B × H × T)':' (B × H)'),s.top?'Oben: '+s.top:'',s.bottom?'Unten: '+s.bottom:'',s.pvc?'PVC-Platte: '+s.pvc:''].filter(Boolean).join('\n');
 }
-export const offerItemName=i=>i.sbr?sbrDescription(i.sbr):i.name;
+export const offerItemName=i=>typeof i.offerDescription==='string'?i.offerDescription:i.sbr?sbrDescription(i.sbr):i.name;
 export function sbrSnapshot(template,width,height,counts,options={}){
  const c=configureSbr(template,width,height,counts);
  const minutes=positive(options.minutes??template.minutes??0,'Bauzeit',true);
