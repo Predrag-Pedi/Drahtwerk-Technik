@@ -16,3 +16,5 @@ test('Totals-only PDF omits device rows and retains fields and preserves the pla
  assert.match(text,/Hauptverteilung/);assert.match(text,/Rahmenausführung hellgrau/);assert.match(text,/400.00/);
  assert.match(text,/Feld 1/);assert.doesNotMatch(text,/Gerät|Artikelbezeichnung|Menge|Einzelpreis/);
 });
+
+test('PDF includes VAT after discount in every display mode',async()=>{const d=fixture();d.discount=10;for(const mode of ['detail','plant','summary','totals']){const pages=await renderOfferPages(d,mode,environment());const text=pages.flatMap(p=>p.text.map(t=>t.s));for(const value of ['Angebotstotal exkl. MWST','36.00','Zzgl. MWST 8.10 %','2.92','Angebotstotal inkl. MWST','38.92'])assert.ok(text.includes(value),value);}});

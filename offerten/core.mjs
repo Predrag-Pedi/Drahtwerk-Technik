@@ -15,7 +15,7 @@ export const part=(name='Feld 1')=>({id:uid(),name,notes:'',items:[]});
 export const plant=(name='Hauptverteilung')=>({id:uid(),name,type:'',width:'',height:'',depth:'',ip:'',colour:'',notes:'',parts:[part()]});
 export const OFFER_STATUSES={open:'Offen',approved:'Genehmigt',cancelled:'Storniert'};
 export const offerStatus=value=>Object.hasOwn(OFFER_STATUSES,value)?value:'open';
-export const offer=()=>({id:uid(),status:'open',number:'',customer:'',address:'',project:'',date:new Date().toLocaleDateString('sv-SE'),intro:'Wir offerieren Ihnen die nachfolgend beschriebenen Schaltanlagen.',closing:'',markup:0,rate:0,discount:0,outputMode:'plant',plants:[plant()]});
+export const offer=()=>({id:uid(),status:'open',number:'',customer:'',address:'',project:'',date:new Date().toLocaleDateString('sv-SE'),intro:'Wir offerieren Ihnen die nachfolgend beschriebenen Schaltanlagen.',closing:'',markup:0,rate:0,discount:0,vatRate:8.1,outputMode:'plant',plants:[plant()]});
 export function line(item,doc){
  if(!item.name?.trim())throw Error('Eine Position hat keine Bezeichnung.');
  for(const [v,label] of [[item.qty,'Menge'],[item.price,'Grundpreis'],[item.minutes,'Montagezeit'],[doc.markup,'Materialzuschlag'],[doc.rate,'Stundensatz'],[doc.discount,'Rabatt']])if(!Number.isFinite(v)||v<0)throw Error(`${item.name}: ${label} fehlt oder ist ungültig.`);
@@ -29,7 +29,9 @@ export function totals(doc){
  const plants=doc.plants.map(p=>({id:p.id,parts:p.parts.map(s=>({id:s.id,total:round(s.items.reduce((a,i)=>a+line(i,doc).total,0))}))}));
  for(const p of plants)p.total=round(p.parts.reduce((a,s)=>a+s.total,0));
  const subtotal=round(plants.reduce((a,p)=>a+p.total,0)),discount=round(subtotal*doc.discount/100);
- return {plants,subtotal,discount,total:round(subtotal-discount)};
+ const total=round(subtotal-discount),vatRate=doc.vatRate??8.1;
+ if(!Number.isFinite(vatRate)||vatRate<0||vatRate>100)throw Error('MWST-Satz muss zwischen 0 und 100 % liegen.');
+ const vat=round(total*vatRate/100);return {plants,subtotal,discount,total,vatRate,vat,gross:round(total+vat)};
 }
 export function description(p){if(typeof p.offerDescription==='string')return p.offerDescription;return [p.type,[p.width,p.height,p.depth].some(Boolean)?`B × H × T: ${p.width||'–'} × ${p.height||'–'} × ${p.depth||'–'} mm`:'',p.ip?`Schutzart: ${p.ip}`:'',p.colour?`Farbe: ${p.colour}`:'',p.notes].filter(Boolean).join('\n');}
 // Imported catalogs often classify cabinets simply as "Artikel".
@@ -42,7 +44,7 @@ export function visibleInTotals(i){
 export const priceMode=value=>value===true?'detail':value===false?'summary':['detail','plant','summary','totals'].includes(value)?value:'plant';
 export function offerText(doc,mode=true){
  mode=priceMode(mode);const t=totals(doc);if(!doc.plants.some(p=>p.parts.some(s=>s.items.length)))throw Error('Bitte zuerst Positionen hinzufügen.');
- const out=[`OFFERTE${doc.number?' '+doc.number:''}`,doc.project,doc.customer,doc.address,doc.date?`Datum: ${doc.date}`:'','',doc.intro,''];
+ const out=[`OFFERTE${doc.number?' '+doc.number:''}`,doc.project,doc.customer,doc.recipientAddress,doc.address,doc.validUntil?`Gültig bis: ${doc.validUntil}`:'',doc.contact?`Ihr Ansprechpartner: ${doc.contact}`:'',doc.customerNumber?`Kundennummer: ${doc.customerNumber}`:'',doc.date?`Datum: ${doc.date}`:'','',doc.intro,''];
  doc.plants.forEach((p,pi)=>{out.push(`${pi+1}. ${p.name}`,description(p),'');
  if(mode==='totals'){
  p.parts.forEach((s,si)=>{out.push(`${pi+1}.${si+1} ${s.name}`,s.notes);
@@ -53,7 +55,7 @@ export function offerText(doc,mode=true){
  s.items.forEach((i,ii)=>{const l=line(i,doc);out.push(`${pi+1}.${si+1}.${ii+1} ${offerItemName(i)}\t${i.qty}\t${i.unit||'Stk.'}${mode==='detail'?'\t'+money(l.unit)+'\t'+money(l.total):''}`);});
  if(mode!=='plant')out.push(`Total ${s.name}: CHF ${money(t.plants[pi].parts[si].total)}`);});out.push('',`Total ${p.name}: CHF ${money(t.plants[pi].total)}`,'');});
  out.push('ZUSAMMENSTELLUNG');t.plants.forEach((p,i)=>out.push(`${i+1}. ${doc.plants[i].name}\tCHF ${money(p.total)}`));
- out.push(`Zwischentotal: CHF ${money(t.subtotal)}`);if(doc.discount)out.push(`Rabatt ${doc.discount} %: −CHF ${money(t.discount)}`);out.push(`Angebotstotal exkl. MWST: CHF ${money(t.total)}`,'',doc.closing);
+ out.push(`Zwischentotal: CHF ${money(t.subtotal)}`);if(doc.discount)out.push(`Rabatt ${doc.discount} %: −CHF ${money(t.discount)}`);out.push(`Angebotstotal exkl. MWST: CHF ${money(t.total)}`,`Zzgl. MWST ${money(t.vatRate)} %: CHF ${money(t.vat)}`,`Angebotstotal inkl. MWST: CHF ${money(t.gross)}`,'',doc.closing);
  return out.filter(x=>x!==undefined).join('\n').replace(/\n{3,}/g,'\n\n');
 }
 
@@ -81,6 +83,6 @@ export function validateOffer(raw){
  const fail=()=>{throw Error('Ungültige Offertendatei.');};const str=v=>typeof v==='string'&&v.length<50000?v:fail();
  const num=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:fail();
  if(!raw||!Array.isArray(raw.plants)||!raw.plants.length)fail();
- const d={id:uid(),status:offerStatus(raw.status),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();
+ const d={id:uid(),status:offerStatus(raw.status),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();d.vatRate=raw.vatRate===undefined?8.1:num(raw.vatRate);if(d.vatRate>100)fail();for(const k of ['recipientAddress','validUntil','contact','customerNumber'])d[k]=raw[k]===undefined?'':str(raw[k]);
  d.plants=raw.plants.map(p=>{const q={id:uid(),...(p.offerDescription!==undefined?{offerDescription:str(p.offerDescription)}:{})};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),...(i.offerDescription!==undefined?{offerDescription:str(i.offerDescription)}:{}),...(i.sbr?{sbr:restoreSbr(i.sbr)}:{}),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
 }
