@@ -1,11 +1,11 @@
 import {offerItemName} from './sbr.mjs?v=20261111-8';
 import {logoData} from './logo.mjs?v=20261111-4';
-import {visibleInTotals,totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-14';
+import {offerPricing,visibleInTotals,totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-16';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=v=>esc(v).replace(/\n/g,'<br>');
 // Inline table styles also travel with the rich-text clipboard representation.
 export function offerHTML(doc,value='plant',editing=false){
- const mode=priceMode(value);offerText(doc,mode);const t=totals(doc),detail=mode==='detail',cols=detail?5:4;
+ const mode=priceMode(value);offerText(doc,mode);const pricing=offerPricing(doc),t=pricing.totals,detail=mode==='detail',cols=detail?5:4;
  const editable=(text,key)=>editing?' <span data-offer-text="'+key+'" contenteditable="plaintext-only" role="textbox" aria-label="Angebotstext '+key+'" style="display:block;white-space:pre-wrap;min-height:1.5em;padding:6px;border:1px dashed #7297c6;background:#f4f8ff;">'+esc(text)+'</span>':lines(text);
  const cell='padding:9px 8px;border-bottom:1px solid #e2e7ed;vertical-align:top;';
  const td=(v,align='left')=>`<td style="${cell}text-align:${align};${align==='right'?'white-space:nowrap;':''}">${v}</td>`;
@@ -36,14 +36,14 @@ export function offerHTML(doc,value='plant',editing=false){
  // Five columns in detailed mode; four in grouped modes.
  p.parts.forEach((s,si)=>{
  html+=`<tr><td colspan="${detail?5:4}" style="padding:18px 8px 8px;font-weight:700;">${pi+1}.${si+1} ${editable(s.name,'p'+pi+'s'+si+'name')}${(s.notes||editing)?'<div style="font-weight:400;">'+editable(s.notes,'p'+pi+'s'+si+'notes')+'</div>':''}</td></tr>`;
- s.items.forEach((i,ii)=>{const l=line(i,doc);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(editable(offerItemName(i),'p'+pi+'s'+si+'i'+ii))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
+ s.items.forEach((i,ii)=>{const l=pricing.line(i);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(editable(offerItemName(i),'p'+pi+'s'+si+'i'+ii))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
  if(mode!=='plant')html+=totalRow('Total '+s.name,t.plants[pi].parts[si].total);
  });html+=totalRow('Total '+p.name,t.plants[pi].total)+'</tbody></table></section>';
  });
  html+='<section class="document-summary"><h2 style="font-size:18px;margin-top:30px;">Zusammenstellung</h2><table style="border-collapse:collapse;width:100%;font-size:13px;">';
  t.plants.forEach((p,i)=>{html+='<tr>'+td(esc(`${i+1}. ${doc.plants[i].name}`))+td('CHF '+money(p.total),'right')+'</tr>';});
  html+='<tr>'+td('Zwischentotal')+td('CHF '+money(t.subtotal),'right')+'</tr>';
- if(doc.discount)html+='<tr>'+td('Rabatt '+esc(doc.discount)+' %')+td('−CHF '+money(t.discount),'right')+'</tr>';
+ if(doc.discount&&!doc.hideDiscount)html+='<tr>'+td('Rabatt '+esc(doc.discount)+' %')+td('−CHF '+money(t.discount),'right')+'</tr>';
  html+='<tr>'+td('<strong>Angebotstotal exkl. MWST</strong>')+td('<strong>CHF '+money(t.total)+'</strong>','right')+'</tr>';
  html+='<tr>'+td('Zzgl. MWST '+money(t.vatRate)+' %')+td('CHF '+money(t.vat),'right')+'</tr><tr style="background:#eef3f8;border-top:2px solid #173f70;">'+td('<strong>Angebotstotal inkl. MWST</strong>')+td('<strong>CHF '+money(t.gross)+'</strong>','right')+'</tr></table></section>';
  if(doc.closing||editing)html+='<p style="margin-top:24px;">'+editable(doc.closing,'closing')+'</p>';
