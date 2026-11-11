@@ -27,7 +27,8 @@ export function sbrDescription(s){
 export const offerItemName=i=>i.sbr?sbrDescription(i.sbr):i.name;
 export function sbrSnapshot(template,width,height,counts,options={}){
  const c=configureSbr(template,width,height,counts);
- const sbr={template:{article:template.article,name:template.name,profiles:profiles(template.profiles),minutes:template.minutes??0,rate:template.rate??null,type:SBR},width:c.width,height:c.height,counts:c.rows.map(p=>p.count),...finish(options)};
- return {article:template.article,name:sbrDescription(sbr),unit:'Stk.',price:c.price,minutes:template.minutes??0,rate:template.rate??null,type:SBR,sbr};
+ const minutes=positive(options.minutes??template.minutes??0,'Bauzeit',true);
+ const sbr={template:{article:template.article,name:template.name,profiles:profiles(template.profiles),minutes,rate:template.rate??null,type:SBR},width:c.width,height:c.height,counts:c.rows.map(p=>p.count),...finish(options)};
+ return {article:template.article,name:sbrDescription(sbr),unit:'Stk.',price:c.price,minutes,rate:template.rate??null,type:SBR,sbr};
 }
 export function restoreSbr(s){if(!s||!s.template)return undefined;return sbrSnapshot(s.template,s.width,s.height,s.counts,s).sbr;}
