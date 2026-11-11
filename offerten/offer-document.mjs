@@ -1,3 +1,4 @@
+import {logoData} from './logo.mjs?v=20261111-4';
 import {totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261110-10';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=v=>esc(v).replace(/\n/g,'<br>');
@@ -8,9 +9,10 @@ export function offerHTML(doc,value='plant'){
  const td=(v,align='left')=>`<td style="${cell}text-align:${align};${align==='right'?'white-space:nowrap;':''}">${v}</td>`;
  const totalRow=(label,amount)=>`<tr class="document-total"><td colspan="${cols-1}" style="${cell}font-weight:700;">${esc(label)}</td>${td('<strong>'+money(amount)+'</strong>','right')}</tr>`;
  const date=/^\d{4}-\d{2}-\d{2}$/.test(doc.date)?doc.date.split('-').reverse().join('.'):doc.date;
- let html=`<article class="quote-document" style="font-family:Arial,sans-serif;color:#172c43;font-size:13px;line-height:1.5;"><header><p style="font-size:18px;font-weight:700;color:#173f70;">DRAHTWERK <span style="font-weight:400;">| Technik</span></p><h1 style="font-size:25px;margin:18px 0 8px;">Offerte${doc.number?' '+esc(doc.number):''}</h1><p>${[doc.customer,doc.project,doc.address].filter(Boolean).map(lines).join('<br>')}</p><p>Datum: ${esc(date||'–')}<br>Alle Preise in CHF, exkl. MWST</p></header><p>${lines(doc.intro)}</p>`;
+ let html=`<article class="quote-document" style="font-family:Arial,sans-serif;color:#172c43;font-size:13px;line-height:1.5;"><header><img src="${logoData}" alt="Drahtwerk" style="display:block;width:210px;max-width:100%;height:auto;margin-bottom:22px;"/><h1 style="font-size:25px;margin:18px 0 8px;">Offerte${doc.number?' '+esc(doc.number):''}</h1><p>${[doc.customer,doc.project,doc.address].filter(Boolean).map(lines).join('<br>')}</p><p>Datum: ${esc(date||'–')}<br>Alle Preise in CHF, exkl. MWST</p></header><p>${lines(doc.intro)}</p>`;
  doc.plants.forEach((p,pi)=>{
- html+=`<section class="document-plant"><h2 style="font-size:18px;border-bottom:2px solid #173f70;padding-bottom:8px;margin:28px 0 12px;">${pi+1}. ${esc(p.name)}</h2>${description(p)?'<p>'+lines(description(p))+'</p>':''}<table style="border-collapse:collapse;width:100%;font-size:13px;"><thead><tr style="background:#eef3f8;">${['Pos.','Artikelbezeichnung','Menge / Einheit',...(detail?['Einzelpreis','Betrag']:['Betrag'])].map((v,i)=>`<th style="${cell}text-align:${i>1?'right':'left'};">${v}</th>`).join('')}</tr></thead><tbody>`;
+ html+=`<section class="document-plant"><h2 style="font-size:18px;border-bottom:2px solid #173f70;padding-bottom:8px;margin:28px 0 12px;">${pi+1}. ${esc(p.name)}</h2><table style="border-collapse:collapse;width:100%;font-size:13px;"><thead><tr style="background:#eef3f8;">${['Pos.','Artikelbezeichnung','Menge / Einheit',...(detail?['Einzelpreis','Betrag']:['Betrag'])].map((v,i)=>`<th style="${cell}text-align:${i>1?'right':'left'};">${v}</th>`).join('')}</tr></thead><tbody>`;
+ if(description(p))html+='<tr>'+td('')+td('<strong>Schrank / Ausführung</strong><br>'+lines(description(p)))+td('')+(detail?td(''):'')+td('')+'</tr>';
  // Five columns in detailed mode; four in grouped modes.
  p.parts.forEach((s,si)=>{
  html+=`<tr><td colspan="${detail?5:4}" style="padding:18px 8px 8px;font-weight:700;">${pi+1}.${si+1} ${esc(s.name)}${s.notes?'<div style="font-weight:400;">'+lines(s.notes)+'</div>':''}</td></tr>`;
