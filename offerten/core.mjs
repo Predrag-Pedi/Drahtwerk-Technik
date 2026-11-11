@@ -13,7 +13,9 @@ export function number(value){
 }
 export const part=(name='Feld 1')=>({id:uid(),name,notes:'',items:[]});
 export const plant=(name='Hauptverteilung')=>({id:uid(),name,type:'',width:'',height:'',depth:'',ip:'',colour:'',notes:'',parts:[part()]});
-export const offer=()=>({id:uid(),number:'',customer:'',address:'',project:'',date:new Date().toLocaleDateString('sv-SE'),intro:'Wir offerieren Ihnen die nachfolgend beschriebenen Schaltanlagen.',closing:'',markup:0,rate:0,discount:0,outputMode:'plant',plants:[plant()]});
+export const OFFER_STATUSES={open:'Offen',approved:'Genehmigt',cancelled:'Storniert'};
+export const offerStatus=value=>Object.hasOwn(OFFER_STATUSES,value)?value:'open';
+export const offer=()=>({id:uid(),status:'open',number:'',customer:'',address:'',project:'',date:new Date().toLocaleDateString('sv-SE'),intro:'Wir offerieren Ihnen die nachfolgend beschriebenen Schaltanlagen.',closing:'',markup:0,rate:0,discount:0,outputMode:'plant',plants:[plant()]});
 export function line(item,doc){
  if(!item.name?.trim())throw Error('Eine Position hat keine Bezeichnung.');
  for(const [v,label] of [[item.qty,'Menge'],[item.price,'Grundpreis'],[item.minutes,'Montagezeit'],[doc.markup,'Materialzuschlag'],[doc.rate,'Stundensatz'],[doc.discount,'Rabatt']])if(!Number.isFinite(v)||v<0)throw Error(`${item.name}: ${label} fehlt oder ist ungültig.`);
@@ -79,6 +81,6 @@ export function validateOffer(raw){
  const fail=()=>{throw Error('Ungültige Offertendatei.');};const str=v=>typeof v==='string'&&v.length<50000?v:fail();
  const num=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:fail();
  if(!raw||!Array.isArray(raw.plants)||!raw.plants.length)fail();
- const d={id:uid(),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();
+ const d={id:uid(),status:offerStatus(raw.status),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();
  d.plants=raw.plants.map(p=>{const q={id:uid(),...(p.offerDescription!==undefined?{offerDescription:str(p.offerDescription)}:{})};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),...(i.offerDescription!==undefined?{offerDescription:str(i.offerDescription)}:{}),...(i.sbr?{sbr:restoreSbr(i.sbr)}:{}),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
 }

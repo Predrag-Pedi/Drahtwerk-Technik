@@ -46,3 +46,12 @@ body{background:var(--canvas);color:var(--ink);font-family:Inter,-apple-system,B
 @media(max-width:600px){
  .suite-offerten .offer-home .search-control input{font-size:16px}
 }
+
+/* Offer workflow: text labels remain readable independently of the row colour. */
+.suite-offerten .offer-home .offer-status{display:table;margin:5px 0 2px;padding:2px 9px;border-radius:999px;font-size:12px;line-height:1.5;font-weight:600;letter-spacing:0;background:#edf2f8;color:#53677e}
+.suite-offerten .offer-home .offer-status.status-approved{background:#d5efdf;color:#22613e}
+.suite-offerten .offer-home .offer-status.status-cancelled{background:#f8dddb;color:#963f38}
+.suite-offerten .offer-home .offer-table tr.status-approved>td{background:#edf8f0}
+.suite-offerten .offer-home .offer-table tr.status-cancelled>td{background:#fff1f0}
+.suite-offerten .offer-home .offer-table tr.status-approved:hover>td{background:#e2f2e7}
+.suite-offerten .offer-home .offer-table tr.status-cancelled:hover>td{background:#fce6e4}
