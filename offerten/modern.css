@@ -15,39 +15,34 @@ body{background:var(--canvas);color:var(--ink);font-family:Inter,-apple-system,B
 .offer-empty .primary{display:inline-flex;align-items:center;justify-content:center;gap:16px;line-height:1.4}
 .offer-empty button span{display:inline-flex;align-items:center;justify-content:center;margin-left:0;line-height:1}
 
-/* Readable offer overview on desktop and touch devices. Scoped to the home
-   screen so document output, editing drawers and other tools stay independent. */
-.suite-offerten .offer-home .offer-number{display:block;font-size:20px;font-weight:700;line-height:1.35;color:#25496f;letter-spacing:0}
-.suite-offerten .offer-home .offer-sub{display:block;font-size:17px;line-height:1.45;margin-top:5px;max-width:440px}
-.suite-offerten .offer-home .offer-table td{font-size:16px;line-height:1.5;padding:20px 18px;color:#415971}
-.suite-offerten .offer-home .offer-table th{font-size:13px;line-height:1.4;padding:15px 18px;letter-spacing:.35px}
-.suite-offerten .offer-home .table-amount{font-size:18px;font-weight:700;white-space:nowrap}
-.suite-offerten .offer-home .stat-label{font-size:14px;line-height:1.45;color:#62758d}
-.suite-offerten .offer-home .stat strong{font-size:32px}
-.suite-offerten .offer-home .collection-head h2{font-size:21px}
-.suite-offerten .offer-home .collection-head p{font-size:14px;color:#687b91}
-.suite-offerten .offer-home .count-badge{font-size:13px}
-.suite-offerten .offer-home .search-control{width:min(420px,45%)}
-.suite-offerten .offer-home .search-control input{font-size:16px;min-height:46px}
-.suite-offerten .offer-home .heading p{font-size:16px;line-height:1.5}
-.suite-offerten .offer-home .heading #new{font-size:16px}
-.suite-offerten .offer-home .storage-note p{font-size:13px;color:#6c7f96}
+/* Overview typography follows the heat-calculation workspace. */
+.suite-offerten .offer-home .offer-number{display:block;font-size:16px;font-weight:700;line-height:1.35;color:#244063;letter-spacing:0}
+.suite-offerten .offer-home .offer-sub{display:block;font-size:14px;line-height:1.45;margin-top:5px;max-width:330px;color:#244063}
+.suite-offerten .offer-home .offer-table td{font-size:14px;line-height:1.45;padding:14px 12px;color:#415971}
+.suite-offerten .offer-home .offer-table th{font-size:11px;line-height:1.4;padding:13px 12px;letter-spacing:.25px}
+.suite-offerten .offer-home .table-amount{font-size:14px;font-weight:600;white-space:nowrap}
+.suite-offerten .offer-home .stat-label{font-size:12px;line-height:1.45;color:#7a8da4}
+.suite-offerten .offer-home .stat strong{font-size:30px;font-weight:650}
+.suite-offerten .offer-home .collection-head h2{font-size:18px}
+.suite-offerten .offer-home .collection-head p{font-size:12px;color:#8191a5}
+.suite-offerten .offer-home .count-badge{font-size:11px}
+.suite-offerten .offer-home .search-control{width:min(330px,45%)}
+.suite-offerten .offer-home .search-control input{font-size:14px;min-height:44px}
+.suite-offerten .offer-home .heading p,.suite-offerten .offer-home .heading #new{font-size:14px}
+.suite-offerten .offer-home .storage-note p{font-size:12px;color:#7a8da4}
 .suite-offerten .offer-home footer{font-size:12px}
 @media(max-width:1180px){
- .suite-offerten .offer-home .offer-table td{padding:14px 12px;font-size:15px}
- .suite-offerten .offer-home .offer-table th{padding:12px;font-size:12px}
- .suite-offerten .offer-home .offer-number{font-size:19px}
- .suite-offerten .offer-home .offer-sub{font-size:16px}
- .suite-offerten .offer-home .table-amount{font-size:17px}
+ .suite-offerten .offer-home .offer-table td{padding:8px 12px;font-size:12px}
+ .suite-offerten .offer-home .offer-table th{padding:8px 12px}
+ .suite-offerten .offer-home .table-amount{font-size:12px}
+ .suite-offerten .offer-home .stat strong{font-size:26px}
+ .suite-offerten .offer-home .collection-head h2{font-size:16px}
 }
 @media(max-width:700px){
  .suite-offerten .offer-home .search-control{width:100%}
- .suite-offerten .offer-home .stat-label{font-size:12px}
- .suite-offerten .offer-home .stat strong{font-size:26px}
- .suite-offerten .offer-home .heading #new{font-size:14px}
- .suite-offerten .offer-home .heading p{font-size:14px}
- .suite-offerten .offer-home .offer-number{font-size:18px}
- .suite-offerten .offer-home .offer-sub{font-size:15px}
- .suite-offerten .offer-home .offer-table td{padding:14px 10px;font-size:14px}
- .suite-offerten .offer-home .table-amount{font-size:16px}
+ .suite-offerten .offer-home .stat-label{font-size:10px}
+ .suite-offerten .offer-home .offer-table td{padding:12px 10px}
+}
+@media(max-width:600px){
+ .suite-offerten .offer-home .search-control input{font-size:16px}
 }
