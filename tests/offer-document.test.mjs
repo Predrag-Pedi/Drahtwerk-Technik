@@ -8,3 +8,16 @@ test('Rendering modes do not change totals or offer positions',()=>{const d=fixt
 test('Customer input is escaped in rich text; table spans match selected columns',()=>{const d=fixture();d.customer='<img src=x onerror=alert(1)>';const h=offerHTML(d,'detail');assert.ok(!h.includes('<img src=x'));assert.match(h,/alt="Drahtwerk"/);assert.match(h,/&lt;img/);assert.match(h,/colspan="4"/);assert.match(h,/colspan="5"/);assert.doesNotMatch(h,/colspan="6"/);});
 test('Saved price mode survives backup; old offers use plant mode',()=>{const d=fixture();d.outputMode='detail';assert.equal(validateOffer(JSON.parse(JSON.stringify(d))).outputMode,'detail');delete d.outputMode;assert.equal(validateOffer(d).outputMode,'plant');});
 test('Invalid or empty quotes cannot produce a misleading formatted offer',()=>{assert.throws(()=>offerHTML(offer()),/Positionen/);const d=fixture();d.plants[0].parts[0].items[0].price=null;assert.throws(()=>offerHTML(d),/Grundpreis/);});
+test('Totals-only mode shows individual plant totals but no parts, devices, quantities or position controls',()=>{
+ const d=fixture();d.plants[0].offerDescription='Ausführung mit PVC hellgrau';
+ const before=totals(d),snapshot=JSON.stringify(d);
+ for(const render of [offerHTML,offerText]){
+ const s=render(d,'totals');
+ assert.match(s,/Hauptverteilung/);assert.match(s,/UV/);assert.match(s,/320.11/);assert.match(s,/10.00/);assert.match(s,/313.60/);
+ assert.match(s,/Ausführung mit PVC hellgrau/);
+ assert.doesNotMatch(s,/Schrank|Klemme|Einbauten|Feld 1|Menge|Einzelpreis|Artikelbezeichnung/);
+ }
+ assert.doesNotMatch(offerHTML(d,'totals',false,true),/data-replace-position/);
+ assert.equal(JSON.stringify(d),snapshot);assert.deepEqual(totals(d),before);
+ d.outputMode='totals';assert.equal(validateOffer(JSON.parse(JSON.stringify(d))).outputMode,'totals');
+});

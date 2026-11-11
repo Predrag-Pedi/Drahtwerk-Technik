@@ -1,6 +1,6 @@
 import {offerItemName} from './sbr.mjs?v=20261111-8';
 import {logoData} from './logo.mjs?v=20261111-4';
-import {totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-8';
+import {totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-10';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=v=>esc(v).replace(/\n/g,'<br>');
 // Inline table styles also travel with the rich-text clipboard representation.
@@ -13,6 +13,13 @@ export function offerHTML(doc,value='plant',editing=false,actions=false){
  const date=/^\d{4}-\d{2}-\d{2}$/.test(doc.date)?doc.date.split('-').reverse().join('.'):doc.date;
  let html=`<article class="quote-document" style="font-family:Arial,sans-serif;color:#172c43;font-size:13px;line-height:1.5;"><header><img src="${logoData}" alt="Drahtwerk" style="display:block;width:210px;max-width:100%;height:auto;margin-bottom:22px;"/><h1 style="font-size:25px;margin:18px 0 8px;">Offerte${doc.number?' '+esc(doc.number):''}</h1><p>${[doc.customer,doc.project,doc.address].filter(Boolean).map(lines).join('<br>')}</p><p>Datum: ${esc(date||'–')}<br>Alle Preise in CHF, exkl. MWST</p></header><p>${editable(doc.intro,'intro')}</p>`;
  doc.plants.forEach((p,pi)=>{
+ if(mode==='totals'){
+ html+='<section class="document-plant"><h2 style="font-size:18px;border-bottom:2px solid #173f70;padding-bottom:8px;margin:28px 0 12px;">'+(pi+1)+'. '+editable(p.name,'p'+pi+'name')+'</h2>';
+ if(description(p)||editing)html+='<p>'+editable(description(p),'p'+pi+'desc')+'</p>';
+ html+='<table style="border-collapse:collapse;width:100%;font-size:13px;"><tbody><tr>'+td('<strong>'+esc('Total '+p.name)+'</strong>')+td('<strong>CHF '+money(t.plants[pi].total)+'</strong>','right')+'</tr></tbody></table></section>';
+ return;
+ }
+
  html+=`<section class="document-plant"><h2 style="font-size:18px;border-bottom:2px solid #173f70;padding-bottom:8px;margin:28px 0 12px;">${pi+1}. ${editable(p.name,'p'+pi+'name')}</h2><table style="border-collapse:collapse;width:100%;font-size:13px;"><thead><tr style="background:#eef3f8;">${['Pos.','Artikelbezeichnung','Menge / Einheit',...(detail?['Einzelpreis','Betrag']:['Betrag'])].map((v,i)=>`<th style="${cell}text-align:${i>1?'right':'left'};">${v}</th>`).join('')}</tr></thead><tbody>`;
  if(description(p)||editing)html+='<tr>'+td('')+td('<strong>Schrank / Ausführung</strong><br>'+editable(description(p),'p'+pi+'desc'))+td('')+(detail?td(''):'')+td('')+'</tr>';
  // Five columns in detailed mode; four in grouped modes.
