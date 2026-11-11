@@ -31,3 +31,15 @@ test('Old SBR positions hide legacy profile descriptions without requiring new f
 test('Explicit invalid depth and unknown finishes are rejected',()=>{
  for(const options of [{depth:''},{depth:0},{depth:-1},{top:'falsch'},{bottom:'falsch'},{pvc:'falsch'}])assert.throws(()=>sbrSnapshot(template(),1000,2000,[3,2],options));
 });
+test('Build time overrides the template once per frame without changing the catalog',()=>{
+ const t=template(),d=offer();d.rate=120;
+ const i={...sbrSnapshot(t,1000,2000,[3,2],{minutes:90}),qty:2};
+ assert.equal(t.minutes,30);assert.equal(i.minutes,90);assert.equal(i.sbr.template.minutes,90);
+ assert.deepEqual(line(i,d),{unit:290,total:580});
+ d.plants[0].parts[0].items=[i];
+ const restored=validateOffer(JSON.parse(JSON.stringify(d))).plants[0].parts[0].items[0];
+ assert.equal(restored.minutes,90);
+ assert.equal(sbrSnapshot(restored.sbr.template,1200,2000,[3,2],restored.sbr).minutes,90);
+ assert.equal(sbrSnapshot(t,1000,2000,[3,2],{minutes:0}).minutes,0);
+ for(const minutes of ['',-1,Infinity,'abc'])assert.throws(()=>sbrSnapshot(t,1000,2000,[3,2],{minutes}));
+});

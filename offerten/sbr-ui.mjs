@@ -1,4 +1,4 @@
-import {profiles,configureSbr,ENDS,PVC} from './sbr.mjs?v=20261111-6';
+import {profiles,configureSbr,ENDS,PVC} from './sbr.mjs?v=20261111-7';
 const el=(tag,text)=>{const e=document.createElement(tag);if(text)e.textContent=text;return e;};
 const money=n=>new Intl.NumberFormat('de-CH',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
 function field(root,title,value,oninput){const l=el('label',title),i=el('input');i.type='number';i.min='0';i.step='any';i.value=value??'';i.oninput=()=>oninput(i.value);l.append(i);root.append(l);return i;}
@@ -13,19 +13,21 @@ export function profileEditor(root,initial,catalog){
  draw();return ()=>profiles(rows);
 }
 export function configuration(root,template,initial,onchange){
- const state={width:initial?.width??'',height:initial?.height??'',depth:initial?.depth??'',top:initial?.top??ENDS[0],bottom:initial?.bottom??ENDS[0],pvc:initial?.pvc??PVC[1],counts:initial?.counts?.slice()||template.profiles.map(()=>0)};
+ const state={minutes:template.minutes??0,width:initial?.width??'',height:initial?.height??'',depth:initial?.depth??'',top:initial?.top??ENDS[0],bottom:initial?.bottom??ENDS[0],pvc:initial?.pvc??PVC[1],counts:initial?.counts?.slice()||template.profiles.map(()=>0)};
  root.replaceChildren();root.append(el('h3','SBR konfigurieren'),el('p','Abmessungen in mm. Anzahl je Profil für einen Rahmen; 0 bedeutet nicht verwendet.'));
  const grid=el('div');grid.className='grid';root.append(grid);
  const detail=el('div');let ready=false;
  const update=()=>{if(!ready)return;detail.replaceChildren();try{const c=configureSbr(template,state.width,state.height,state.counts);c.rows.filter(p=>p.count).forEach(p=>detail.append(el('p',p.count+' × '+p.name+' · '+p.lengthMm+' mm · '+p.totalMeters.toFixed(3)+' m × CHF '+money(p.pricePerM)+' = CHF '+money(p.total))));detail.append(el('strong','Material pro Rahmen: CHF '+money(c.price)));}catch(e){detail.append(el('p',e.message));}onchange();};
  field(grid,'Breite (mm)',state.width,v=>{state.width=v;update();});
  field(grid,'Höhe (mm)',state.height,v=>{state.height=v;update();});
+ field(grid,'Bauzeit pro Rahmen (Min.)',state.minutes,v=>{state.minutes=v;update();});
  field(grid,'Tiefe (mm)',state.depth,v=>{state.depth=v;update();});
  for(const [key,title,values] of [['top','Ausführung oben',ENDS],['bottom','Ausführung unten',ENDS],['pvc','PVC-Platte',PVC]]){
  const label=el('label',title),select=el('select');select.setAttribute('aria-label',title);
  values.forEach(v=>{const option=el('option',v);option.value=v;select.append(option);});
  select.value=state[key];select.onchange=()=>{state[key]=select.value;update();};label.append(select);grid.append(label);
  }
+ root.append(el('p','Die Bauzeit ersetzt für diese Position die Zeit aus dem Artikelstamm. Sie wird einmal pro Rahmen mit dem geltenden Stundensatz berechnet und im Rahmenpreis zusammengefasst.'));
  root.append(el('p','Tiefe, Ausführung und PVC-Farbe beschreiben den Rahmen. Die Auswahl berechnet keine zusätzlichen Materialkosten. Einzelprofile bleiben in der internen Kalkulation.'));
  template.profiles.forEach((p,i)=>{const input=field(grid,p.name+' · '+(p.direction==='quer'?'quer':'längs')+' · Anzahl',state.counts[i],v=>{state.counts[i]=v;update();});input.step='1';});
  root.append(detail);ready=true;update();return ()=>state;
