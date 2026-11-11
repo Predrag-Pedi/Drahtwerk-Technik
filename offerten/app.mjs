@@ -1,8 +1,9 @@
+import {replaceItem} from './replace-item.mjs?v=20261111-9';
 import {editOfferTexts} from './offer-edit.mjs?v=20261111-8';
 import {SBR,isSbr,sbrSnapshot} from './sbr.mjs?v=20261111-8';
 import {profileEditor,configuration} from './sbr-ui.mjs?v=20261111-7';
 import {filterCatalog} from './catalog-filters.mjs?v=20261110-11';
-import {offerHTML} from './offer-document.mjs?v=20261111-8';
+import {offerHTML} from './offer-document.mjs?v=20261111-9';
 import {isVSAS} from './vsas.mjs?v=20261110-9';
 import {workspace} from './workspace.mjs?v=20261110-1';
 import {ownArticle,articleSnapshot,validateArticle,articleMinutes} from './articles.mjs?v=20261111-6';
@@ -10,7 +11,8 @@ import {uid,offer,plant,part,money,number,line,totals,description,offerText,pars
 import {read,write} from './storage.mjs?v=20261110-1';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let docs=[],doc,catalog=[],importedCatalog=[],ownCatalog=[],editingArticle=null,detailArticle=null,selectedPlant,selectedPart,limit=30,csvRows=null,saveQueue=Promise.resolve(),ready=false;
-const panels=workspace({onClose:()=>renderOffers()});
+let replacingPosition=null;
+const panels=workspace({onClose:()=>{if(!$('catalogDrawer').open||!$('partDrawer').open)replacingPosition=null;renderOffers();}});
 const notice=t=>panels.notify(t);
 const currentPlant=()=>doc.plants.find(p=>p.id===selectedPlant),currentPart=()=>currentPlant().parts.find(p=>p.id===selectedPart);
 function save(){if(!ready)return;renderOffers();const snapshot=structuredClone(docs);$('saved').textContent='Speichert …';saveQueue=saveQueue.catch(()=>{}).then(()=>write('offers',snapshot)).then(()=>{$('saved').textContent='Auf diesem Gerät gespeichert';}).catch(()=>{$('saved').textContent='Nicht gespeichert';notice('Speichern auf diesem Gerät fehlgeschlagen. Bitte die Offerte über «Offerte sichern» herunterladen.');});}
@@ -26,14 +28,24 @@ function renderOffers(){if(!$('offerList'))return;const q=$('offerSearch').value
  $('offerList').querySelectorAll('[data-offer]').forEach(b=>b.onclick=()=>{choose(docs.find(d=>d.id===b.dataset.offer));panels.tab('offerData');panels.open('offerDrawer','OFFERTEN / '+(doc.number||'ENTWURF'));});
 }
 function renderTree(){const root=$('tree');root.innerHTML=doc.plants.map((p,i)=>`<div class="entity-row"><button class="entity-open" data-plant="${p.id}"><strong>${i+1}. ${esc(p.name)}</strong><small>${p.parts.length} Anlagenteile · ${p.parts.reduce((n,s)=>n+s.items.length,0)} Positionen</small></button><span class="sum">${subtotal(p.parts.flatMap(s=>s.items))}</span><span>›</span></div>`).join('');root.querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>{selectedPlant=b.dataset.plant;selectedPart=currentPlant().parts[0].id;drawSelection();panels.open('plantDrawer',doc.number+' / '+currentPlant().name);});
- $('partList').innerHTML=currentPlant().parts.map((s,j)=>`<div class="entity-row"><button class="entity-open" data-part="${s.id}"><strong>${j+1}. ${esc(s.name)}</strong><small>${s.items.length} Positionen</small></button><span class="sum">${subtotal(s.items)}</span><span>›</span></div>`).join('');$('partList').querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>{selectedPart=b.dataset.part;drawSelection();panels.open('partDrawer',currentPlant().name+' / '+currentPart().name);});$('target').textContent=panels.isOpen('partDrawer')?'Artikel hinzufügen zu: '+currentPlant().name+' → '+currentPart().name:'Artikelstamm verwalten · Zum Einfügen zuerst eine Offerte und einen Anlagenteil öffnen.';
+ $('partList').innerHTML=currentPlant().parts.map((s,j)=>`<div class="entity-row"><button class="entity-open" data-part="${s.id}"><strong>${j+1}. ${esc(s.name)}</strong><small>${s.items.length} Positionen</small></button><span class="sum">${subtotal(s.items)}</span><span>›</span></div>`).join('');$('partList').querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>{selectedPart=b.dataset.part;drawSelection();panels.open('partDrawer',currentPlant().name+' / '+currentPart().name);});$('target').textContent=replacingPosition?'Produkt ersetzen: '+replacingPosition.qty+' × '+replacingPosition.name:panels.isOpen('partDrawer')?'Artikel hinzufügen zu: '+currentPlant().name+' → '+currentPart().name:'Artikelstamm verwalten · Zum Einfügen zuerst eine Offerte und einen Anlagenteil öffnen.';
 }
 let pdfBusy=false;
-function calculate(){let text='';try{const t=totals(doc);$('totals').innerHTML=t.plants.map((p,i)=>`<p><span>${esc(doc.plants[i].name)}</span><strong>CHF ${money(p.total)}</strong></p>`).join('')+`<p><span>Rabatt ${doc.discount} %</span><span>−CHF ${money(t.discount)}</span></p><p class="grand"><span>Total exkl. MWST</span><span>CHF ${money(t.total)}</span></p>`;text=offerText(doc,$('textMode').value);$('offerPreview').innerHTML=offerHTML(doc,$('textMode').value);$('editOfferTexts').disabled=false;$('copyText').disabled=false;$('downloadText').disabled=false;$('downloadPdf').disabled=pdfBusy;}catch(e){$('offerPreview').textContent=e.message;$('totals').textContent=e.message;$('editOfferTexts').disabled=true;$('copyText').disabled=true;$('downloadText').disabled=true;$('downloadPdf').disabled=true;}$('output').value=text;}
+function calculate(){let text='';try{const t=totals(doc);$('totals').innerHTML=t.plants.map((p,i)=>`<p><span>${esc(doc.plants[i].name)}</span><strong>CHF ${money(p.total)}</strong></p>`).join('')+`<p><span>Rabatt ${doc.discount} %</span><span>−CHF ${money(t.discount)}</span></p><p class="grand"><span>Total exkl. MWST</span><span>CHF ${money(t.total)}</span></p>`;text=offerText(doc,$('textMode').value);$('offerPreview').innerHTML=offerHTML(doc,$('textMode').value,false,true);
+ $('offerPreview').querySelectorAll('[data-replace-position]').forEach(b=>b.onclick=()=>{const [pi,si,ii]=b.dataset.replacePosition.split('-').map(Number),p=doc.plants[pi],part=p.parts[si];selectedPlant=p.id;selectedPart=part.id;drawSelection();panels.open('plantDrawer',p.name);panels.open('partDrawer',p.name+' / '+part.name);startReplacement(part.items[ii]);});
+ $('editOfferTexts').disabled=false;$('copyText').disabled=false;$('downloadText').disabled=false;$('downloadPdf').disabled=pdfBusy;}catch(e){$('offerPreview').textContent=e.message;$('totals').textContent=e.message;$('editOfferTexts').disabled=true;$('copyText').disabled=true;$('downloadText').disabled=true;$('downloadPdf').disabled=true;}$('output').value=text;}
+function startReplacement(item){
+ panels.open('catalogDrawer',currentPlant().name+' / '+currentPart().name);
+ replacingPosition={id:item.id,part:currentPart(),name:item.name,qty:item.qty};
+ for(const id of ['search','category','brandFilter','typeFilter','sourceFilter'])$(id).value='';
+ limit=30;renderTree();products();notice('Ersatz für '+item.qty+' × '+item.name+' auswählen. Die Position wird erst mit «Produkt ersetzen» geändert. Eigene Beschreibung und bisherige Artikelwerte werden dabei ersetzt.');
+}
 function drawItems(){const root=$('items');root.replaceChildren();if(!currentPart().items.length)root.innerHTML='<p class="muted">Noch keine Positionen. Über «Artikel hinzufügen» die Produktliste öffnen oder eine freie Position hinzufügen.</p>';
  for(const item of currentPart().items){const card=document.createElement('div');card.className='item';const fields=document.createElement('div');fields.className='grid';form(fields,item,[['article','Artikelnummer'],['name','Bezeichnung',item.sbr?'textarea':'text',!!item.sbr],['qty','Menge','number'],['unit','Einheit'],['price','Grundpreis / Einheit (CHF)','number'],['minutes',item.sbr?'Bauzeit pro Rahmen (Min.)':'Einbau + Anschluss / Einheit (Min.)','number']],()=>{drawItems();calculate();});if(item.sbr){for(const key of ['price','unit'])fields.querySelector('[data-field="'+key+'"]').readOnly=true;}if(item.price===null){fields.querySelector('[data-field="price"]').classList.add('invalid');}card.append(fields);
  const bar=document.createElement('div');bar.className='bar';const move=document.createElement('select');move.setAttribute('aria-label','Position verschieben nach');move.innerHTML=doc.plants.map(p=>p.parts.map(s=>`<option value="${s.id}">${esc(p.name+' / '+s.name)}</option>`).join('')).join('');move.value=selectedPart;move.style.maxWidth='240px';move.onchange=()=>{const dest=doc.plants.flatMap(p=>p.parts).find(s=>s.id===move.value);currentPart().items=currentPart().items.filter(i=>i.id!==item.id);dest.items.push(item);save();drawSelection();};bar.append(move);
- if(item.sbr){const edit=document.createElement('button');edit.textContent='SBR-Abmessungen / Profile ändern';edit.onclick=()=>{editingPosition=item;detailArticle={...item.sbr.template,minutes:item.minutes,rate:item.rate??null};readSbrConfig=null;$('productQuantity').value=item.qty;renderProduct();panels.open('productDrawer','SBR / '+item.article);};bar.append(edit);}
+ const replace=document.createElement('button');replace.textContent='Produkt ersetzen';replace.onclick=()=>startReplacement(item);bar.append(replace);
+ 
+ if(item.sbr){const edit=document.createElement('button');edit.textContent='SBR-Abmessungen / Profile ändern';edit.onclick=()=>{replacingPosition=null;editingPosition=item;detailArticle={...item.sbr.template,minutes:item.minutes,rate:item.rate??null};readSbrConfig=null;$('productQuantity').value=item.qty;renderProduct();panels.open('productDrawer','SBR / '+item.article);};bar.append(edit);}
  
  for(const [label,fn] of [['↑',()=>{const a=currentPart().items,i=a.indexOf(item);if(i>0)[a[i-1],a[i]]=[a[i],a[i-1]];}],['Duplizieren',()=>currentPart().items.push({...structuredClone(item),id:uid()})],['Entfernen',()=>{if(confirm('Position «'+item.name+'» entfernen?'))currentPart().items=currentPart().items.filter(i=>i.id!==item.id);} ]]){const b=document.createElement('button');b.textContent=label;if(label==='↑')b.setAttribute('aria-label','Position nach oben');b.onclick=()=>{fn();save();drawSelection();};bar.append(b);}
  const amount=document.createElement('span');amount.className='amount';try{const result=line(item,doc);amount.textContent=`VK ${money(result.unit)} / ${item.unit} · CHF ${money(result.total)}`;}catch(e){amount.textContent=e.message;}bar.append(amount);card.append(bar);root.append(card);}
@@ -60,7 +72,7 @@ function catalogReady(){
 }
 let readSbrConfig=null,readProfiles=null,editingPosition=null;
 function selectedSnapshot(){if(!isSbr(detailArticle))return articleSnapshot(detailArticle);if(!readSbrConfig)throw Error('Bitte SBR-Abmessungen und Profilanzahlen ergänzen.');const v=readSbrConfig();return sbrSnapshot(detailArticle,v.width,v.height,v.counts,v);}
-function openProduct(p){editingPosition=null;readSbrConfig=null;detailArticle=p;$('productQuantity').value='1';$('detailError').textContent='';renderProduct();panels.open('productDrawer',p.article+' / '+(p.brand||p.type||'Artikel'));}
+function openProduct(p){editingPosition=null;readSbrConfig=null;detailArticle=p;$('productQuantity').value=replacingPosition?.qty??'1';$('detailError').textContent='';renderProduct();panels.open('productDrawer',p.article+' / '+(p.brand||p.type||'Artikel'));}
 function renderProduct(){const p=detailArticle;if(!p)return;const own=p.source==='own',canAdd=panels.isOpen('partDrawer');
  $('productSummary').innerHTML=`<span class="source-badge">${own?'Eigener Artikel':'Importierter Artikel'}</span><h2>${esc(p.name)}</h2><p>${esc(p.article)} · ${esc(p.brand||p.category)}</p><div class="article-price">${isSbr(p)?'Preis nach Konfiguration':'CHF '+money(p.price)} <small>/ ${esc(p.unit)}</small></div>`;
  const facts=[['Artikelnummer',p.article],['Artikeltyp',p.type||'Artikel'],['Hersteller',p.brand||'–'],['Kategorie',p.category||'–'],['Einheit',p.unit],['Materialpreis',isSbr(p)?'Wird anhand der Abmessungen berechnet':'CHF '+money(p.price)],['Einbau- und Anschlusszeit',(articleMinutes(p)??0)+' Min.'],['Artikel-Stundensatz',p.rate==null?'Standard der Offerte':'CHF '+money(p.rate)+' / h']];
@@ -70,11 +82,12 @@ function renderProduct(){const p=detailArticle;if(!p)return;const own=p.source==
  $('productAddControls').hidden=!canAdd;$('productCalculation').hidden=!canAdd;$('productDestination').textContent=canAdd?currentPlant().name+' → '+currentPart().name:'Öffne eine Offerte und einen Anlagenteil, um diesen Artikel hinzuzufügen.';
  let config=$('sbrConfiguration');if(!config){config=document.createElement('div');config.id='sbrConfiguration';config.className='card';$('productCalculation').before(config);}config.hidden=!isSbr(p)||!canAdd;
  if(isSbr(p)&&canAdd){readSbrConfig=null;readSbrConfig=configuration(config,p,editingPosition?.sbr,updateProductCalculation);}
- $('addProductDetail').textContent=editingPosition?'Konfiguration übernehmen':'Zur Stückliste hinzufügen';
- $('editProductDetail').hidden=!!editingPosition;
+ $('productQuantity').readOnly=!!replacingPosition;
+ $('addProductDetail').textContent=replacingPosition?'Produkt ersetzen':editingPosition?'Konfiguration übernehmen':'Zur Stückliste hinzufügen';
+ $('editProductDetail').hidden=!!editingPosition||!!replacingPosition;
  $('editProductDetail').textContent=own?'Artikel bearbeiten':'Als eigenen Artikel übernehmen';updateProductCalculation();
 }
-function updateProductCalculation(){if(!detailArticle||!panels.isOpen('partDrawer'))return;try{const qty=number($('productQuantity').value);if(qty===null||!Number.isFinite(qty)||qty<=0)throw Error('Bitte eine Menge grösser als 0 eingeben.');const i={...selectedSnapshot(),qty},r=line(i,doc);$('productCalculation').innerHTML=`<h3>In dieser Offerte</h3><p>Materialzuschlag ${esc(doc.markup)} % · Stundensatz CHF ${money(i.rate??doc.rate)} / h</p><div class="price-preview"><span>${qty} × CHF ${money(r.unit)}</span><strong>CHF ${money(r.total)}</strong></div><p class="hint">Vor dem Angebotsrabatt · exkl. MWST</p>`;$('detailError').textContent='';$('addProductDetail').disabled=false;}catch(e){$('productCalculation').textContent='';$('detailError').textContent=e.message;$('addProductDetail').disabled=true;}}
+function updateProductCalculation(){if(!detailArticle||!panels.isOpen('partDrawer'))return;try{const qty=number($('productQuantity').value);if(qty===null||!Number.isFinite(qty)||qty<=0)throw Error('Bitte eine Menge grösser als 0 eingeben.');const i={...selectedSnapshot(),qty},r=line(i,doc);$('productCalculation').innerHTML=`<h3>${replacingPosition?'Ersatzprodukt · gleiche Menge':'In dieser Offerte'}</h3><p>Materialzuschlag ${esc(doc.markup)} % · Stundensatz CHF ${money(i.rate??doc.rate)} / h</p><div class="price-preview"><span>${qty} × CHF ${money(r.unit)}</span><strong>CHF ${money(r.total)}</strong></div><p class="hint">Vor dem Angebotsrabatt · exkl. MWST</p>`;$('detailError').textContent='';$('addProductDetail').disabled=false;}catch(e){$('productCalculation').textContent='';$('detailError').textContent=e.message;$('addProductDetail').disabled=true;}}
 let importWorker=null,importResult=null,importGeneration=0;
 function stopImport(){importGeneration++;importWorker?.terminate();importWorker=null;importResult=null;}
 async function loadCSV(){stopImport();const generation=importGeneration,file=$('catalogFile').files[0];csvRows=null;$('mapping').replaceChildren();if(!file)return;try{
@@ -133,8 +146,8 @@ ready=true;choose(docs[0]||offer());catalogReady();renderOffers();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 $('offerSearch').oninput=renderOffers;
-$('manageArticles').onclick=()=>{panels.open('catalogDrawer','ARTIKELSTAMM');renderTree();products();};
-$('openProducts').onclick=()=>{panels.open('catalogDrawer',currentPlant().name+' / '+currentPart().name);renderTree();products();};
+$('manageArticles').onclick=()=>{replacingPosition=null;panels.open('catalogDrawer','ARTIKELSTAMM');renderTree();products();};
+$('openProducts').onclick=()=>{replacingPosition=null;panels.open('catalogDrawer',currentPlant().name+' / '+currentPart().name);renderTree();products();};
 $('sourceFilter').onchange=()=>{limit=30;products();};
 $('createArticle').onclick=()=>editArticle();
 $('cancelArticle').onclick=()=>panels.close('articleDrawer');
@@ -152,7 +165,7 @@ for(const id of ['brandFilter','typeFilter'])$(id).onchange=()=>{limit=30;produc
 
 $('productQuantity').oninput=updateProductCalculation;
 $('editProductDetail').onclick=()=>editArticle(detailArticle);
-$('addProductDetail').onclick=()=>{const qty=number($('productQuantity').value);if(!detailArticle||!panels.isOpen('partDrawer')||qty===null||!Number.isFinite(qty)||qty<=0){$('detailError').textContent='Bitte eine Menge grösser als 0 eingeben.';return;}try{const snapshot=selectedSnapshot();line({...snapshot,qty},doc);if(editingPosition)Object.assign(editingPosition,snapshot,{qty});else currentPart().items.push({...snapshot,id:uid(),qty});}catch(e){$('detailError').textContent=e.message;return;}save();drawSelection();panels.close('productDrawer');notice(editingPosition?'SBR-Konfiguration und Preis aktualisiert.':qty+' × '+detailArticle.name+' hinzugefügt zu '+currentPart().name+'.');};
+$('addProductDetail').onclick=()=>{const qty=number($('productQuantity').value);if(!detailArticle||!panels.isOpen('partDrawer')||qty===null||!Number.isFinite(qty)||qty<=0){$('detailError').textContent='Bitte eine Menge grösser als 0 eingeben.';return;}try{const snapshot=selectedSnapshot();line({...snapshot,qty},doc);if(replacingPosition){if(replacingPosition.part!==currentPart())throw Error('Bitte die ursprüngliche Anlage öffnen.');replaceItem(currentPart().items,replacingPosition.id,snapshot,doc);}else if(editingPosition)Object.assign(editingPosition,snapshot,{qty});else currentPart().items.push({...snapshot,id:uid(),qty});}catch(e){$('detailError').textContent=e.message;return;}const replaced=!!replacingPosition;replacingPosition=null;save();drawSelection();panels.close(replaced?'catalogDrawer':'productDrawer');notice(replaced?'Produkt ersetzt. Menge und Anlagenzuordnung wurden beibehalten.':editingPosition?'SBR-Konfiguration und Preis aktualisiert.':qty+' × '+detailArticle.name+' hinzugefügt zu '+currentPart().name+'.');};
 
 $('downloadPdf').onclick=async()=>{if(pdfBusy)return;pdfBusy=true;const button=$('downloadPdf'),snapshot=structuredClone(doc),mode=$('textMode').value,name=filename();button.disabled=true;button.textContent='PDF wird erstellt …';try{const {exportOfferPdf}=await import('./offer-pdf.mjs?v=20261111-8');const blob=await exportOfferPdf(snapshot,mode);download(name+'.pdf',blob,'application/pdf');notice('Offerte als PDF erstellt. Der Download wurde gestartet.');}catch(e){notice('PDF konnte nicht erstellt werden: '+e.message);}finally{pdfBusy=false;button.textContent='Offerte als PDF herunterladen';calculate();}};
 
