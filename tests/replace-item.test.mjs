@@ -17,8 +17,8 @@ test('Invalid or missing replacements do not alter the original position',()=>{
  assert.throws(()=>replaceItem(items,'keep',{...next,price:null},d));assert.equal(JSON.stringify(items),before);
  assert.throws(()=>replaceItem(items,'missing',next,d));assert.equal(JSON.stringify(items),before);
 });
-test('Replacement action is available only in app preview, never in customer export',()=>{
+test('Replacement action is absent from offer previews and exports',()=>{
  const d=fixture();replaceItem(d.plants[0].parts[0].items,'keep',next,d);
- assert.match(offerHTML(d,'detail',false,true),/data-replace-position="0-0-0"/);
+ assert.doesNotMatch(offerHTML(d,'detail',false,true),/Produkt ersetzen|data-replace-position/);
  assert.doesNotMatch(offerHTML(d,'detail'),/Produkt ersetzen|data-replace-position/);
 });

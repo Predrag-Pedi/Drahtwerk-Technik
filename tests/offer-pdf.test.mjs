@@ -9,10 +9,10 @@ test('PDF respects grouped/detail prices and retains original quote',async()=>{c
 test('Long offers keep all positions, repeat headings and number pages',async()=>{const pages=await renderOfferPages(fixture(130),'detail',environment());assert.ok(pages.length>2);const text=pages.flatMap(p=>p.text.map(t=>t.s));for(let i=0;i<130;i++)assert.ok(text.includes('Gerät '+i));pages.forEach((p,i)=>assert.ok(p.text.some(t=>t.s==='Seite '+(i+1)+' / '+pages.length)));assert.ok(text.filter(t=>t==='Artikelbezeichnung').length>1);});
 test('Invalid offers cannot be exported',async()=>{await assert.rejects(renderOfferPages(offer(),'plant',environment()),/Positionen/);});
 test('PDF writer produces an A4 PDF blob',async()=>{const b=imagePdf([{width:100,height:100,bytes:new Uint8Array([255,216,255,217])}]);assert.equal(b.type,'application/pdf');const s=await b.text();assert.match(s,/^%PDF-1.4/);assert.match(s,/MediaBox \[0 0 595.28 841.89\]/);assert.match(s,/%%EOF/);});
-test('Totals-only PDF omits every article row and preserves the plant total',async()=>{
+test('Totals-only PDF omits device rows and retains fields and preserves the plant total',async()=>{
  const d=fixture(10);d.plants[0].offerDescription='Rahmenausführung hellgrau';
  const pages=await renderOfferPages(d,'totals',environment());
  const text=pages.flatMap(p=>p.text.map(t=>t.s)).join('\n');
  assert.match(text,/Hauptverteilung/);assert.match(text,/Rahmenausführung hellgrau/);assert.match(text,/400.00/);
- assert.doesNotMatch(text,/Gerät|Feld 1|Artikelbezeichnung|Menge|Einzelpreis/);
+ assert.match(text,/Feld 1/);assert.doesNotMatch(text,/Gerät|Artikelbezeichnung|Menge|Einzelpreis/);
 });
