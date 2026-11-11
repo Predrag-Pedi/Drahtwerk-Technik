@@ -1,11 +1,11 @@
-import {SBR,isSbr,sbrSnapshot} from './sbr.mjs?v=20261111-5';
-import {profileEditor,configuration} from './sbr-ui.mjs?v=20261111-5';
+import {SBR,isSbr,sbrSnapshot} from './sbr.mjs?v=20261111-6';
+import {profileEditor,configuration} from './sbr-ui.mjs?v=20261111-6';
 import {filterCatalog} from './catalog-filters.mjs?v=20261110-11';
-import {offerHTML} from './offer-document.mjs?v=20261111-4';
+import {offerHTML} from './offer-document.mjs?v=20261111-6';
 import {isVSAS} from './vsas.mjs?v=20261110-9';
 import {workspace} from './workspace.mjs?v=20261110-1';
-import {ownArticle,articleSnapshot,validateArticle,articleMinutes} from './articles.mjs?v=20261111-5';
-import {uid,offer,plant,part,money,number,line,totals,description,offerText,parseCSV,catalogRows,validateOffer} from './core.mjs?v=20261111-5';
+import {ownArticle,articleSnapshot,validateArticle,articleMinutes} from './articles.mjs?v=20261111-6';
+import {uid,offer,plant,part,money,number,line,totals,description,offerText,parseCSV,catalogRows,validateOffer} from './core.mjs?v=20261111-6';
 import {read,write} from './storage.mjs?v=20261110-1';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let docs=[],doc,catalog=[],importedCatalog=[],ownCatalog=[],editingArticle=null,detailArticle=null,selectedPlant,selectedPart,limit=30,csvRows=null,saveQueue=Promise.resolve(),ready=false;
@@ -58,7 +58,7 @@ function catalogReady(){
  products();
 }
 let readSbrConfig=null,readProfiles=null,editingPosition=null;
-function selectedSnapshot(){if(!isSbr(detailArticle))return articleSnapshot(detailArticle);if(!readSbrConfig)throw Error('Bitte SBR-Abmessungen und Profilanzahlen ergänzen.');const v=readSbrConfig();return sbrSnapshot(detailArticle,v.width,v.height,v.counts);}
+function selectedSnapshot(){if(!isSbr(detailArticle))return articleSnapshot(detailArticle);if(!readSbrConfig)throw Error('Bitte SBR-Abmessungen und Profilanzahlen ergänzen.');const v=readSbrConfig();return sbrSnapshot(detailArticle,v.width,v.height,v.counts,v);}
 function openProduct(p){editingPosition=null;readSbrConfig=null;detailArticle=p;$('productQuantity').value='1';$('detailError').textContent='';renderProduct();panels.open('productDrawer',p.article+' / '+(p.brand||p.type||'Artikel'));}
 function renderProduct(){const p=detailArticle;if(!p)return;const own=p.source==='own',canAdd=panels.isOpen('partDrawer');
  $('productSummary').innerHTML=`<span class="source-badge">${own?'Eigener Artikel':'Importierter Artikel'}</span><h2>${esc(p.name)}</h2><p>${esc(p.article)} · ${esc(p.brand||p.category)}</p><div class="article-price">${isSbr(p)?'Preis nach Konfiguration':'CHF '+money(p.price)} <small>/ ${esc(p.unit)}</small></div>`;
@@ -153,4 +153,4 @@ $('productQuantity').oninput=updateProductCalculation;
 $('editProductDetail').onclick=()=>editArticle(detailArticle);
 $('addProductDetail').onclick=()=>{const qty=number($('productQuantity').value);if(!detailArticle||!panels.isOpen('partDrawer')||qty===null||!Number.isFinite(qty)||qty<=0){$('detailError').textContent='Bitte eine Menge grösser als 0 eingeben.';return;}try{const snapshot=selectedSnapshot();line({...snapshot,qty},doc);if(editingPosition)Object.assign(editingPosition,snapshot,{qty});else currentPart().items.push({...snapshot,id:uid(),qty});}catch(e){$('detailError').textContent=e.message;return;}save();drawSelection();panels.close('productDrawer');notice(editingPosition?'SBR-Konfiguration und Preis aktualisiert.':qty+' × '+detailArticle.name+' hinzugefügt zu '+currentPart().name+'.');};
 
-$('downloadPdf').onclick=async()=>{if(pdfBusy)return;pdfBusy=true;const button=$('downloadPdf'),snapshot=structuredClone(doc),mode=$('textMode').value,name=filename();button.disabled=true;button.textContent='PDF wird erstellt …';try{const {exportOfferPdf}=await import('./offer-pdf.mjs?v=20261111-4');const blob=await exportOfferPdf(snapshot,mode);download(name+'.pdf',blob,'application/pdf');notice('Offerte als PDF erstellt. Der Download wurde gestartet.');}catch(e){notice('PDF konnte nicht erstellt werden: '+e.message);}finally{pdfBusy=false;button.textContent='Offerte als PDF herunterladen';calculate();}};
+$('downloadPdf').onclick=async()=>{if(pdfBusy)return;pdfBusy=true;const button=$('downloadPdf'),snapshot=structuredClone(doc),mode=$('textMode').value,name=filename();button.disabled=true;button.textContent='PDF wird erstellt …';try{const {exportOfferPdf}=await import('./offer-pdf.mjs?v=20261111-6');const blob=await exportOfferPdf(snapshot,mode);download(name+'.pdf',blob,'application/pdf');notice('Offerte als PDF erstellt. Der Download wurde gestartet.');}catch(e){notice('PDF konnte nicht erstellt werden: '+e.message);}finally{pdfBusy=false;button.textContent='Offerte als PDF herunterladen';calculate();}};

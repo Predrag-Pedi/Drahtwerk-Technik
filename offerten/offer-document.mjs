@@ -1,5 +1,6 @@
+import {offerItemName} from './sbr.mjs?v=20261111-6';
 import {logoData} from './logo.mjs?v=20261111-4';
-import {totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261110-10';
+import {totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-6';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=v=>esc(v).replace(/\n/g,'<br>');
 // Inline table styles also travel with the rich-text clipboard representation.
@@ -16,7 +17,7 @@ export function offerHTML(doc,value='plant'){
  // Five columns in detailed mode; four in grouped modes.
  p.parts.forEach((s,si)=>{
  html+=`<tr><td colspan="${detail?5:4}" style="padding:18px 8px 8px;font-weight:700;">${pi+1}.${si+1} ${esc(s.name)}${s.notes?'<div style="font-weight:400;">'+lines(s.notes)+'</div>':''}</td></tr>`;
- s.items.forEach((i,ii)=>{const l=line(i,doc);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(lines(i.name))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
+ s.items.forEach((i,ii)=>{const l=line(i,doc);html+='<tr>'+td(`${pi+1}.${si+1}.${ii+1}`)+td(lines(offerItemName(i)))+td(esc(i.qty)+' '+esc(i.unit||'Stk.'),'right')+(detail?td(money(l.unit),'right')+td(money(l.total),'right'):td('','right'))+'</tr>';});
  if(mode!=='plant')html+=totalRow('Total '+s.name,t.plants[pi].parts[si].total);
  });html+=totalRow('Total '+p.name,t.plants[pi].total)+'</tbody></table></section>';
  });
