@@ -1,4 +1,4 @@
-import {restoreSbr} from './sbr.mjs?v=20261111-5';
+import {restoreSbr,offerItemName} from './sbr.mjs?v=20261111-6';
 // All monetary inputs are CHF excluding VAT. Round sale unit price, then line totals.
 export const uid=()=>Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
 export const money=n=>new Intl.NumberFormat('de-CH',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
@@ -37,7 +37,7 @@ export function offerText(doc,mode=true){
  doc.plants.forEach((p,pi)=>{out.push(`${pi+1}. ${p.name}`,description(p),'');
  out.push(mode==='detail'?'Pos. / Artikelbezeichnung\tMenge\tEinheit\tEinzelpreis CHF\tBetrag CHF':'Pos. / Artikelbezeichnung\tMenge\tEinheit');
  p.parts.forEach((s,si)=>{out.push('',`${pi+1}.${si+1} ${s.name}`,s.notes);
- s.items.forEach((i,ii)=>{const l=line(i,doc);out.push(`${pi+1}.${si+1}.${ii+1} ${i.name}\t${i.qty}\t${i.unit||'Stk.'}${mode==='detail'?'\t'+money(l.unit)+'\t'+money(l.total):''}`);});
+ s.items.forEach((i,ii)=>{const l=line(i,doc);out.push(`${pi+1}.${si+1}.${ii+1} ${offerItemName(i)}\t${i.qty}\t${i.unit||'Stk.'}${mode==='detail'?'\t'+money(l.unit)+'\t'+money(l.total):''}`);});
  if(mode!=='plant')out.push(`Total ${s.name}: CHF ${money(t.plants[pi].parts[si].total)}`);});out.push('',`Total ${p.name}: CHF ${money(t.plants[pi].total)}`,'');});
  out.push('ZUSAMMENSTELLUNG');t.plants.forEach((p,i)=>out.push(`${i+1}. ${doc.plants[i].name}\tCHF ${money(p.total)}`));
  out.push(`Zwischentotal: CHF ${money(t.subtotal)}`);if(doc.discount)out.push(`Rabatt ${doc.discount} %: −CHF ${money(t.discount)}`);out.push(`Angebotstotal exkl. MWST: CHF ${money(t.total)}`,'',doc.closing);

@@ -12,8 +12,22 @@ export function configureSbr(template,width,height,counts){
  if(!Number.isFinite(price)||price>1e12)throw Error('Rahmenpreis ist zu gross.');
  return {width:w,height:h,rows,price};
 }
-export function sbrSnapshot(template,width,height,counts){
- const c=configureSbr(template,width,height,counts);
- return {article:template.article,name:template.name+' · '+c.width+' × '+c.height+' mm\n'+c.rows.filter(p=>p.count).map(p=>p.count+' × '+p.name+' ('+(p.direction==='quer'?'quer':'längs')+', '+p.lengthMm+' mm)').join('\n'),unit:'Stk.',price:c.price,minutes:template.minutes??0,rate:template.rate??null,type:SBR,sbr:{template:{article:template.article,name:template.name,profiles:profiles(template.profiles),minutes:template.minutes??0,rate:template.rate??null,type:SBR},width:c.width,height:c.height,counts:c.rows.map(p=>p.count)}};
+export const ENDS=['Geschlossen','Kabeleinführung mit PVC abgedeckt','Moosgummi'];
+export const PVC=['Transparent','Hellgrau'];
+function finish(options={}){
+ const result={};
+ if(options.depth!=null)result.depth=positive(options.depth,'Tiefe');
+ for(const [key,values] of [['top',ENDS],['bottom',ENDS],['pvc',PVC]])if(options[key]!=null){if(!values.includes(options[key]))throw Error('Ungültige SBR-Ausführung.');result[key]=options[key];}
+ return result;
 }
-export function restoreSbr(s){if(!s||!s.template)return undefined;const c=sbrSnapshot(s.template,s.width,s.height,s.counts);return c.sbr;}
+export function sbrDescription(s){
+ const dimensions=[s.width,s.height,...(s.depth!=null?[s.depth]:[])].join(' × ');
+ return [s.template.name+' · '+dimensions+' mm'+(s.depth!=null?' (B × H × T)':' (B × H)'),s.top?'Oben: '+s.top:'',s.bottom?'Unten: '+s.bottom:'',s.pvc?'PVC-Platte: '+s.pvc:''].filter(Boolean).join('\n');
+}
+export const offerItemName=i=>i.sbr?sbrDescription(i.sbr):i.name;
+export function sbrSnapshot(template,width,height,counts,options={}){
+ const c=configureSbr(template,width,height,counts);
+ const sbr={template:{article:template.article,name:template.name,profiles:profiles(template.profiles),minutes:template.minutes??0,rate:template.rate??null,type:SBR},width:c.width,height:c.height,counts:c.rows.map(p=>p.count),...finish(options)};
+ return {article:template.article,name:sbrDescription(sbr),unit:'Stk.',price:c.price,minutes:template.minutes??0,rate:template.rate??null,type:SBR,sbr};
+}
+export function restoreSbr(s){if(!s||!s.template)return undefined;return sbrSnapshot(s.template,s.width,s.height,s.counts,s).sbr;}
