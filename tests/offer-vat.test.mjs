@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {offer,totals,offerText,validateOffer} from '../offerten/core.mjs';
+import {offerHTML} from '../offerten/offer-document.mjs';
+function sample(){const d=offer();d.plants[0].parts[0].items.push({article:'A',name:'Schrank',type:'Schrank',qty:1,price:9457,minutes:0,rate:null,unit:'Stk.'});return d;}
+test('VAT follows discounted net value and is rounded once to cents',()=>{const d=sample();assert.equal(totals(d).vat,766.02);assert.equal(totals(d).gross,10223.02);d.discount=10;const t=totals(d);assert.equal(t.total,8511.3);assert.equal(t.vat,689.42);assert.equal(t.gross,9200.72);d.vatRate=0;assert.equal(totals(d).gross,t.total);});
+test('Legacy defaults, saved rate and letter metadata survive backup',()=>{const d=sample();delete d.vatRate;assert.equal(validateOffer(d).vatRate,8.1);Object.assign(d,{vatRate:2.6,recipientAddress:'Adresse',validUntil:'2026-12-01',contact:'Kontakt',customerNumber:'123'});const r=validateOffer(d);for(const k of ['vatRate','recipientAddress','validUntil','contact','customerNumber'])assert.equal(r[k],d[k]);d.vatRate=101;assert.throws(()=>totals(d));assert.throws(()=>validateOffer(d));});
+test('All price modes contain net, tax and gross; recipient markup is escaped',()=>{const d=sample();d.recipientAddress='<img src=x>';for(const mode of ['detail','plant','summary','totals']){for(const output of [offerHTML(d,mode),offerText(d,mode)]){assert.match(output,/Angebotstotal exkl. MWST/);assert.match(output,/Zzgl. MWST 8.10 %/);assert.match(output,/Angebotstotal inkl. MWST/);}assert.ok(!offerHTML(d,mode).includes('<img src=x>'));}});

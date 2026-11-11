@@ -1,6 +1,6 @@
 import {offerItemName} from './sbr.mjs?v=20261111-8';
 import {logoData} from './logo.mjs?v=20261111-4';
-import {visibleInTotals,totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-11';
+import {visibleInTotals,totals,line,description,money,priceMode,offerText} from './core.mjs?v=20261111-14';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=v=>esc(v).replace(/\n/g,'<br>');
 // Inline table styles also travel with the rich-text clipboard representation.
@@ -11,7 +11,13 @@ export function offerHTML(doc,value='plant',editing=false){
  const td=(v,align='left')=>`<td style="${cell}text-align:${align};${align==='right'?'white-space:nowrap;':''}">${v}</td>`;
  const totalRow=(label,amount)=>`<tr class="document-total"><td colspan="${cols-1}" style="${cell}font-weight:700;">${esc(label)}</td>${td('<strong>'+money(amount)+'</strong>','right')}</tr>`;
  const date=/^\d{4}-\d{2}-\d{2}$/.test(doc.date)?doc.date.split('-').reverse().join('.'):doc.date;
- let html=`<article class="quote-document" style="font-family:Arial,sans-serif;color:#172c43;font-size:13px;line-height:1.5;"><header><img src="${logoData}" alt="Drahtwerk" style="display:block;width:210px;max-width:100%;height:auto;margin-bottom:22px;"/><h1 style="font-size:25px;margin:18px 0 8px;">Offerte${doc.number?' '+esc(doc.number):''}</h1><p>${[doc.customer,doc.project,doc.address].filter(Boolean).map(lines).join('<br>')}</p><p>Datum: ${esc(date||'–')}<br>Alle Preise in CHF, exkl. MWST</p></header><p>${editable(doc.intro,'intro')}</p>`;
+ const dateText=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)?v.split('-').reverse().join('.'):v;
+ let html=`<article class="quote-document" style="font-family:Arial,sans-serif;color:#172c43;font-size:13px;line-height:1.5;"><header>
+ <table style="width:100%;border-collapse:collapse;margin-bottom:30px;"><tr><td style="width:52%;vertical-align:top;"><img src="${logoData}" alt="Drahtwerk" style="display:block;width:190px;max-width:100%;height:auto;margin-bottom:14px;"/><strong>Drahtwerk GmbH</strong><br>Lochackerstrasse 4<br>8424 Embrach</td><td style="vertical-align:bottom;padding-left:20px;"><strong>${lines(doc.customer)}</strong>${doc.recipientAddress?'<br>'+lines(doc.recipientAddress):''}</td></tr></table>
+ <h1 style="font-size:24px;margin:0;padding-bottom:10px;border-bottom:2px solid #173f70;">Offerte${doc.number?' '+esc(doc.number):''}</h1>
+ ${doc.project?'<p style="font-size:16px;font-weight:700;margin:10px 0;">'+lines(doc.project)+'</p>':''}
+ <table style="width:100%;font-size:12px;border-collapse:collapse;border-bottom:1px solid #dbe4ee;margin-bottom:18px;"><tr>${td('Datum: '+esc(date||'–'))}${td(doc.contact?'Ihr Ansprechpartner: '+esc(doc.contact):'')}</tr><tr>${td(doc.validUntil?'Gültig bis: '+esc(dateText(doc.validUntil)):'MWST-Nr.: CHE-242.474.758 MWST')}${td(doc.customerNumber?'Kundennummer: '+esc(doc.customerNumber):'Alle Preise in CHF')}</tr></table>
+ ${doc.address?'<p><strong>Objektadresse</strong><br>'+lines(doc.address)+'</p>':''}</header><p>${editable(doc.intro,'intro')}</p>`;
  doc.plants.forEach((p,pi)=>{
  if(mode==='totals'){
  html+='<section class="document-plant"><h2 style="font-size:18px;border-bottom:2px solid #173f70;padding-bottom:8px;margin:28px 0 12px;">'+(pi+1)+'. '+editable(p.name,'p'+pi+'name')+'</h2>';
@@ -38,7 +44,8 @@ export function offerHTML(doc,value='plant',editing=false){
  t.plants.forEach((p,i)=>{html+='<tr>'+td(esc(`${i+1}. ${doc.plants[i].name}`))+td('CHF '+money(p.total),'right')+'</tr>';});
  html+='<tr>'+td('Zwischentotal')+td('CHF '+money(t.subtotal),'right')+'</tr>';
  if(doc.discount)html+='<tr>'+td('Rabatt '+esc(doc.discount)+' %')+td('−CHF '+money(t.discount),'right')+'</tr>';
- html+='<tr>'+td('<strong>Angebotstotal exkl. MWST</strong>')+td('<strong>CHF '+money(t.total)+'</strong>','right')+'</tr></table></section>';
+ html+='<tr>'+td('<strong>Angebotstotal exkl. MWST</strong>')+td('<strong>CHF '+money(t.total)+'</strong>','right')+'</tr>';
+ html+='<tr>'+td('Zzgl. MWST '+money(t.vatRate)+' %')+td('CHF '+money(t.vat),'right')+'</tr><tr style="background:#eef3f8;border-top:2px solid #173f70;">'+td('<strong>Angebotstotal inkl. MWST</strong>')+td('<strong>CHF '+money(t.gross)+'</strong>','right')+'</tr></table></section>';
  if(doc.closing||editing)html+='<p style="margin-top:24px;">'+editable(doc.closing,'closing')+'</p>';
- return html+'</article>';
+ return html+'<footer style="margin-top:36px;padding-top:12px;border-top:1px solid #b8c9da;font-size:10px;color:#617389;">Drahtwerk GmbH · Lochackerstrasse 4 · 8424 Embrach<br>info@drahtwerk.ch · 044 666 69 70 · www.drahtwerk.ch<br>MWST-Nr.: CHE-242.474.758 MWST</footer></article>';
 }
