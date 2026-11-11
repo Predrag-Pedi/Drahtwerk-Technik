@@ -1,5 +1,5 @@
-import {offerItemName} from './sbr.mjs?v=20261111-6';
-import {offerText,totals,line,description,money,priceMode} from './core.mjs?v=20261111-6';
+import {offerItemName} from './sbr.mjs?v=20261111-8';
+import {offerText,totals,line,description,money,priceMode} from './core.mjs?v=20261111-8';
 import {logoData} from './logo.mjs?v=20261111-4';
 import {imagePdf} from './image-pdf.mjs?v=20261111-4';
 // A4 pages at 3x resolution; rows wrap and continue on fresh pages.

@@ -1,4 +1,4 @@
-import {restoreSbr,offerItemName} from './sbr.mjs?v=20261111-6';
+import {restoreSbr,offerItemName} from './sbr.mjs?v=20261111-8';
 // All monetary inputs are CHF excluding VAT. Round sale unit price, then line totals.
 export const uid=()=>Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
 export const money=n=>new Intl.NumberFormat('de-CH',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
@@ -29,7 +29,7 @@ export function totals(doc){
  const subtotal=round(plants.reduce((a,p)=>a+p.total,0)),discount=round(subtotal*doc.discount/100);
  return {plants,subtotal,discount,total:round(subtotal-discount)};
 }
-export function description(p){return [p.type,[p.width,p.height,p.depth].some(Boolean)?`B × H × T: ${p.width||'–'} × ${p.height||'–'} × ${p.depth||'–'} mm`:'',p.ip?`Schutzart: ${p.ip}`:'',p.colour?`Farbe: ${p.colour}`:'',p.notes].filter(Boolean).join('\n');}
+export function description(p){if(typeof p.offerDescription==='string')return p.offerDescription;return [p.type,[p.width,p.height,p.depth].some(Boolean)?`B × H × T: ${p.width||'–'} × ${p.height||'–'} × ${p.depth||'–'} mm`:'',p.ip?`Schutzart: ${p.ip}`:'',p.colour?`Farbe: ${p.colour}`:'',p.notes].filter(Boolean).join('\n');}
 export const priceMode=value=>value===true?'detail':value===false?'summary':['detail','plant','summary'].includes(value)?value:'plant';
 export function offerText(doc,mode=true){
  mode=priceMode(mode);const t=totals(doc);if(!doc.plants.some(p=>p.parts.some(s=>s.items.length)))throw Error('Bitte zuerst Positionen hinzufügen.');
@@ -69,5 +69,5 @@ export function validateOffer(raw){
  const num=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:fail();
  if(!raw||!Array.isArray(raw.plants)||!raw.plants.length)fail();
  const d={id:uid(),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();
- d.plants=raw.plants.map(p=>{const q={id:uid()};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),...(i.sbr?{sbr:restoreSbr(i.sbr)}:{}),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
+ d.plants=raw.plants.map(p=>{const q={id:uid(),...(p.offerDescription!==undefined?{offerDescription:str(p.offerDescription)}:{})};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),...(i.offerDescription!==undefined?{offerDescription:str(i.offerDescription)}:{}),...(i.sbr?{sbr:restoreSbr(i.sbr)}:{}),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
 }
