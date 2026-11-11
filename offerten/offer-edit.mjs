@@ -1,5 +1,5 @@
-import {offerHTML} from './offer-document.mjs?v=20261111-14';
-import {description} from './core.mjs?v=20261111-14';
+import {offerHTML} from './offer-document.mjs?v=20261111-16';
+import {description} from './core.mjs?v=20261111-16';
 import {offerItemName} from './sbr.mjs?v=20261111-8';
 export function textTargets(doc){
  const entries=[];
