@@ -1,0 +1,52 @@
+import {createElement,W} from './model.mjs?v=20261112-15';
+import {allFunctions,functionBmk} from './references.mjs?v=20261112-13';
+// Planning envelopes, deliberately not manufacturer-specific article dimensions.
+const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
+export function schemaDevices(doc){
+ const devices=[],warnings=[],seen=new Set();
+ for(const {page,element:e,key,data} of allFunctions(doc)){
+  if(data.role==='contact'){if(!data.owner)warnings.push(`Blatt ${page.number}: Kontakt ohne zugeordneten Schütz.`);continue;}
+  if(['text','rect','dimension','junction','reference','cabinet','rail','duct','module'].includes(e.kind))continue;
+  const tag=functionBmk(doc,page,e,key);if(!tag){warnings.push(`Blatt ${page.number}: Gerät ohne BMK.`);continue;}
+  if(seen.has(tag)){warnings.push(`${tag}: mehrfach vorhanden; einmal übernommen. BMK prüfen.`);continue;}seen.add(tag);
+  let kind=data.role==='coil'?'coil':e.kind;
+  if(kind==='template'){const letter=tag.match(/[A-Z]+/i)?.[0]?.toUpperCase();kind=({F:'fuse',Q:'switch',S:'switch',K:'coil',P:'meter',Y:'meter',X:'terminal'})[letter]||'unknown';}
+  const [width,height,depth]=envelopes[kind]||[54,100,80];
+  devices.push({source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${e.template.name.replaceAll('_',' ')} · ${key}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
+ }
+ for(const p of doc.pages.filter(p=>p.type==='schema'))for(const e of p.elements)if(e.template&&!e.template.labels?.length)warnings.push(`Blatt ${p.number}: «${e.template.name}» ohne auswertbare Gerätekennzeichen.`);
+ return {devices,warnings};
+}
+export const defaultConfig=()=>({width:800,height:2000,depth:400,fields:1,frame:false,reserve:20});
+export function validateDispoConfig(c){if(!c||![c.width,c.height,c.depth,c.fields,c.reserve].every(Number.isFinite)||c.width<300||c.width>10000||c.height<400||c.height>4000||c.depth<100||c.depth>1500||!Number.isInteger(c.fields)||c.fields<1||c.fields>12||c.reserve<0||c.reserve>60||c.width/c.fields<250)throw Error('Schrankmasse prüfen: Breite 300–10000, Höhe 400–4000, Tiefe 100–1500 mm; mindestens 250 mm je Feld.');return {width:c.width,height:c.height,depth:c.depth,fields:c.fields,reserve:c.reserve,frame:!!c.frame};}
+export function layoutDevices(devices,config){
+ const c=validateDispoConfig(config),placed=[],overflow=[],rails=[],ducts=[],fieldWidth=c.width/c.fields;
+ let field=0,y=100,x=60,rowHeight=0,row=false;
+ const available=fieldWidth-120,usable=available*(1-c.reserve/100);
+ function closeRow(){if(!row)return;rails.push({x:field*fieldWidth+45,y:y+rowHeight*.6,width:fieldWidth-90,height:35});ducts.push({x:field*fieldWidth+45,y:y+rowHeight+25,width:fieldWidth-90,height:40});y+=rowHeight+95;x=60;rowHeight=0;row=false;}
+ for(const d of devices.filter(d=>d.include!==false).sort((a,b)=>(a.kind==='terminal'?0:1)-(b.kind==='terminal'?0:1))){
+  if(![d.width,d.height,d.depth].every(n=>Number.isFinite(n)&&n>0&&n<=4000))throw Error(`${d.tag}: gültige Geräteabmessungen eingeben.`);
+  if(d.width>usable||d.height>c.height-220||d.depth>c.depth-60){overflow.push(d);continue;}
+  if(x-60+d.width>usable)closeRow();
+  if(y+Math.max(rowHeight,d.height)>c.height-120){closeRow();field++;y=100;}
+  if(field>=c.fields){overflow.push(d);continue;}
+  placed.push({...d,x:field*fieldWidth+x,y});x+=d.width+8;rowHeight=Math.max(rowHeight,d.height);row=true;
+ }
+ closeRow();return {placed,overflow,rails,ducts};
+}
+export function generateDispo(p,devices,config){
+ const c=validateDispoConfig(config),layout=layoutDevices(devices,c);if(layout.overflow.length)throw Error(`Kein Platz für ${layout.overflow.map(d=>d.tag).join(', ')}. Schrank vergrössern, Felder ergänzen oder Geräteauswahl anpassen.`);
+ const required=Math.max(c.width/350,c.height/225),scale=p.elements.some(e=>!e.generatedDispo)?p.scale:([1,2,5,10,20,50,100].find(s=>s>=required)||100),factor=W/420/scale,origin={x:100,y:90};
+ const elements=[];
+ const add=(kind,x,y,width,height,extra={})=>{const e=createElement(p,kind,0,0);Object.assign(e,{x:origin.x+x*factor,y:origin.y+y*factor,width,height,generatedDispo:true,...extra});elements.push(e);return e;};
+ add('cabinet',0,0,c.width,c.height,{depth:c.depth,text:c.frame?'Montagerahmen':'Schrank',dispoFrame:c.frame});
+ for(let f=0;f<c.fields;f++){
+  add('duct',f*c.width/c.fields+15,60,25,c.height-120,{depth:60});
+  add('duct',(f+1)*c.width/c.fields-40,60,25,c.height-120,{depth:60});
+ }
+ for(const r of layout.rails)add('rail',r.x,r.y,r.width,r.height,{depth:15});
+ for(const r of layout.ducts)add('duct',r.x,r.y,r.width,r.height,{depth:40});
+ for(const d of layout.placed)add('module',d.x,d.y,d.width,d.height,{tag:d.tag,text:d.kind==='unknown'?'?':d.kind==='meter'?'kWh':'',value:'',depth:d.depth,dispoSource:d.source,dispoKind:d.kind,dimensionsConfirmed:d.confirmed});
+ return {elements,scale,config:c};
+}
+export function validateDispoMetadata(e,fail){const out={};if(e.generatedDispo!==undefined)out.generatedDispo=e.generatedDispo===true;if(e.dispoFrame!==undefined)out.dispoFrame=e.dispoFrame===true;if(e.depth!==undefined){if(!Number.isFinite(e.depth)||e.depth<=0||e.depth>4000)fail();out.depth=e.depth;}if(e.dimensionsConfirmed!==undefined)out.dimensionsConfirmed=e.dimensionsConfirmed===true;if(e.dispoKind!==undefined){if(typeof e.dispoKind!=='string'||e.dispoKind.length>40)fail();out.dispoKind=e.dispoKind;}if(e.dispoSource){out.dispoSource={};for(const k of ['page','element','key']){if(typeof e.dispoSource[k]!=='string'||e.dispoSource[k].length>200)fail();out.dispoSource[k]=e.dispoSource[k];}}return out;}
