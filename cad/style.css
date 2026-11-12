@@ -42,22 +42,22 @@
 @media(max-width:1180px) and (min-width:851px){.drawing-layout.hide-properties{grid-template-columns:min(var(--library-width),45vw) 7px minmax(0,1fr)}}
 @media(max-width:850px){.drawing-layout.hide-properties{grid-template-columns:1fr}.editor-ribbon{padding:0 8px}.editor-tools{gap:7px}.placement-hint>span:last-child{display:none}.canvas-caption{flex-wrap:wrap}.library-heading{margin-top:0}}
 .reference-settings{border-bottom:1px solid #dce5ef;padding-bottom:16px;margin-bottom:18px}.reference-settings h3{font-size:12px;color:#264f80;margin:12px 0}.reference-settings button{font-size:10px;padding:7px 9px;width:100%;margin:4px 0}.reference-settings .field{line-height:1.5}.suite-cad #editTemplateLines[aria-pressed=true]{background:#e4edfb;border-color:#2463eb;color:#175bb8}#paper [data-wire-handle]{cursor:crosshair}#paper [data-wire]{cursor:move}
-/* Compact engineering workspace: dark tool chrome, docked navigators, white drawing. */
-.suite-cad:has(#editor:not([hidden]))>.dw-header{height:36px;min-height:36px!important;background:#20252b!important;border-bottom:1px solid #444c55;padding:4px 18px!important}
+/* Compact engineering workspace: Drahtwerk-blue tool chrome, docked navigators, white drawing. */
+.suite-cad:has(#editor:not([hidden]))>.dw-header{height:36px;min-height:36px!important;background:#103d73!important;border-bottom:1px solid #2b629a;padding:4px 18px!important}
 .suite-cad:has(#editor:not([hidden]))>.dw-header .dw-brand{font-size:17px!important;letter-spacing:.4px}
 .suite-cad #editor{height:calc(100dvh - 36px)}
-#editor .editor-heading{background:#292f36;color:#edf1f5;border-bottom:1px solid #414951;padding:7px 12px;gap:12px;min-height:49px}
-#editor .editor-title strong{font-size:13px;font-weight:600}#editor .editor-title small{color:#a7b7ad;font-size:9px}
-#editor .editor-heading button{background:#343c45;border-color:#4b555f;color:#e2e9ef;border-radius:3px;padding:6px 11px;min-height:30px;font-size:11px}
-#editor .editor-heading button.primary{background:#205e9f;border-color:#3878b8}
-#editor .editor-ribbon{background:#292f36;border-bottom:1px solid #4b535d;min-height:31px;padding:0 12px}
-#editor .editor-ribbon button{color:#c3cbd3;min-height:31px;padding:6px 17px;font-size:11px}
-#editor .editor-ribbon button.active{background:#3b434d;color:#fff;box-shadow:inset 0 -2px #67a9e8}
-#editor .editor-tools{background:#363e48;border-bottom:1px solid #232a32;padding:9px 12px;min-height:55px;color:#dce3eb}
-#editor .editor-tools button{background:#414b57;border-color:#596574;color:#e2e9ef;border-radius:3px;padding:7px 11px;font-size:11px}
-#editor .editor-tools button.active,#editor .editor-tools button[aria-pressed=true]{background:#1e5c99;color:white;border-color:#74a7da}
-#editor .editor-tools button:hover{background:#526071}#editor .editor-tools .hint{color:#c2ccd6}
-#editor .tool-group{border-right:1px solid #58616b;padding-right:12px}#editor .inline-check{font-size:10px;color:#dce3eb}
+#editor .editor-heading{background:#164a80;color:#f2f7ff;border-bottom:1px solid #3972a7;padding:7px 12px;gap:12px;min-height:49px}
+#editor .editor-title strong{font-size:13px;font-weight:600}#editor .editor-title small{color:#c0daf1;font-size:9px}
+#editor .editor-heading button{background:#246297;border-color:#4b87b7;color:#f0f7ff;border-radius:3px;padding:6px 11px;min-height:30px;font-size:11px}
+#editor .editor-heading button.primary{background:#1684cf;border-color:#5ab9f2}
+#editor .editor-ribbon{background:#164a80;border-bottom:1px solid #3975ad;min-height:31px;padding:0 12px}
+#editor .editor-ribbon button{color:#d9edff;min-height:31px;padding:6px 17px;font-size:11px}
+#editor .editor-ribbon button.active{background:#246ba5;color:#fff;box-shadow:inset 0 -2px #6ed0ff}
+#editor .editor-tools{background:#246297;border-bottom:1px solid #174b79;padding:9px 12px;min-height:55px;color:#e5f2ff}
+#editor .editor-tools button{background:#3277ae;border-color:#5a98c5;color:#f0f7ff;border-radius:3px;padding:7px 11px;font-size:11px}
+#editor .editor-tools button.active,#editor .editor-tools button[aria-pressed=true]{background:#0b85d0;color:white;border-color:#8cd9ff}
+#editor .editor-tools button:hover{background:#408bc2}#editor .editor-tools .hint{color:#c5e2f8}
+#editor .tool-group{border-right:1px solid #528ab7;padding-right:12px}#editor .inline-check{font-size:10px;color:#e5f2ff}
 #editor .left-panel,#editor .right-panel{background:#edf0f3;padding:10px;border-color:#c3cbd3}
 .navigator-heading,#editor .right-panel>.panel-heading{font-size:10px;letter-spacing:1px;font-weight:700;color:#546475;padding:5px 2px 10px;margin:0}
 #editor .panel-tabs{top:-10px;background:#edf0f3;padding:3px 0 9px;margin-bottom:7px;border-bottom:1px solid #c7d0da;gap:1px}
