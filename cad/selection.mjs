@@ -1,4 +1,4 @@
-import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261112-13';
+import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261112-15';
 import {bounds,localPoint} from './geometry.mjs?v=20261112-13';
 import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261112-13';
 export const selectionKey=s=>JSON.stringify([s.kind,s.id,s.index,s.key]);
