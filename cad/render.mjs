@@ -1,8 +1,8 @@
-import {templateLines,linePoints} from './line-edit.mjs?v=20261112-7';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261112-7';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261112-7';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261112-7';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-7';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261112-8';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261112-8';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261112-8';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261112-8';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-8';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
