@@ -42,22 +42,25 @@
 @media(max-width:1180px) and (min-width:851px){.drawing-layout.hide-properties{grid-template-columns:min(var(--library-width),45vw) 7px minmax(0,1fr)}}
 @media(max-width:850px){.drawing-layout.hide-properties{grid-template-columns:1fr}.editor-ribbon{padding:0 8px}.editor-tools{gap:7px}.placement-hint>span:last-child{display:none}.canvas-caption{flex-wrap:wrap}.library-heading{margin-top:0}}
 .reference-settings{border-bottom:1px solid #dce5ef;padding-bottom:16px;margin-bottom:18px}.reference-settings h3{font-size:12px;color:#264f80;margin:12px 0}.reference-settings button{font-size:10px;padding:7px 9px;width:100%;margin:4px 0}.reference-settings .field{line-height:1.5}.suite-cad #editTemplateLines[aria-pressed=true]{background:#e4edfb;border-color:#2463eb;color:#175bb8}#paper [data-wire-handle]{cursor:crosshair}#paper [data-wire]{cursor:move}
-/* Compact engineering workspace: Drahtwerk-blue tool chrome, docked navigators, white drawing. */
-.suite-cad:has(#editor:not([hidden]))>.dw-header{height:36px;min-height:36px!important;background:#103d73!important;border-bottom:1px solid #2b629a;padding:4px 18px!important}
-.suite-cad:has(#editor:not([hidden]))>.dw-header .dw-brand{font-size:17px!important;letter-spacing:.4px}
-.suite-cad #editor{height:calc(100dvh - 36px)}
-#editor .editor-heading{background:#164a80;color:#f2f7ff;border-bottom:1px solid #3972a7;padding:7px 12px;gap:12px;min-height:49px}
-#editor .editor-title strong{font-size:13px;font-weight:600}#editor .editor-title small{color:#c0daf1;font-size:9px}
-#editor .editor-heading button{background:#246297;border-color:#4b87b7;color:#f0f7ff;border-radius:3px;padding:6px 11px;min-height:30px;font-size:11px}
-#editor .editor-heading button.primary{background:#1684cf;border-color:#5ab9f2}
-#editor .editor-ribbon{background:#164a80;border-bottom:1px solid #3975ad;min-height:31px;padding:0 12px}
-#editor .editor-ribbon button{color:#d9edff;min-height:31px;padding:6px 17px;font-size:11px}
-#editor .editor-ribbon button.active{background:#246ba5;color:#fff;box-shadow:inset 0 -2px #6ed0ff}
-#editor .editor-tools{background:#246297;border-bottom:1px solid #174b79;padding:9px 12px;min-height:55px;color:#e5f2ff}
-#editor .editor-tools button{background:#3277ae;border-color:#5a98c5;color:#f0f7ff;border-radius:3px;padding:7px 11px;font-size:11px}
-#editor .editor-tools button.active,#editor .editor-tools button[aria-pressed=true]{background:#0b85d0;color:white;border-color:#8cd9ff}
-#editor .editor-tools button:hover{background:#408bc2}#editor .editor-tools .hint{color:#c5e2f8}
-#editor .tool-group{border-right:1px solid #528ab7;padding-right:12px}#editor .inline-check{font-size:10px;color:#e5f2ff}
+/* Two-row workspace: neutral surfaces with Drahtwerk-blue accents. */
+.suite-cad:has(#editor:not([hidden]))>.dw-header{display:none!important}
+.suite-cad #editor{height:100dvh;min-height:0}
+#editor .editor-heading{background:#fff;color:#213b55;border-bottom:1px solid #e4eaf1;padding:5px 12px;gap:12px;min-height:44px}
+#editor .editor-title{flex:1;min-width:80px;max-width:250px}
+#editor .editor-title strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600}
+#editor .editor-title small{color:#718398;font-size:9px;margin-top:2px}
+#editor .editor-heading button{background:transparent;border-color:transparent;color:#536a80;border-radius:6px;padding:5px 8px;min-height:30px;font-size:11px;box-shadow:none}
+#editor .editor-heading button.primary{background:#1765ac;color:#fff}
+#editor .editor-ribbon{background:transparent;border:0;padding:0;min-height:32px;gap:3px;flex:none}
+#editor .editor-ribbon .spacer{display:none}
+#editor .editor-ribbon button.active{background:#edf5ff;color:#155b9c;box-shadow:inset 0 -2px #2879bb}
+#editor .editor-heading .actions{margin-left:auto;gap:3px}
+#editor .editor-tools{background:#f8fafc;border-bottom:1px solid #dfe7ef;padding:4px 12px;min-height:40px;color:#536a80;gap:6px}
+#editor .editor-tools button{background:transparent;border-color:transparent;color:#536a80;border-radius:6px;padding:5px 9px;min-height:30px;font-size:11px}
+#editor .editor-tools button.active,#editor .editor-tools button[aria-pressed=true]{background:#e5f0fc;color:#125d9d;border-color:#c9e0f5}
+#editor .editor-tools button:hover,#editor .editor-heading button:hover{background:#eaf2fa;color:#125d9d}
+#editor .tool-group{border-right:1px solid #e0e7ef;padding-right:8px}
+#editor .inline-check{font-size:10px;color:#536a80}
 #editor .left-panel,#editor .right-panel{background:#edf0f3;padding:10px;border-color:#c3cbd3}
 .navigator-heading,#editor .right-panel>.panel-heading{font-size:10px;letter-spacing:1px;font-weight:700;color:#546475;padding:5px 2px 10px;margin:0}
 #editor .panel-tabs{top:-10px;background:#edf0f3;padding:3px 0 9px;margin-bottom:7px;border-bottom:1px solid #c7d0da;gap:1px}
@@ -71,9 +74,18 @@
 #editor .canvas-column{background:#b8c0c8}#editor .canvas-caption{background:#dce1e7;border-bottom:1px solid #aab5c1;padding:5px 10px;min-height:34px;color:#354c62}
 #editor #pageCaption{background:#fff;border-top:2px solid #377db9;padding:7px 14px;margin:-5px 0 -5px -10px;min-width:170px}
 #editor .view-controls button{border-radius:2px;min-height:24px;padding:3px 7px;color:#304b64;background:#f4f6f8}
-#editor .canvas-status{background:#303a46;color:#cfdae6;border-top:1px solid #4c5968;font-size:10px;min-height:25px}
+#editor .canvas-status{background:#f5f8fb;color:#61778c;border-top:1px solid #dae3ec;font-size:10px;min-height:25px}
 #editor .placement-hint{background:#e1e8ef;color:#3b5875;border-color:#c1ccd7}
 #viewport{overscroll-behavior:none;scrollbar-color:#7c8b9d #d5dce3}
 #viewport.is-panning,#viewport.is-panning *{cursor:grabbing!important;user-select:none!important}#paper[data-tool=pan],#paper[data-tool=pan] *{cursor:grab!important}
 #editor #paper{box-shadow:0 2px 8px #17253540}
 @media(max-width:850px){#editor .editor-tools{gap:5px}#editor .tool-group{padding-right:5px}#editor #pageCaption{min-width:0}#editor .placement-hint{font-size:9px}}
+
+#symbolList{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+#editor .symbol-card{display:flex;flex-direction:column;gap:7px;text-align:left;padding:10px;min-width:0;border:1px solid #e1e8f0;border-radius:8px;background:white}
+.symbol-picture{height:90px;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#263b50}
+.symbol-picture svg,.symbol-picture img{width:100%;height:100%;object-fit:contain}
+.symbol-card strong{font-size:11px;overflow-wrap:anywhere}.symbol-card small{font-size:10px;color:#718398}
+#symbolGroup{margin-top:8px}#moreSymbols{width:100%;margin-top:12px}
+@media(max-width:1050px){#editor .editor-title{max-width:140px}#editor .editor-heading{gap:5px}#editor .editor-heading button{padding:5px}#editor .editor-ribbon button{padding:5px 7px}}
+@media(max-width:760px){#editor .editor-heading{flex-wrap:wrap}#editor .editor-heading .actions{width:100%;justify-content:flex-end}#editor .editor-title{max-width:none}#editor .editor-ribbon{margin-left:auto}}

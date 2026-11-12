@@ -14,7 +14,7 @@ const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let lineMode=false,deviceKey='$';
 let hoverPoint=null,placementRotation=0,activeTemplate=null,templateCatalog=null,templateLimit=40,templateRequest=0;
-let libraryScope='all';
+let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 const current=()=>doc?.pages.find(p=>p.id===pageId);
@@ -88,9 +88,22 @@ $('copyPage').onclick=()=>{if(doc.pages.length>=200)return toast('Maximal 200 Se
 $('deletePage').onclick=()=>{if(doc.pages.length>1&&confirm('Diese Seite mit allen Elementen entfernen?'))change(()=>{doc.pages=doc.pages.filter(p=>p.id!==pageId);pageId=doc.pages[0].id;selected=null;wire=null;});};
 function movePage(delta){const i=doc.pages.indexOf(current()),j=i+delta;if(j<0||j>=doc.pages.length)return;change(()=>[doc.pages[i],doc.pages[j]]=[doc.pages[j],doc.pages[i]]);}
 $('movePageUp').onclick=()=>movePage(-1);$('movePageDown').onclick=()=>movePage(1);
-function symbolList(){const q=$('symbolSearch').value.toLowerCase();let group='';$('symbolList').innerHTML=Object.entries(symbols).filter(([k,s])=>k!=='template'&&s.name.toLowerCase().includes(q)).map(([kind,s])=>{const heading=group!==s.group?`<h3 class="symbol-group">${esc(s.group)}</h3>`:'';group=s.group;return heading+`<button class="symbol-button" data-symbol="${kind}"><svg viewBox="-10 -5 ${s.w+20} ${s.h+10}" fill="none" stroke="currentColor" stroke-width="2">${glyph(kind)||'<rect x="2" y="2" width="32" height="40"/>'}</svg>${esc(s.name)}</button>`;}).join('');}
+function symbolList(){
+ const q=$('symbolSearch').value,previous=$('symbolGroup').value;
+ const originals=templateCatalog?.items||[];
+ const groups=[...new Set([...Object.values(symbols).filter(s=>s.group!=='Vorlagen').map(s=>s.group),...originals.map(t=>t.group)])].sort((a,b)=>a.localeCompare(b,'de'));
+ $('symbolGroup').innerHTML='<option value="">Alle Gruppen</option>'+groups.map(g=>`<option value="${esc(g)}">${esc(libraryName(g))}</option>`).join('');$('symbolGroup').value=groups.includes(previous)?previous:'';
+ const group=$('symbolGroup').value;
+ const basic=filterLibrary(Object.entries(symbols).filter(([k])=>k!=='template').map(([kind,s])=>({...s,id:kind,kind,source:'Grundsymbol'})),{query:q,group});
+ const imported=filterLibrary(originals,{query:q,group});
+ const items=[...basic,...imported],shown=items.slice(0,symbolLimit);
+ $('symbolStatus').textContent=`${items.length} Einträge · ${Math.min(items.length,symbolLimit)} angezeigt${templateCatalog?'':' · Originalbibliothek wird geladen …'}`;
+ $('symbolList').innerHTML=shown.map(t=>t.kind?`<button class="symbol-card" data-symbol="${t.kind}"><span class="symbol-picture"><svg viewBox="-10 -5 ${t.w+20} ${t.h+10}" fill="none" stroke="currentColor" stroke-width="2">${glyph(t.kind)||'<rect x="2" y="2" width="32" height="40"/>'}</svg></span><strong>${esc(t.name)}</strong><small>Grundsymbol · ${esc(t.group)}</small></button>`:`<button class="symbol-card" data-template="${esc(t.id)}"><span class="symbol-picture"><img src="cad/templates/previews/${encodeURIComponent(t.id)}.svg?v=20261112-8" loading="lazy" alt="${esc(t.name)}"></span><strong>${esc(libraryName(t.name))}</strong><small>${esc(t.category)} · ${esc(libraryName(t.group))}</small></button>`).join('')||'<p class="hint">Keine Treffer. Suchbegriff oder Gruppe ändern.</p>';
+ $('moreSymbols').hidden=items.length<=symbolLimit;
+}
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261112-8');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();}catch(e){$('templateStatus').textContent=e.message;}}
+
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261112-8');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
  const groups=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>t.group))].sort((a,b)=>libraryName(a).localeCompare(libraryName(b),'de'));
@@ -106,8 +119,8 @@ document.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>setLibrarySco
 $('templateSearch').oninput=$('templateCategory').onchange=$('templateGroup').onchange=()=>{templateLimit=40;if(templateCatalog)renderTemplates();};$('moreTemplates').onclick=()=>{templateLimit+=40;renderTemplates();};
 $('templateList').onclick=async event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;librarySettings.favorites=librarySettings.favorites.includes(id)?librarySettings.favorites.filter(x=>x!==id):[...librarySettings.favorites,id];saveLibrarySettings();renderTemplates();return;}const b=event.target.closest('[data-template]');if(!b)return;const request=++templateRequest;b.disabled=true;try{const r=await fetch(`cad/templates/${b.dataset.template}.json?v=20261112-8`);if(!r.ok)throw Error('Vorlage nicht erreichbar');const template=validateTemplate(await r.json());if(request!==templateRequest)return;activeTemplate=template;setTool('template');$('templateSelected').textContent=template.name;renderTemplates();$('templatePreview').innerHTML=templateMarkup(template,Math.min(170/template.width,120/template.height)*template.width,Math.min(170/template.width,120/template.height)*template.height);toast('Vorlage gewählt – auf dem Blatt platzieren. R dreht die Vorschau.');document.querySelector('.drawing-layout').classList.remove('show-left');}catch(e){toast(e.message)}finally{b.disabled=false;}};
 
-$('symbolSearch').oninput=symbolList;$('symbolList').onclick=e=>{const b=e.target.closest('[data-symbol]');if(b){setTool(b.dataset.symbol);document.querySelector('.drawing-layout').classList.remove('show-left');}};
-document.querySelectorAll('[data-left]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-left]').forEach(x=>x.classList.toggle('active',x===b));$('pagesPanel').hidden=b.dataset.left!=='pages';$('symbolsPanel').hidden=b.dataset.left!=='symbols';$('templatesPanel').hidden=b.dataset.left!=='templates';if(b.dataset.left==='templates')loadTemplates();});
+$('symbolSearch').oninput=$('symbolGroup').onchange=()=>{symbolLimit=60;symbolList();};$('moreSymbols').onclick=()=>{symbolLimit+=60;symbolList();};$('symbolList').onclick=e=>{if(e.target.closest('[data-template]')){$('templateList').onclick(e);return;}const b=e.target.closest('[data-symbol]');if(b){setTool(b.dataset.symbol);document.querySelector('.drawing-layout').classList.remove('show-left');}};
+document.querySelectorAll('[data-left]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-left]').forEach(x=>x.classList.toggle('active',x===b));$('pagesPanel').hidden=b.dataset.left!=='pages';$('symbolsPanel').hidden=b.dataset.left!=='symbols';$('templatesPanel').hidden=b.dataset.left!=='templates';if(['templates','symbols'].includes(b.dataset.left))loadTemplates();});
 document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 $('toggleLeft').onclick=()=>document.querySelector('.drawing-layout').classList.toggle('show-left');$('toggleRight').onclick=()=>document.querySelector('.drawing-layout').classList.toggle('show-right');
 $('fit').onclick=fit;$('zoomIn').onclick=()=>zoomBy(1.2);$('zoomOut').onclick=()=>zoomBy(1/1.2);$('undo').onclick=()=>history('undo');$('redo').onclick=()=>history('redo');
