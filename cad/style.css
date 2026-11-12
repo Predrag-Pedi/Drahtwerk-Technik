@@ -26,3 +26,18 @@
 #paper{box-shadow:0 2px 12px #193a6218}.right-panel{padding:16px}.inspector-title{font-size:15px}
 @media(max-width:1180px) and (min-width:851px){.drawing-layout{grid-template-columns:min(var(--library-width),45vw) 7px minmax(0,1fr) 190px}}
 @media(max-width:850px){.drawing-layout{grid-template-columns:1fr}#librarySplitter{display:none}.left-panel{width:min(90vw,520px)}#templateList{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}}
+/* Task-based CAD workspace, with one consistent insertion library. */
+.editor-ribbon{display:flex;align-items:center;gap:4px;padding:0 16px;background:#fff;border-bottom:1px solid #dce5ef;min-height:39px}
+.suite-cad .editor-ribbon button{border:0;border-radius:0;min-height:39px;background:transparent;padding:8px 17px;color:#6a7c8f}
+.suite-cad .editor-ribbon button.active{color:#175bb8;box-shadow:inset 0 -3px #2463eb;background:#f3f7fd}
+.editor-tools{min-height:51px;gap:12px;background:#f9fbfd}.tool-group{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.library-heading{margin:9px 0 15px}.library-heading strong{display:block;font-size:16px;color:#193b5f}.library-heading small{display:block;color:#7e90a3;font-size:10px;margin-top:5px}
+.library-scopes{display:flex;gap:3px;margin-bottom:12px;border-bottom:1px solid #dce5ef;padding-bottom:8px}.suite-cad .library-scopes button{flex:1;padding:7px 5px;font-size:11px;min-height:32px;border:0;background:transparent}.suite-cad .library-scopes button.active{background:#e4edfb;color:#1c5eb9}
+#templateGroup{margin-bottom:5px;font-size:11px}#templateCategory{font-size:11px}.template-tile{position:relative;min-width:0;display:flex}.template-tile>.template-card{width:100%;border-radius:6px}
+.suite-cad .favorite-toggle{position:absolute;right:5px;top:5px;z-index:1;border:1px solid #e4ebf3;border-radius:5px;padding:0;width:27px;min-height:27px;font-size:18px;background:#fffffff2;color:#768aa1}.suite-cad .favorite-toggle[aria-pressed=true]{color:#b77d05;background:#fff9e9}
+.library-empty{grid-column:1/-1;padding:22px 10px;font-size:12px;line-height:1.6;color:#6a8097}.library-empty strong{color:#304e70}
+.view-controls{display:flex;gap:4px;align-items:center}.suite-cad .view-controls button{min-height:27px;padding:3px 9px;font-size:11px;background:transparent;border-color:#dce5ef}.canvas-caption{padding:7px 12px;min-height:42px}
+.placement-hint{display:flex;justify-content:space-between;gap:12px;padding:7px 12px;background:#eef4fc;border-top:1px solid #d4e1f2;color:#3b6293;font-size:10px}.placement-hint>span:first-child{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.placement-hint>span:last-child{white-space:nowrap;color:#73869e}.canvas-status{padding:7px 12px}
+.drawing-layout.hide-properties{grid-template-columns:var(--library-width) 7px minmax(0,1fr)}.drawing-layout.hide-properties>.right-panel{display:none}.drawing-layout.focus-drawing{grid-template-columns:minmax(0,1fr)}.drawing-layout.focus-drawing>.left-panel,.drawing-layout.focus-drawing>#librarySplitter,.drawing-layout.focus-drawing>.right-panel{display:none}
+@media(max-width:1180px) and (min-width:851px){.drawing-layout.hide-properties{grid-template-columns:min(var(--library-width),45vw) 7px minmax(0,1fr)}}
+@media(max-width:850px){.drawing-layout.hide-properties{grid-template-columns:1fr}.editor-ribbon{padding:0 8px}.editor-tools{gap:7px}.placement-hint>span:last-child{display:none}.canvas-caption{flex-wrap:wrap}.library-heading{margin-top:0}}
