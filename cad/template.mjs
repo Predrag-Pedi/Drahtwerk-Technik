@@ -1,5 +1,5 @@
-import {frame,macroScale} from './alignment.mjs?v=20261112-5';
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261112-5';
+import {frame,macroScale} from './alignment.mjs?v=20261112-6';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261112-6';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};
