@@ -1,9 +1,9 @@
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261112-11';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261112-11';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261112-11';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261112-11';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261112-11';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-11';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261112-12';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261112-12';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261112-12';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261112-12';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261112-12';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-12';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -22,8 +22,8 @@ export function glyph(kind){switch(kind){
  case 'reference':return path('M0 10H30')+'<path d="M30 5L40 10L30 15Z" fill="currentColor"/>';
  default:return '';
 }}
-export function elementMarkup(e,p,d,editor=false){const [w,h]=size(e,p),s=symbols[e.kind];let body='';
- if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);body=templateMarkup(e.template,w,h,labels,e.textEdits||{},editor);}
+export function elementMarkup(e,p,d,editor=false,groupSelect=false){const [w,h]=size(e,p),s=symbols[e.kind];let body='';
+ if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,e.textEdits||{},editor&&!groupSelect,hits);}
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
@@ -33,9 +33,9 @@ export function elementMarkup(e,p,d,editor=false){const [w,h]=size(e,p),s=symbol
  if(e.kind==='reference'){const target=d.pages.find(p=>p.id===e.targetPage);body+=text(42,14,target?`${target.number}.${e.targetPath}`:'?','fill="#1d5bb5"');}
  let connections='';
  if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/></g>`;}}
- return connections+`<g data-element="${esc(e.id)}" transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}><rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>${body}</g>`;
+ return connections+`<g data-element="${esc(e.id)}" ${editor&&e.template&&!groupSelect?'pointer-events="none"':''} transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}>${!e.template||editor&&groupSelect?`<rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>`:''}${body}</g>`;
 }
-export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=false}={}){
+export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=true}={}){
  let body='';if(editor&&grid&&p.grid)body+='<defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r=".65" fill="#b6c5d5"/></pattern></defs><rect x="40" y="40" width="1120" height="750" fill="url(#grid)" stroke="none"/>';
  body+='<rect x="25" y="25" width="1150" height="798" fill="none" stroke-width="1.5"/>';
  for(let n=0;n<10;n++){const x=40+n*112;body+=text(x+56,20,n,'text-anchor="middle" font-size="13"');}
@@ -47,9 +47,10 @@ export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=false
  if(p.type==='schema'&&p.bus)for(let n=0;n<4;n++){const by=Object.values(BUS)[n];body+=`<g ${n===3?'stroke-dasharray="8 5"':''}>${line(60,by,1140,by)}</g>`+text(45,by-4,['L1','L2','L3','N'][n],'font-size="10"');}
  const wireMarkup=w=>{const pts=wirePoints(p,w);return `<g data-wire="${esc(w.id)}"><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" stroke="transparent" stroke-width="12" fill="none"/><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="${selected===w.id?'#2463eb':w.stroke||'#182c42'}" stroke-width="${w.strokeWidth||1.4}" ${w.dashed?'stroke-dasharray="7 5"':''}/>${w.label?text(pts[0].x+5,pts[0].y-7,w.label):''}</g>`;};
  body+=p.wires.filter(w=>!w.direct).map(wireMarkup).join('');
- body+=p.elements.map(e=>elementMarkup(e,p,d,editor)).join('');
+ body+=p.elements.map(e=>elementMarkup(e,p,d,editor,!lineMode)).join('');
  body+=p.wires.filter(w=>w.direct).map(wireMarkup).join('');
  body+=p.elements.map(e=>referenceMarkup(d,p,e)).join('');
+ if(editor)for(const w of p.wires){const pts=wirePoints(p,w);body+=`<polyline data-wire="${esc(w.id)}" points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="transparent" stroke-width="10" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`;}
  const connections=connectionCandidates(d,p);
  for(const a of connections){const pt=connectionPoint(d,a),ref=referenceText(d,a),left=a.kind==='bus'&&a.side==='left',x=pt.x+(left?3:5),y=pt.y-3;
  if(a.kind==='point')body+=line(pt.x,pt.y,pt.x+25,pt.y)+text(pt.x+28,pt.y+3,a.phase,'font-size="9"');
@@ -57,7 +58,7 @@ export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=false
  if(editor)body+=`<circle data-connection="${esc(JSON.stringify(a))}" cx="${pt.x}" cy="${pt.y}" r="${a.kind==='bus'?3:4}" fill="${ref?'#e4f3ff':'#fff4d7'}" stroke="${ref?'#1877b9':'#c58a13'}" stroke-width="1" cursor="pointer"><title>${esc(ref?'Verweis '+ref:'Offener Anschluss '+a.phase+' – Ziel wählen')}</title></circle>`;
  }
  if(editor){
- if(lineMode)for(const e of p.elements.filter(e=>e.template))templateLines(e.template).forEach((l,i)=>{const [a,b]=linePoints(e,p,l);body+=`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${a.x} ${a.y} L ${b.x} ${b.y}" stroke="transparent" stroke-width="7" pointer-events="stroke"/>`;});
+
  const chosen=p.wires.find(w=>w.id===selected);if(chosen){const pts=wirePoints(p,chosen);for(const [index,pt] of [[0,pts[0]],[1,pts.at(-1)]])body+=`<circle data-wire-handle="${esc(chosen.id)}:${index}" cx="${pt.x}" cy="${pt.y}" r="5" fill="white" stroke="#2463eb" stroke-width="2"/>`;}
  for(const e of p.elements){for(const pt of ports(e,p))body+=`<circle class="port" data-port="${esc(e.id)}:${pt.index}" cx="${pt.x}" cy="${pt.y}" r="4" fill="#fff" stroke="#4090da"/>`;if(e.id===selected){const [w,h]=size(e,p);body+=`<rect x="${e.x-7}" y="${e.y-7}" width="${w+14}" height="${h+14}" transform="rotate(${e.rotation} ${e.x+w/2} ${e.y+h/2})" fill="none" stroke="#2463eb" stroke-width="2" stroke-dasharray="5 4" pointer-events="none"/>`;}}}
  return `<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p.title)}" style="background:white;color:#182c42;font-family:Arial,sans-serif;font-size:12px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><style>text{stroke:none} text:not([fill]){fill:#182c42} .template-line-hit:hover{stroke:#2463eb;stroke-opacity:.6}[data-template-text]{cursor:text}[data-template-text]:hover{fill:#2487d333;stroke:#2487d3;stroke-width:1}.port{opacity:.4}.port:hover{opacity:1;stroke-width:3}</style>${body}</g></svg>`;
