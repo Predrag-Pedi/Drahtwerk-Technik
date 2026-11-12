@@ -20,3 +20,15 @@ Rendering uses modelspace, black/white paths, text outlines, and physical extent
 Browser QA covered the 250 × 525 mm custom Dispo plate, a schema contact, mouse preview, placement, persistence after reload and PDF download. Automated tests validate every shipped vector payload and catalogue reference, dimensions, project round trips, independent page copies, escaping, export embedding and minimum display line weight.
 
 Original embedded BMK/QV strings are outlines, not live attributes. Templates are graphic groups, without electrical ports or generated cross-references. Existing project geometry is embedded rather than linked to mutable catalogue files. No conversion code or WASM is downloaded by the web app.
+
+## Semantic enrichment and visual previews (revision 2)
+After the original conversion, run:
+
+```sh
+python tools/tinline/enrich.py /tmp/tinline-work cad/templates
+node tools/tinline/previews.mjs
+```
+
+The preview builder requires `sharp` (development only). The schema rebuild retains white WIPEOUT backgrounds, renders existing geometry, and exports visible BMK attributes / ATTDEF defaults as restricted text metadata. It uses the original rendering bounds and transformation matrix so text and geometry stay registered. Phase labels are excluded from renumbering. Named conductor layers at the original supply levels 285/280/275/270 become explicit L1/L2/L3/N ports; unrecognised connections are not guessed. The catalogue records support per template.
+
+The initial paragraphs above describe revision 1. Revision 2 replaces its outlined BMKs in supported schema drawings, while existing embedded project templates retain their original data. Dispo physical dimensions are unchanged. Neither version infers cross-reference destinations or implements a general DWG editor.

@@ -24,12 +24,23 @@ Browser-Smoke-Test: Beispiel speichern und nach Neuladen öffnen, Seite anlegen,
 Beim Einfügen folgt eine halbtransparente Vorschau dem Mauszeiger. Vorschau und Klick verwenden identische Rasterkoordinaten, Abmessungen und Drehungen. R oder die Drehen-Schaltfläche drehen das noch nicht platzierte Symbol. Esc beendet das Werkzeug. Die Vorschau wird beim Verlassen des Blatts ausgeblendet und weder gespeichert noch exportiert. Auf Touch-Geräten wird weiterhin durch Antippen platziert (kein Maus-Hover).
 
 ## TinLine-Vorlagenbibliothek
-Der Tab **Vorlagen** enthält 1’136 konvertierte Vorlagen aus dem bereitgestellten ZIP: 519 Schema- und 617 Dispo-Vorlagen. Suche umfasst Namen und Ordner; Bereichsfilter trennt Schema und Dispo. Einzeldateien werden erst beim Auswählen geladen.
+Der Tab **Vorlagen** öffnet standardmässig eine visuelle Bibliothek mit 1’136 Bildkacheln, Suche und Schema-/Dispo-Filter. Die Trennkante rechts von der Bibliothek lässt sich ziehen oder mit den Pfeiltasten verschieben. Die Breite wird im Browser gespeichert; je nach Breite erscheinen mehrere Spalten. Vorschaubilder sind komprimierte PNGs in eigenständigen SVG-Dateien; die Zeichnung selbst bleibt vektorbasiert.
 
-Die ursprüngliche Geometrie wird als SVG-Vektorgruppe platziert, mit Vorschau am Mauszeiger, Rotation, Kopieren, Undo/Redo und Abmessungen in mm. Dispo-Vorlagen folgen dem Seitenmassstab; Schema-Vorlagen verwenden Blattmillimeter. Breite/Höhe beschreiben die gesamte konvertierte Begrenzung inklusive ursprünglicher Beschriftungen. Sehr grosse Makros müssen passend positioniert oder verkleinert werden. Mindestlinienstärke 0.75 Zeichenpunkte sichert die Lesbarkeit im verkleinerten Massstab.
+### Blatt und Platzierung
+A3 quer ist exakt 420 × 297 mm. Der Zeichenbereich endet oberhalb des Schriftfelds. Neue Vorlagen werden innerhalb dieses Bereichs gehalten; zu grosse Vorlagen werden nicht unbemerkt abgeschnitten. Die Mausvorschau verwendet dieselbe Platzierungsfunktion wie der Klick. Dispo-Abmessungen bleiben in realen mm und folgen dem Seitenmassstab.
 
-Vorlagen sind derzeit grafische Gruppen: ursprüngliche Texte (auch BMK-/QV-Platzhalter) sind Vektorpfade und nicht einzeln editierbar. Kennzeichen, Wert und zusätzliche Beschriftung werden ergänzend angezeigt. Es gibt noch keine elektrischen Anschlusspunkte oder automatisch aktualisierten Querverweise innerhalb dieser Vorlagen. Leitungen können mit freien Endpunkten ergänzt werden. Das ist kein allgemeiner DWG-/TinLine-Projektimport.
+### Automatische Anschlüsse
+84 Schema-Makros enthalten im Original eindeutig benannte Versorgungsleiter auf den TinLine-Sammelschienenhöhen. Diese Anschlüsse werden bei eingeschaltetem **Auto-Anschluss** und Drehung 0° an L1/L2/L3/N ausgerichtet. Die Zuordnung stammt aus den originalen DXF-Layern, nicht aus der Reihenfolge sichtbarer Linien. Die passende Leiterhöhe wird übernommen, auch bei nur L3/N. Beim Verschieben folgen die erzeugten Verbindungsstrecken. Anschlüsse oberhalb der zugehörigen Schiene werden nicht rückwärts verbunden. Im Eigenschaftenbereich kann die Anbindung abgeschaltet werden. SVG/PDF enthalten die Verbindungen.
 
-Die ausgewählte Geometrie wird im Projekt und JSON-Backup eingebettet; spätere Änderungen am Katalog verändern bestehende Projekte nicht. SVG und PDF enthalten die platzierten Vorlagen. Nicht alle 5’209 DWGs des ZIP sind übernommen: ausgewählt wurden die Schema-, Aufbauplan- und eigenen Makroordner, nicht die gesamte Installations-/Herstellerbibliothek.
+Vorlagen ohne eindeutig erkannte Versorgungspunkte werden nicht automatisch elektrisch zugeordnet. Für deren Verbindungen bleibt das Verbindungswerkzeug nötig. Es gibt weiterhin kein automatisches Hindernisrouting und keine elektrische Prüfung.
 
-Konvertierung und Quellen: `tools/tinline/README.md`. Prüfungen: `node --test tests/cad*.test.mjs`.
+### Gerätekennzeichen
+Die Schema-Konvertierung erhält sichtbare BMK-Attribute und Gerätetypen aus ATTDEF bzw. den Original-Symbolcodes als lebende Textfelder. Bei der Platzierung entstehen Kennzeichen aus **Blattnummer + Gerätebuchstabe + Strompfad**, z. B. `10F4`, `10P4`, `10X4`. Bei Verschieben, Blattnummeränderung und Seitenkopien werden diese erneut aus der Position ermittelt. Wiederholungen desselben ursprünglichen BMK innerhalb eines Makros bleiben identisch; mehrere unabhängige Geräte gleicher Klasse im gleichen Pfad erhalten `.2`, `.3` usw. Leiterbezeichnungen L1/L2/L3/N/PE werden nicht umnummeriert. Zusätzliche manuelle Beschriftungen sind weiterhin möglich.
+
+Zielseiten von Querverweisen werden nicht automatisch ermittelt; diese benötigen eine explizite Zielzuordnung. Andere Originaltexte bleiben als Vektorpfade erhalten. Weisse Abdeckflächen werden bei Schema-Vorlagen als weiss erhalten und nicht mehr schwarz eingefärbt.
+
+### Bestehende Projekte
+Vorlagen sind in den Projekten eingebettet. Bereits platzierte ältere Grafikvorlagen werden nicht stillschweigend ersetzt. Für die neuen automatischen Kennzeichen und Anschlüsse muss eine ältere Vorlage aus der Bibliothek neu eingesetzt werden; der Eigenschaftenbereich weist darauf hin. JSON-Backup und Import erhalten die neuen Felder.
+
+### Reproduktion und Tests
+Konvertierung: `tools/tinline/README.md`. Prüfungen: `node --test tests/cad*.test.mjs`.

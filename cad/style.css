@@ -6,3 +6,23 @@
 .suite-page.suite-cad>main.cad-home{margin-left:var(--dw-sidebar);width:calc(100% - var(--dw-sidebar));padding:36px 40px}.suite-cad #paper text{font-family:Arial,sans-serif}@media(max-width:1180px){.suite-page.suite-cad>main.cad-home{margin-left:0;width:100%;padding:24px}}
 
 .panel-tabs button{flex:1;min-width:0;padding:12px 5px;font-size:12px}#templatesPanel{padding:12px}#templateSearch,#templateCategory{width:100%;min-width:0;margin-bottom:8px}#templateList .symbol-button{height:auto;min-height:58px;white-space:normal;text-align:left;width:100%;overflow-wrap:anywhere}#templateList strong{font-size:12px}#templateList small{font-size:10px}#templatePreview{text-align:center;background:white;border-radius:8px}#templateSelected{font-size:12px}#moreTemplates{width:100%;margin:10px 0}
+/* A quieter drawing desk with a resizable, visual component library. */
+.drawing-layout{--library-width:320px;grid-template-columns:var(--library-width) 7px minmax(0,1fr) 225px}
+.left-panel{padding:14px;min-width:0;background:#f8fafc;border-right:0}
+#librarySplitter{cursor:col-resize;background:#e1e7ef;touch-action:none;position:relative}
+#librarySplitter:hover,#librarySplitter:focus-visible{background:#7fa6db;outline:0}
+#librarySplitter:after{content:'';position:absolute;top:45%;left:2px;width:3px;height:36px;border-radius:3px;background:#9aacc1}
+#templatesPanel{padding:0}#templateList{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;align-items:stretch}
+.suite-cad .template-card{display:flex;flex-direction:column;align-items:stretch;min-width:0;padding:8px;text-align:left;gap:7px;background:white;border:1px solid #dce5ef;border-radius:10px;overflow:hidden}
+.template-picture{display:flex;align-items:center;justify-content:center;height:145px;background:#fff;border-bottom:1px solid #edf1f5;padding:5px}
+.template-picture img{width:100%;height:100%;object-fit:contain;display:block}
+.template-card strong{font-size:11px;line-height:1.4;overflow-wrap:anywhere;font-weight:600}
+.template-card small{font-size:9px;line-height:1.4;color:#78899c;overflow-wrap:anywhere}
+.template-badge{font-size:9px;line-height:1.5;color:#54728f;margin-top:auto}
+.suite-cad .template-card.active{border-color:#2463eb;box-shadow:0 0 0 1px #2463eb;background:#f5f9ff}
+#templateSelected,#templatePreview{display:none}#templateStatus{margin:6px 0 12px;font-size:10px}
+.panel-tabs{position:sticky;top:-14px;z-index:2;background:#f8fafc;padding:4px 0 10px;margin-bottom:8px}
+.editor-heading{padding:9px 16px}.editor-tools{padding:7px 12px}.canvas-caption{background:#f8fafc}.canvas-column{background:#e6ebf1}
+#paper{box-shadow:0 2px 12px #193a6218}.right-panel{padding:16px}.inspector-title{font-size:15px}
+@media(max-width:1180px) and (min-width:851px){.drawing-layout{grid-template-columns:min(var(--library-width),45vw) 7px minmax(0,1fr) 190px}}
+@media(max-width:850px){.drawing-layout{grid-template-columns:1fr}#librarySplitter{display:none}.left-panel{width:min(90vw,520px)}#templateList{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}}
