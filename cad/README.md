@@ -22,3 +22,14 @@ Browser-Smoke-Test: Beispiel speichern und nach Neuladen öffnen, Seite anlegen,
 
 ### Platzierungsvorschau
 Beim Einfügen folgt eine halbtransparente Vorschau dem Mauszeiger. Vorschau und Klick verwenden identische Rasterkoordinaten, Abmessungen und Drehungen. R oder die Drehen-Schaltfläche drehen das noch nicht platzierte Symbol. Esc beendet das Werkzeug. Die Vorschau wird beim Verlassen des Blatts ausgeblendet und weder gespeichert noch exportiert. Auf Touch-Geräten wird weiterhin durch Antippen platziert (kein Maus-Hover).
+
+## TinLine-Vorlagenbibliothek
+Der Tab **Vorlagen** enthält 1’136 konvertierte Vorlagen aus dem bereitgestellten ZIP: 519 Schema- und 617 Dispo-Vorlagen. Suche umfasst Namen und Ordner; Bereichsfilter trennt Schema und Dispo. Einzeldateien werden erst beim Auswählen geladen.
+
+Die ursprüngliche Geometrie wird als SVG-Vektorgruppe platziert, mit Vorschau am Mauszeiger, Rotation, Kopieren, Undo/Redo und Abmessungen in mm. Dispo-Vorlagen folgen dem Seitenmassstab; Schema-Vorlagen verwenden Blattmillimeter. Breite/Höhe beschreiben die gesamte konvertierte Begrenzung inklusive ursprünglicher Beschriftungen. Sehr grosse Makros müssen passend positioniert oder verkleinert werden. Mindestlinienstärke 0.75 Zeichenpunkte sichert die Lesbarkeit im verkleinerten Massstab.
+
+Vorlagen sind derzeit grafische Gruppen: ursprüngliche Texte (auch BMK-/QV-Platzhalter) sind Vektorpfade und nicht einzeln editierbar. Kennzeichen, Wert und zusätzliche Beschriftung werden ergänzend angezeigt. Es gibt noch keine elektrischen Anschlusspunkte oder automatisch aktualisierten Querverweise innerhalb dieser Vorlagen. Leitungen können mit freien Endpunkten ergänzt werden. Das ist kein allgemeiner DWG-/TinLine-Projektimport.
+
+Die ausgewählte Geometrie wird im Projekt und JSON-Backup eingebettet; spätere Änderungen am Katalog verändern bestehende Projekte nicht. SVG und PDF enthalten die platzierten Vorlagen. Nicht alle 5’209 DWGs des ZIP sind übernommen: ausgewählt wurden die Schema-, Aufbauplan- und eigenen Makroordner, nicht die gesamte Installations-/Herstellerbibliothek.
+
+Konvertierung und Quellen: `tools/tinline/README.md`. Prüfungen: `node --test tests/cad*.test.mjs`.

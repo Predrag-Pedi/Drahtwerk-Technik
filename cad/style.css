@@ -4,3 +4,5 @@
 @media(max-width:500px){.intro-art{display:none}.home-heading{flex-wrap:wrap}.editor-tools .spacer{display:none}.canvas-caption{font-size:10px}.cad-intro h2{font-size:25px}#dialogFields{grid-template-columns:1fr}.editor-tools button{font-size:10px}}
 
 .suite-page.suite-cad>main.cad-home{margin-left:var(--dw-sidebar);width:calc(100% - var(--dw-sidebar));padding:36px 40px}.suite-cad #paper text{font-family:Arial,sans-serif}@media(max-width:1180px){.suite-page.suite-cad>main.cad-home{margin-left:0;width:100%;padding:24px}}
+
+.panel-tabs button{flex:1;min-width:0;padding:12px 5px;font-size:12px}#templatesPanel{padding:12px}#templateSearch,#templateCategory{width:100%;min-width:0;margin-bottom:8px}#templateList .symbol-button{height:auto;min-height:58px;white-space:normal;text-align:left;width:100%;overflow-wrap:anywhere}#templateList strong{font-size:12px}#templateList small{font-size:10px}#templatePreview{text-align:center;background:white;border-radius:8px}#templateSelected{font-size:12px}#moreTemplates{width:100%;margin:10px 0}

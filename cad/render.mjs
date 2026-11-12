@@ -1,4 +1,5 @@
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-1';
+import {templateMarkup} from './template.mjs?v=20261112-3';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-3';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -18,10 +19,12 @@ export function glyph(kind){switch(kind){
  default:return '';
 }}
 export function elementMarkup(e,p,d){const [w,h]=size(e,p),s=symbols[e.kind];let body='';
- if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${glyph(e.kind)}</g>`;
+ if(e.kind==='template'&&e.template)body=templateMarkup(e.template,w,h);
+ else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
  else{body=`<rect width="${w}" height="${h}" fill="${e.kind==='duct'?'#f2f4f6':'white'}"/>`;if(e.kind==='cabinet')body+=`<rect x="5" y="5" width="${Math.max(1,w-10)}" height="${Math.max(1,h-10)}"/>`+text(w/2,-12,`${e.width} × ${e.height} mm`,'text-anchor="middle"');if(e.kind==='rail')body+=line(0,h/3,w,h/3)+line(0,2*h/3,w,2*h/3);if(e.kind==='module')body+=line(0,h*.3,w,h*.3);if(e.kind==='duct')for(let x=6;x<w;x+=9)body+=line(x,0,x,h*.3)+line(x,h*.7,x,h);if(e.text)body+=text(w/2,h/2,e.text,'text-anchor="middle" font-size="10"');}
+ if(e.kind==='template'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  if(e.tag)body+=text(-8,18,e.tag,'text-anchor="end" font-weight="bold"');if(e.value)body+=text(-8,33,e.value,'text-anchor="end"');if(s.ports.length&&e.kind!=='reference'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  if(e.kind==='reference'){const target=d.pages.find(p=>p.id===e.targetPage);body+=text(42,14,target?`${target.number}.${e.targetPath}`:'?','fill="#1d5bb5"');}
  return `<g data-element="${esc(e.id)}" transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}><rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>${body}</g>`;
