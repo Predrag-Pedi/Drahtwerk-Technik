@@ -1,8 +1,10 @@
-import {createElement,snap,symbols} from './model.mjs?v=20261112-1';
-import {elementMarkup} from './render.mjs?v=20261112-1';
-export function placement(page,kind,point,grid=true,rotation=0){
+import {createElement,snap,symbols} from './model.mjs?v=20261112-3';
+import {elementMarkup} from './render.mjs?v=20261112-3';
+export function placement(page,kind,point,grid=true,rotation=0,template=null){
  if(!point||!symbols[kind]||point.x<25||point.x>1175||point.y<35||point.y>760)return null;
+ if(kind==='template'&&!template)return null;
  const e=createElement(page,kind,point.x,point.y);
+ if(template&&kind==='template'){e.template=template;e.width=template.width;e.height=template.height;}
  e.x=snap(point.x,grid);e.y=snap(point.y,grid);e.rotation=rotation;
  return e;
 }
