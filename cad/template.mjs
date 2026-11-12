@@ -1,6 +1,6 @@
-import {pathHash,validateDetails} from './template-text.mjs?v=20261112-11';
-import {frame,macroScale} from './alignment.mjs?v=20261112-11';
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261112-11';
+import {pathHash,validateDetails} from './template-text.mjs?v=20261112-12';
+import {frame,macroScale} from './alignment.mjs?v=20261112-12';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261112-12';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};
@@ -15,15 +15,15 @@ export function validateTemplate(raw){
  return {...semantic,...(raw.details?{details:validateDetails(raw.details,fail)}:{}),id:str(raw.id),name:str(raw.name),category:raw.category==='Dispo'?'Dispo':'Schema',group:str(raw.group),source:str(raw.source),width:number(raw.width,10000),height:number(raw.height,10000),viewWidth:number(raw.viewWidth),viewHeight:number(raw.viewHeight),paths:raw.paths.map(p=>{if(typeof p.d!=='string'||!p.d.length||p.d.length>500000||!safePath.test(p.d)||(chars+=p.d.length)>5000000)fail();if(!['none','#000000','#ffffff'].includes(p.fill)||!['none','#000000','#ffffff'].includes(p.stroke)||!Number.isFinite(p.sw)||p.sw<0||p.sw>1e6)fail();return {d:p.d,fill:p.fill,stroke:p.stroke,sw:p.sw};})};
 }
 const escapeText=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function templateMarkup(t,w,h,labelValues={},edits={},editor=false){
+export function templateMarkup(t,w,h,labelValues={},edits={},editor=false,lineHits=''){
  const hidden=new Set((t.details?.texts||[]).filter(l=>Object.hasOwn(edits,l.key)).flatMap(l=>l.hashes));
  const graphic=t.paths.filter(p=>!hidden.size||!hidden.has(pathHash(p.d))).map(p=>`<path d="${p.d}" fill="${p.fill}" stroke="${p.stroke}" stroke-width="${Math.max(p.sw,.75/Math.min(w/t.viewWidth,h/t.viewHeight))}"/>`).join('');
- let texts=(t.labels||[]).map(l=>`<text ${editor?`data-template-text="bmk:${escapeText(l.key)}"`:''} transform="matrix(${l.matrix.join(' ')})" font-family="Arial,sans-serif" font-size="${l.fontSize}" fill="#000000" stroke="none">${escapeText(edits['bmk:'+l.key]??labelValues[l.key]??l.text)}</text>`).join('');
+ let texts=(t.labels||[]).map(l=>`<text ${editor?`data-template-text="bmk:${escapeText(l.key)}" pointer-events="all"`:''} transform="matrix(${l.matrix.join(' ')})" font-family="Arial,sans-serif" font-size="${l.fontSize}" fill="#000000" stroke="none">${escapeText(edits['bmk:'+l.key]??labelValues[l.key]??l.text)}</text>`).join('');
  for(const l of t.details?.texts||[]){const edited=Object.hasOwn(edits,l.key);const lines=(edited?edits[l.key]:l.text).split('\n');
  if(edited)lines.forEach((text,i)=>{const r=l.runs[i]||l.runs[0];if(!r)return;texts+=`<text transform="matrix(${r.matrix.join(' ')})" y="${i>=l.runs.length?i*r.fontSize*1.2:0}" font-family="Arial,sans-serif" font-size="${r.fontSize}" fill="#000000" stroke="none">${escapeText(text)}</text>`;});
  if(editor)l.runs.forEach((r,i)=>{const len=Math.max(r.text.length,lines[i]?.length||0,1);texts+=`<rect data-template-text="${escapeText(l.key)}" transform="matrix(${r.matrix.join(' ')})" x="0" y="${-r.fontSize}" width="${len*r.fontSize*.63}" height="${r.fontSize*1.25}" fill="transparent" stroke="none" pointer-events="all"/>`;});
  }
- return `<svg width="${w}" height="${h}" viewBox="0 0 ${t.viewWidth} ${t.viewHeight}" overflow="visible" preserveAspectRatio="none"><g stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd">${graphic}${texts}</g></svg>`;
+ return `<svg width="${w}" height="${h}" viewBox="0 0 ${t.viewWidth} ${t.viewHeight}" overflow="visible" preserveAspectRatio="none"><g stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd">${graphic}${lineHits}${texts}</g></svg>`;
 }
 export function templateSize(e,page){const f=frame(e),scale=macroScale(e);if(f)return [f.viewWidth/f.unit*scale.x,f.viewHeight/f.unit*scale.y];const factor=MM/(e.template.category==='Dispo'?page.scale:1);return [e.width*factor,e.height*factor];}
 export function templateLabels(e,p){

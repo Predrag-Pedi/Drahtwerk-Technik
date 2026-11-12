@@ -1,9 +1,9 @@
-import {validateConnections} from './continuations.mjs?v=20261112-11';
-import {validateTextEdits} from './template-text.mjs?v=20261112-11';
-import {functionKeys,validateFunctions} from './references.mjs?v=20261112-11';
-import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261112-11';
+import {validateConnections} from './continuations.mjs?v=20261112-12';
+import {validateTextEdits} from './template-text.mjs?v=20261112-12';
+import {functionKeys,validateFunctions} from './references.mjs?v=20261112-12';
+import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261112-12';
 export {W,H};
-import {validateTemplate,templateSize} from './template.mjs?v=20261112-11';
+import {validateTemplate,templateSize} from './template.mjs?v=20261112-12';
 export const uid=()=>crypto.randomUUID();
 export const clone=v=>structuredClone(v);
 export const GRID=10;
