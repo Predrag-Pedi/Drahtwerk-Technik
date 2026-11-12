@@ -19,3 +19,6 @@ Kein Ersatz für den vollständigen TinLine-Funktionsumfang: vereinfachte Symbol
 `node --test tests/cad.test.mjs`
 
 Browser-Smoke-Test: Beispiel speichern und nach Neuladen öffnen, Seite anlegen, FI/LS platzieren, Verbindung zeichnen, Undo/Redo, Dispo ansehen, direkter PDF-Download. Die beigefügten Kundenpläne werden nicht als Testdaten im Repository gespeichert.
+
+### Platzierungsvorschau
+Beim Einfügen folgt eine halbtransparente Vorschau dem Mauszeiger. Vorschau und Klick verwenden identische Rasterkoordinaten, Abmessungen und Drehungen. R oder die Drehen-Schaltfläche drehen das noch nicht platzierte Symbol. Esc beendet das Werkzeug. Die Vorschau wird beim Verlassen des Blatts ausgeblendet und weder gespeichert noch exportiert. Auf Touch-Geräten wird weiterhin durch Antippen platziert (kein Maus-Hover).
