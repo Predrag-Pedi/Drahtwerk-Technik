@@ -1,6 +1,8 @@
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261112-6';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261112-6';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-6';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261112-7';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261112-7';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261112-7';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261112-7';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-7';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -20,19 +22,19 @@ export function glyph(kind){switch(kind){
  default:return '';
 }}
 export function elementMarkup(e,p,d){const [w,h]=size(e,p),s=symbols[e.kind];let body='';
- if(e.kind==='template'&&e.template)body=templateMarkup(e.template,w,h,templateLabels(e,p));
- else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${glyph(e.kind)}</g>`;
+ if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))if(functionData(e,key).role!=='none')labels[key]=functionBmk(d,p,e,key);body=templateMarkup(e.template,w,h,labels);}
+ else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
  else{body=`<rect width="${w}" height="${h}" fill="${e.kind==='duct'?'#f2f4f6':'white'}"/>`;if(e.kind==='cabinet')body+=`<rect x="5" y="5" width="${Math.max(1,w-10)}" height="${Math.max(1,h-10)}"/>`+text(w/2,-12,`${e.width} × ${e.height} mm`,'text-anchor="middle"');if(e.kind==='rail')body+=line(0,h/3,w,h/3)+line(0,2*h/3,w,2*h/3);if(e.kind==='module')body+=line(0,h*.3,w,h*.3);if(e.kind==='duct')for(let x=6;x<w;x+=9)body+=line(x,0,x,h*.3)+line(x,h*.7,x,h);if(e.text)body+=text(w/2,h/2,e.text,'text-anchor="middle" font-size="10"');}
  if(e.kind==='template'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
- if(e.tag)body+=text(-8,18,e.tag,'text-anchor="end" font-weight="bold"');if(e.value)body+=text(-8,33,e.value,'text-anchor="end"');if(s.ports.length&&e.kind!=='reference'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
+ const tag=e.template?e.tag:functionBmk(d,p,e);if(tag)body+=text(-8,18,tag,'text-anchor="end" font-weight="bold"');if(e.value)body+=text(-8,33,e.value,'text-anchor="end"');if(s.ports.length&&e.kind!=='reference'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  if(e.kind==='reference'){const target=d.pages.find(p=>p.id===e.targetPage);body+=text(42,14,target?`${target.number}.${e.targetPath}`:'?','fill="#1d5bb5"');}
  let connections='';
  if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/></g>`;}}
  return connections+`<g data-element="${esc(e.id)}" transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}><rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>${body}</g>`;
 }
-export function svgPage(d,p,{editor=false,selected=null,grid=true}={}){
+export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=false}={}){
  let body='';if(editor&&grid&&p.grid)body+='<defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r=".65" fill="#b6c5d5"/></pattern></defs><rect x="40" y="40" width="1120" height="750" fill="url(#grid)" stroke="none"/>';
  body+='<rect x="25" y="25" width="1150" height="798" fill="none" stroke-width="1.5"/>';
  for(let n=0;n<10;n++){const x=40+n*112;body+=text(x+56,20,n,'text-anchor="middle" font-size="13"');}
@@ -42,8 +44,19 @@ export function svgPage(d,p,{editor=false,selected=null,grid=true}={}){
  if(p.type==='cover'){body+=text(110,180,'ELEKTROSCHEMA','font-size="36" font-weight="bold"')+text(110,240,d.name,'font-size="22"');[['Objekt',d.address],['Kunde',d.customer],['Auftrag',d.order],['Schema',d.schema],['Bearbeitet',d.author],['Seiten',d.pages.length]].forEach(([k,v],i)=>{body+=text(110,320+i*48,k,'fill="#60758a"')+text(300,320+i*48,v,'font-size="17"');});}
  if(p.type==='index'){body+=text(100,130,'Inhaltsverzeichnis','font-size="30" font-weight="bold"');const columns=Math.ceil(d.pages.length/40),cw=1000/columns;d.pages.forEach((q,i)=>{const x=100+Math.floor(i/40)*cw,y=180+(i%40)*14;body+=text(x,y,q.number,'font-size="10"')+text(x+35,y,q.title.length>Math.floor((cw-45)/5)?q.title.slice(0,Math.floor((cw-45)/5)-1)+'…':q.title,'font-size="10"');});}
  if(p.type==='schema'&&p.bus)for(let n=0;n<4;n++){const by=Object.values(BUS)[n];body+=`<g ${n===3?'stroke-dasharray="8 5"':''}>${line(60,by,1140,by)}</g>`+text(45,by-4,['L1','L2','L3','N'][n],'font-size="10"');}
- body+=p.wires.map(w=>{const pts=wirePoints(p,w);return `<g data-wire="${esc(w.id)}"><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" stroke="transparent" stroke-width="12" fill="none"/><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="${selected===w.id?'#2463eb':'#182c42'}" ${w.dashed?'stroke-dasharray="7 5"':''}/>${w.label?text(pts[0].x+5,pts[0].y-7,w.label):''}</g>`;}).join('');
+ const wireMarkup=w=>{const pts=wirePoints(p,w);return `<g data-wire="${esc(w.id)}"><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" stroke="transparent" stroke-width="12" fill="none"/><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="${selected===w.id?'#2463eb':w.stroke||'#182c42'}" stroke-width="${w.strokeWidth||1.4}" ${w.dashed?'stroke-dasharray="7 5"':''}/>${w.label?text(pts[0].x+5,pts[0].y-7,w.label):''}</g>`;};
+ body+=p.wires.filter(w=>!w.direct).map(wireMarkup).join('');
  body+=p.elements.map(e=>elementMarkup(e,p,d)).join('');
- if(editor){for(const e of p.elements){for(const pt of ports(e,p))body+=`<circle class="port" data-port="${esc(e.id)}:${pt.index}" cx="${pt.x}" cy="${pt.y}" r="4" fill="#fff" stroke="#4090da"/>`;if(e.id===selected){const [w,h]=size(e,p);body+=`<rect x="${e.x-7}" y="${e.y-7}" width="${w+14}" height="${h+14}" transform="rotate(${e.rotation} ${e.x+w/2} ${e.y+h/2})" fill="none" stroke="#2463eb" stroke-width="2" stroke-dasharray="5 4" pointer-events="none"/>`;}}}
- return `<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p.title)}" style="background:white;color:#182c42;font-family:Arial,sans-serif;font-size:12px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><style>text{stroke:none} text:not([fill]){fill:#182c42} .port{opacity:.4}.port:hover{opacity:1;stroke-width:3}</style>${body}</g></svg>`;
+ body+=p.wires.filter(w=>w.direct).map(wireMarkup).join('');
+ body+=p.elements.map(e=>referenceMarkup(d,p,e)).join('');
+ if(editor){
+ if(lineMode)for(const e of p.elements.filter(e=>e.template))templateLines(e.template).forEach((l,i)=>{const [a,b]=linePoints(e,p,l);body+=`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${a.x} ${a.y} L ${b.x} ${b.y}" stroke="transparent" stroke-width="7" pointer-events="stroke"/>`;});
+ const chosen=p.wires.find(w=>w.id===selected);if(chosen){const pts=wirePoints(p,chosen);for(const [index,pt] of [[0,pts[0]],[1,pts.at(-1)]])body+=`<circle data-wire-handle="${esc(chosen.id)}:${index}" cx="${pt.x}" cy="${pt.y}" r="5" fill="white" stroke="#2463eb" stroke-width="2"/>`;}
+ for(const e of p.elements){for(const pt of ports(e,p))body+=`<circle class="port" data-port="${esc(e.id)}:${pt.index}" cx="${pt.x}" cy="${pt.y}" r="4" fill="#fff" stroke="#4090da"/>`;if(e.id===selected){const [w,h]=size(e,p);body+=`<rect x="${e.x-7}" y="${e.y-7}" width="${w+14}" height="${h+14}" transform="rotate(${e.rotation} ${e.x+w/2} ${e.y+h/2})" fill="none" stroke="#2463eb" stroke-width="2" stroke-dasharray="5 4" pointer-events="none"/>`;}}}
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p.title)}" style="background:white;color:#182c42;font-family:Arial,sans-serif;font-size:12px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><style>text{stroke:none} text:not([fill]){fill:#182c42} .template-line-hit:hover{stroke:#2463eb;stroke-opacity:.6}.port{opacity:.4}.port:hover{opacity:1;stroke-width:3}</style>${body}</g></svg>`;
 }
+
+function referenceMarkup(d,p,e){let out='';for(const key of functionKeys(e)){const f=functionData(e,key);if(f.role==='none')continue;const anchor=functionPoint(e,p,key),x=e.template?anchor.x+15:e.x+e.width+12,y=e.template?anchor.y:e.y+e.height+12;
+ if(f.role==='contact'){const owner=findFunction(d,f.owner),ref=f.referenceOverride||(owner?.data.role==='coil'?referenceLocation(owner.element,owner.page,owner.key):f.owner?'Zuordnung fehlt':'nicht zugeordnet');out+=text(x,y,`→ ${ref}`,'font-size="10" fill="#1d5bb5"');}
+ if(f.role==='coil'){const contacts=contactsFor(d,p,e,key);if(!contacts.length)continue;const mx=x+(f.mirrorX||0),my=y+(f.mirrorY||0);out+=`<g data-contact-mirror="${esc(e.id)}" fill="none" stroke="#52677e" stroke-width=".7"><rect x="${mx-4}" y="${my-12}" width="160" height="${20+contacts.length*18}" fill="white"/>${text(mx,my,'Kontaktspiegel · '+functionBmk(d,p,e,key),'font-size="9"')}`;contacts.forEach((c,i)=>{const yy=my+18*(i+1),type=c.data.contactType||'NO';out+=path(`M${mx+3} ${yy-5}h6 M${mx+18} ${yy-5}h7 M${mx+9} ${yy-5}l8 -5`);if(type==='NC')out+=path(`M${mx+14} ${yy-10}v10`);if(type==='CO')out+=path(`M${mx+18} ${yy-12}h7`);out+=text(mx+31,yy,`${type} ${c.data.terminals||''}`,'font-size="9"')+text(mx+107,yy,c.data.mirrorReferenceOverride||referenceLocation(c.element,c.page,c.key),'font-size="9" fill="#1d5bb5"');});out+='</g>';}
+ }return out;}
