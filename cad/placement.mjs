@@ -1,7 +1,7 @@
-import {alignMacro} from './alignment.mjs?v=20261112-12';
-import {DRAW,BUS,bounds} from './geometry.mjs?v=20261112-12';
-import {createElement,snap,symbols,size} from './model.mjs?v=20261112-12';
-import {elementMarkup} from './render.mjs?v=20261112-12';
+import {alignMacro} from './alignment.mjs?v=20261112-13';
+import {DRAW,BUS,bounds} from './geometry.mjs?v=20261112-13';
+import {createElement,snap,symbols,size} from './model.mjs?v=20261112-13';
+import {elementMarkup} from './render.mjs?v=20261112-13';
 export function placement(page,kind,point,grid=true,rotation=0,template=null,autoConnect=true){
  if(!point||!symbols[kind]||point.x<DRAW.left||point.x>DRAW.right||point.y<DRAW.top||point.y>DRAW.bottom)return null;
  if(kind==='template'&&!template)return null;
