@@ -1,5 +1,6 @@
-import {templateMarkup} from './template.mjs?v=20261112-3';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-3';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261112-4';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261112-4';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261112-4';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -19,7 +20,7 @@ export function glyph(kind){switch(kind){
  default:return '';
 }}
 export function elementMarkup(e,p,d){const [w,h]=size(e,p),s=symbols[e.kind];let body='';
- if(e.kind==='template'&&e.template)body=templateMarkup(e.template,w,h);
+ if(e.kind==='template'&&e.template)body=templateMarkup(e.template,w,h,templateLabels(e,p));
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
@@ -27,20 +28,22 @@ export function elementMarkup(e,p,d){const [w,h]=size(e,p),s=symbols[e.kind];let
  if(e.kind==='template'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  if(e.tag)body+=text(-8,18,e.tag,'text-anchor="end" font-weight="bold"');if(e.value)body+=text(-8,33,e.value,'text-anchor="end"');if(s.ports.length&&e.kind!=='reference'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  if(e.kind==='reference'){const target=d.pages.find(p=>p.id===e.targetPage);body+=text(42,14,target?`${target.number}.${e.targetPath}`:'?','fill="#1d5bb5"');}
- return `<g data-element="${esc(e.id)}" transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}><rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>${body}</g>`;
+ let connections='';
+ if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/></g>`;}}
+ return connections+`<g data-element="${esc(e.id)}" transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}><rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>${body}</g>`;
 }
 export function svgPage(d,p,{editor=false,selected=null,grid=true}={}){
- let body='';if(editor&&grid&&p.grid)body+='<defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r=".65" fill="#b6c5d5"/></pattern></defs><rect x="40" y="40" width="1120" height="720" fill="url(#grid)" stroke="none"/>';
+ let body='';if(editor&&grid&&p.grid)body+='<defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r=".65" fill="#b6c5d5"/></pattern></defs><rect x="40" y="40" width="1120" height="750" fill="url(#grid)" stroke="none"/>';
  body+='<rect x="25" y="25" width="1150" height="798" fill="none" stroke-width="1.5"/>';
  for(let n=0;n<10;n++){const x=40+n*112;body+=text(x+56,20,n,'text-anchor="middle" font-size="13"');}
  for(let n=0;n<6;n++)body+=text(12,95+n*120,'ABCDEF'[n],'text-anchor="middle"');
- body+=line(25,770,1175,770)+line(350,770,350,823)+line(740,770,740,823)+line(1030,770,1030,823);
- body+=text(40,789,'DRAHTWERK','font-size="17" font-weight="bold" fill="#173f70"')+text(40,807,`${d.author||'Gezeichnet'} · ${d.date}`,'font-size="11"')+text(365,791,d.name,'font-weight="bold"')+text(365,810,p.title)+text(755,791,`Auftrag: ${d.order||'–'}   Schema: ${d.schema||'–'}`,'font-size="11"')+text(755,810,p.type==='dispo'?`Massstab 1:${p.scale} · Masse in mm`:'Elektroschema · Strompfade 0–9','font-size="11"')+text(1045,792,`Blatt ${p.number}`,'font-size="16" font-weight="bold"')+text(1045,811,`${d.pages.indexOf(p)+1} / ${d.pages.length}`,'font-size="11"');
+ body+=line(25,790,1175,790)+line(350,790,350,823)+line(740,790,740,823)+line(1030,790,1030,823);
+ body+=text(40,803,'DRAHTWERK','font-size="13" font-weight="bold" fill="#173f70"')+text(40,817,`${d.author||'Gezeichnet'} · ${d.date}`,'font-size="11"')+text(365,803,d.name,'font-weight="bold"')+text(365,817,p.title)+text(755,803,`Auftrag: ${d.order||'–'}   Schema: ${d.schema||'–'}`,'font-size="11"')+text(755,817,p.type==='dispo'?`Massstab 1:${p.scale} · Masse in mm`:'Elektroschema · Strompfade 0–9','font-size="11"')+text(1045,803,`Blatt ${p.number}`,'font-size="13" font-weight="bold"')+text(1045,817,`${d.pages.indexOf(p)+1} / ${d.pages.length}`,'font-size="11"');
  if(p.type==='cover'){body+=text(110,180,'ELEKTROSCHEMA','font-size="36" font-weight="bold"')+text(110,240,d.name,'font-size="22"');[['Objekt',d.address],['Kunde',d.customer],['Auftrag',d.order],['Schema',d.schema],['Bearbeitet',d.author],['Seiten',d.pages.length]].forEach(([k,v],i)=>{body+=text(110,320+i*48,k,'fill="#60758a"')+text(300,320+i*48,v,'font-size="17"');});}
  if(p.type==='index'){body+=text(100,130,'Inhaltsverzeichnis','font-size="30" font-weight="bold"');const columns=Math.ceil(d.pages.length/40),cw=1000/columns;d.pages.forEach((q,i)=>{const x=100+Math.floor(i/40)*cw,y=180+(i%40)*14;body+=text(x,y,q.number,'font-size="10"')+text(x+35,y,q.title.length>Math.floor((cw-45)/5)?q.title.slice(0,Math.floor((cw-45)/5)-1)+'…':q.title,'font-size="10"');});}
- if(p.type==='schema'&&p.bus)for(let n=0;n<4;n++){body+=`<g ${n===3?'stroke-dasharray="8 5"':''}>${line(60,80+n*20,1140,80+n*20)}</g>`+text(45,76+n*20,['L1','L2','L3','N'][n],'font-size="10"');}
+ if(p.type==='schema'&&p.bus)for(let n=0;n<4;n++){const by=Object.values(BUS)[n];body+=`<g ${n===3?'stroke-dasharray="8 5"':''}>${line(60,by,1140,by)}</g>`+text(45,by-4,['L1','L2','L3','N'][n],'font-size="10"');}
  body+=p.wires.map(w=>{const pts=wirePoints(p,w);return `<g data-wire="${esc(w.id)}"><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" stroke="transparent" stroke-width="12" fill="none"/><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="${selected===w.id?'#2463eb':'#182c42'}" ${w.dashed?'stroke-dasharray="7 5"':''}/>${w.label?text(pts[0].x+5,pts[0].y-7,w.label):''}</g>`;}).join('');
  body+=p.elements.map(e=>elementMarkup(e,p,d)).join('');
  if(editor){for(const e of p.elements){for(const pt of ports(e,p))body+=`<circle class="port" data-port="${esc(e.id)}:${pt.index}" cx="${pt.x}" cy="${pt.y}" r="4" fill="#fff" stroke="#4090da"/>`;if(e.id===selected){const [w,h]=size(e,p);body+=`<rect x="${e.x-7}" y="${e.y-7}" width="${w+14}" height="${h+14}" transform="rotate(${e.rotation} ${e.x+w/2} ${e.y+h/2})" fill="none" stroke="#2463eb" stroke-width="2" stroke-dasharray="5 4" pointer-events="none"/>`;}}}
- return `<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="296.8mm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p.title)}" style="background:white;color:#182c42;font-family:Arial,sans-serif;font-size:12px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><style>text{stroke:none} text:not([fill]){fill:#182c42} .port{opacity:.4}.port:hover{opacity:1;stroke-width:3}</style>${body}</g></svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p.title)}" style="background:white;color:#182c42;font-family:Arial,sans-serif;font-size:12px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><style>text{stroke:none} text:not([fill]){fill:#182c42} .port{opacity:.4}.port:hover{opacity:1;stroke-width:3}</style>${body}</g></svg>`;
 }
