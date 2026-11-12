@@ -1,7 +1,7 @@
-import {functionKeys,validateFunctions} from './references.mjs?v=20261112-7';
-import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261112-7';
+import {functionKeys,validateFunctions} from './references.mjs?v=20261112-8';
+import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261112-8';
 export {W,H};
-import {validateTemplate,templateSize} from './template.mjs?v=20261112-7';
+import {validateTemplate,templateSize} from './template.mjs?v=20261112-8';
 export const uid=()=>crypto.randomUUID();
 export const clone=v=>structuredClone(v);
 export const GRID=10;
