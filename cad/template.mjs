@@ -1,4 +1,5 @@
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261112-4';
+import {frame,macroScale} from './alignment.mjs?v=20261112-5';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261112-5';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};
@@ -14,7 +15,7 @@ export function validateTemplate(raw){
 }
 const escapeText=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function templateMarkup(t,w,h,labelValues={}){return `<svg width="${w}" height="${h}" viewBox="0 0 ${t.viewWidth} ${t.viewHeight}" overflow="visible" preserveAspectRatio="none"><g stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd">${t.paths.map(p=>`<path d="${p.d}" fill="${p.fill}" stroke="${p.stroke}" stroke-width="${Math.max(p.sw,.75/Math.min(w/t.viewWidth,h/t.viewHeight))}"/>`).join('')}${(t.labels||[]).map(l=>`<text transform="matrix(${l.matrix.join(' ')})" font-family="Arial,sans-serif" font-size="${l.fontSize}" fill="#000000" stroke="none">${escapeText(labelValues[l.key]??l.text)}</text>`).join('')}</g></svg>`;}
-export function templateSize(e,page){const factor=MM/(e.template.category==='Dispo'?page.scale:1);return [e.width*factor,e.height*factor];}
+export function templateSize(e,page){const f=frame(e),scale=macroScale(e);if(f)return [f.viewWidth/f.unit*scale.x,f.viewHeight/f.unit*scale.y];const factor=MM/(e.template.category==='Dispo'?page.scale:1);return [e.width*factor,e.height*factor];}
 export function templateLabels(e,p){
  const used=new Map(),result={};
  // Derive consistently from geometry, so page renumbering, moving and Undo update labels too.

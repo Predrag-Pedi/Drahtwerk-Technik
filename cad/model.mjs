@@ -1,6 +1,6 @@
-import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261112-4';
+import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261112-5';
 export {W,H};
-import {validateTemplate,templateSize} from './template.mjs?v=20261112-4';
+import {validateTemplate,templateSize} from './template.mjs?v=20261112-5';
 export const uid=()=>crypto.randomUUID();
 export const clone=v=>structuredClone(v);
 export const GRID=10;
