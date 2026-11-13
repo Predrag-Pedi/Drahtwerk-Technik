@@ -1,6 +1,6 @@
-import {frame} from './alignment.mjs?v=20261113-19';
-import {localPoint} from './geometry.mjs?v=20261113-19';
-import {templateSize} from './template.mjs?v=20261113-19';
+import {frame} from './alignment.mjs?v=20261113-20';
+import {localPoint} from './geometry.mjs?v=20261113-20';
+import {templateSize} from './template.mjs?v=20261113-20';
 // Normalize SVG segments without turning text outlines or filled masks into conductors.
 export function pathSegments(d){
  const tokens=d.match(/[a-df-z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/ig)||[],out=[];

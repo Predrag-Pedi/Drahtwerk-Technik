@@ -1,4 +1,4 @@
-import {trimContinuationTails} from './line-edit.mjs?v=20261113-19';
+import {trimContinuationTails} from './line-edit.mjs?v=20261113-20';
 // A reversible view of the original meter macro, with every outgoing phase ending
 // at its own continuation junction. The original geometry remains in the project.
 export function continuationCut(e){const ends=e.template?.details?.ends;if(!e.continuationOnly||e.rotation!==0||!e.template?.labels?.some(l=>l.letter==='P')||!ends?.length)return null;return Math.max(...ends.map(a=>a.y))+8;}

@@ -1,8 +1,9 @@
-import {frame,sourcePoint} from './alignment.mjs?v=20261113-19';
-import {frameLayout} from './frame-layout.mjs?v=20261113-19';
-import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-19';
-import {createElement,W} from './model.mjs?v=20261113-19';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-19';
+import {DRAW} from './geometry.mjs?v=20261113-20';
+import {frame,sourcePoint} from './alignment.mjs?v=20261113-20';
+import {frameLayout} from './frame-layout.mjs?v=20261113-20';
+import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-20';
+import {createElement,W} from './model.mjs?v=20261113-20';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-20';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -56,7 +57,7 @@ export function layoutDevices(devices,config){
 export function planDispo(devices,c){return c.construction==='drahtwerk'?frameLayout(devices,validateDispoConfig(c)):layoutDevices(devices,c);}
 export function generateDispo(p,devices,config){
  const c=validateDispoConfig(config),layout=planDispo(devices,c);if(layout.overflow.length)throw Error(`Kein Platz für ${layout.overflow.map(d=>d.tag).join(', ')}. Schrank vergrössern, Felder ergänzen oder Geräteauswahl anpassen.`);
- const required=Math.max(c.width/350,c.height/225),scale=p.elements.some(e=>!e.generatedDispo)?p.scale:([1,2,5,10,20,50,100].find(s=>s>=required)||100),factor=W/420/scale,origin={x:100,y:90};
+ const required=Math.max(c.width/350,c.height/225),scale=p.elements.some(e=>!e.generatedDispo)?p.scale:([1,2,5,10,20,50,100].find(s=>s>=required)||100),factor=W/420/scale,origin={x:(DRAW.left+DRAW.right-c.width*factor)/2,y:(DRAW.top+DRAW.bottom-c.height*factor)/2};
  const elements=[];
  const add=(kind,x,y,width,height,extra={})=>{const e=createElement(p,kind,0,0);Object.assign(e,{x:origin.x+x*factor,y:origin.y+y*factor,width,height,generatedDispo:true,...extra});elements.push(e);return e;};
  add('cabinet',0,0,c.width,c.height,{depth:c.depth,text:'',dispoFrame:c.frame,frameStyle:c.construction});
