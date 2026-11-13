@@ -1,5 +1,6 @@
-import {localPoint} from './geometry.mjs?v=20261113-11';
-import {templateSize} from './template.mjs?v=20261113-11';
+import {frame} from './alignment.mjs?v=20261113-12';
+import {localPoint} from './geometry.mjs?v=20261113-12';
+import {templateSize} from './template.mjs?v=20261113-12';
 // Normalize SVG segments without turning text outlines or filled masks into conductors.
 export function pathSegments(d){
  const tokens=d.match(/[a-df-z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/ig)||[],out=[];
@@ -29,4 +30,14 @@ export function detachLine(page,e,index,id){
  const anchors=[l.a,l.b].map(q=>({x:q.x/e.template.viewWidth,y:q.y/e.template.viewHeight}));
  for(const other of page.wires)for(const key of ['from','to']){const ref=other[key];if(ref?.element!==e.id||!ref.local)continue;const index=anchors.findIndex(a=>Math.abs(a.x-ref.local.x)<1e-8&&Math.abs(a.y-ref.local.y)<1e-8);if(index>=0)other[key]={wire:id,index};}
  wire.from={element:e.id,local:anchors[0]};wire.to={element:e.id,local:anchors[1]};e.template={...e.template,paths};page.wires.push(wire);return wire;
+}
+// Shorten only a known vertical conductor at an assigned outgoing continuation.
+export function trimContinuationTails(doc,page,e){
+ const anchors=(doc.links||[]).flatMap(l=>[l.a,l.b]).filter(a=>a.page===page.id&&a.element===e.id&&a.kind==='template').map(a=>e.template?.details?.ends?.find(t=>t.key===a.key)).filter(Boolean);if(!anchors.length)return 0;
+ let count=0;const paths=e.template.paths.map(path=>{if(path.stroke==='none'||path.fill!=='none')return path;let changed=false;const segments=pathSegments(path.d).map(s=>{if(!s.line||Math.abs(s.a.x-s.b.x)>.01||Math.abs(s.a.y-s.b.y)<e.template.viewHeight*.1)return s;
+  const matching=anchors.filter(a=>a.x>=s.a.x&&a.x-s.a.x<e.template.viewWidth*.6&&a.y>Math.min(s.a.y,s.b.y)+1&&a.y<Math.max(s.a.y,s.b.y)-1).sort((a,b)=>a.x-s.a.x-(b.x-s.a.x));
+  // Prefer phase-matched source geometry; unknown lines are left untouched.
+  const f=frame(e),line=f?.lines?.find(l=>matching.some(a=>a.phase===l.phase)&&Math.abs(l.x1-l.x2)<.001&&Math.abs((f.x+l.x1*f.unit)-s.a.x)<2);if(!line)return s;const a=matching.find(a=>a.phase===line.phase);
+  if(page.wires.some(w=>[w.from,w.to].some(r=>r?.element===e.id&&r.local&&Math.abs(r.local.x*e.template.viewWidth-s.a.x)<2&&r.local.y*e.template.viewHeight>a.y)))return s;
+  changed=true;count++;const top=s.a.y<s.b.y?s.a:s.b;return {...s,a:top,b:{x:top.x,y:a.y},d:`L ${top.x} ${a.y}`};});return changed?{...path,d:segments.map(s=>`M ${s.a.x} ${s.a.y} ${s.d}`).join(' ')}:path;});if(count)e.template={...e.template,paths};return count;
 }

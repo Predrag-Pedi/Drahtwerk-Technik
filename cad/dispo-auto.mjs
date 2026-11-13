@@ -1,6 +1,6 @@
-import {validateTemplate} from './template.mjs?v=20261113-11';
-import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-11';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-11';
+import {validateTemplate} from './template.mjs?v=20261113-12';
+import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-12';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-12';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  const text=d.name||'',amp=d.current||Number(text.match(/\b(\d+)\s*A\b/i)?.[1]);
@@ -22,15 +22,16 @@ export function templateTextEdits(t,d){
  return edits;
 }
 export async function buildAutomaticDispo(doc,p,fetcher=fetch){
- const {devices,warnings}=schemaDevices(doc),selected=devices.filter(d=>d.include!==false&&(d.kind!=='terminal'||d.incoming));
+ const c={...defaultConfig(),...p.dispoConfig};
+ const {devices,warnings}=schemaDevices(doc);for(const d of devices)if(['ls','fils'].includes(d.kind)&&c.breakerManufacturer!=='auto'){d.manufacturer=c.breakerManufacturer;d.lsMode='allpole';}
+ const selected=devices.filter(d=>d.include!==false&&(d.kind!=='terminal'||d.incoming));
  if(!selected.length)throw Error('Keine Geräte im Schema erkannt.');
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261113-11');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const get=async path=>{const r=await fetcher(path+'?v=20261113-12');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
  const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set(ids)].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.kind!=='meter'&&d.kind!=='fuse'){d.width=t.width;d.height=t.height;}d.confirmed=false;}
- const c={...defaultConfig(),...p.dispoConfig};
  const g=generateDispo(p,selected,c),bySource=new Map(selected.map((d,i)=>[JSON.stringify(d.source),templates.get(ids[i])])),choices=new Map();
  // Assembly retains the original layout geometry in 3D; each source is resolved separately
  // so RSE and ordinary meters of identical dimensions never share a mistaken mapping.

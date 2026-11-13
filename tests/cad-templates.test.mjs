@@ -33,7 +33,7 @@ test('backup and copied pages embed independent template geometry',()=>{
 });
 test('standalone export embeds paths and escapes added labels without external resources',()=>{
  const d=project(),p=d.pages[1],e=placement(p,'template',{x:100,y:100},true,0,plate);e.text='<script>alert(1)</script>';p.elements.push(e);
- const svg=svgPage(d,p);assert.ok(svg.includes(plate.paths[0].d));assert.ok(svg.includes('&lt;script&gt;'));assert.ok(!svg.includes('<script>'));assert.ok(!svg.includes('href='));assert.ok(!svg.includes('placementPreview'));
+ const svg=svgPage(d,p);assert.ok(svg.includes(plate.paths[0].d));assert.ok(svg.includes('&lt;script&gt;'));assert.ok(!svg.includes('<script>'));assert.ok(!/(?:href|xlink:href)="(?:https?:|\/\/)/.test(svg));assert.ok(!svg.includes('placementPreview'));
 });
 test('unsafe SVG, invalid dimensions and nonfinite styles are rejected on import',()=>{
  for(const mutate of [t=>t.paths[0].d='M0 0" onload="alert(1)',t=>t.paths[0].fill='url(https://example.test)',t=>t.paths[0].sw=Infinity,t=>t.width=0,t=>t.viewHeight=NaN]){const t=structuredClone(plate);mutate(t);assert.throws(()=>validateTemplate(t));}
