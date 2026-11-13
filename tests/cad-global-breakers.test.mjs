@@ -20,7 +20,7 @@ test('global choice overrides individual devices and Hager follows real L1 L2 L3
  const list=devices.map(e=>({...e,manufacturer:'hager',lsMode:'allpole',width:18}));const l=frameLayout(list,defaultConfig());assert.equal(l.overflow.length,0);assert.deepEqual(l.placed.map(e=>e.y-l.placed[0].y),[0,125,250]);
  const s=frameLayout(list.map(e=>({...e,manufacturer:'schneider',width:36})),defaultConfig());assert.equal(new Set(s.placed.map(e=>e.y)).size,1);assert.deepEqual(s.placed.map(e=>e.x-s.placed[0].x),[0,36,72]);
  q.dispoConfig={...defaultConfig(),breakerManufacturer:'hager'};assert.equal(validateProject(d).pages[2].dispoConfig.breakerManufacturer,'hager');
- const generated=await buildAutomaticDispo(d,q,async path=>({ok:true,json:()=>read(path.split('?')[0])}));assert.ok(generated.elements.filter(e=>e.dispoSource).every(e=>e.manufacturer==='hager'&&e.template.id==='tl-0530'));
+ const generated=await buildAutomaticDispo(d,q,async path=>({ok:true,json:()=>read(path.split('?')[0])}));assert.ok(generated.elements.filter(e=>e.dispoSource).every(e=>e.manufacturer==='hager'&&e.template.id==='tl-0531'));
  p.elements[0].autoPhases={'0':'L3'};assert.equal(schemaDevices(d).devices.find(e=>e.source.element===p.elements[0].id&&e.kind==='ls').phase,'L3');
 });
 test('supplemental FI-LS has exact selectable inputs and persistent wire references',()=>{
