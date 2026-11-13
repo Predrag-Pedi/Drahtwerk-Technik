@@ -1,5 +1,5 @@
-import {BUS} from './geometry.mjs?v=20261113-13';
-import {ports,wirePoints} from './model.mjs?v=20261113-13';
+import {BUS} from './geometry.mjs?v=20261113-14';
+import {ports,wirePoints} from './model.mjs?v=20261113-14';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -12,7 +12,7 @@ export function fuseRating(text){
  const inferred=current!==null&&current<=25?'DII':current!==null&&current<=63?'DIII':current!==null&&current<=160?'NH00':'';
  return {current,fuseType:explicit||inferred,ratingInferred:!explicit,conflict:unique.length>1||explicit==='DII'&&current>25||explicit==='DIII'&&current>63||explicit==='NH00'&&current>160};
 }
-export function localCircuitName(e){if(e.circuitName?.trim())return e.circuitName.trim();const names=[...new Set(Object.values(e.functions||{}).map(f=>f.circuitName?.trim()).filter(Boolean))];if(names.length===1)return names[0];if(names.length>1)return '';if(e.template){const named=(e.template.details?.texts||[]).map(t=>e.textEdits?.[t.key]??t.text).filter(t=>/^(Allgemein|E[- .]?Mob(?:ility|ilität|\.)?|Wohnung\b.*|Whg\.?\s*.*|Wärmepumpe|WP|Gewerbe|Hauswart)$/i.test(t.trim()));if(new Set(named).size===1)return named[0].trim();}if(e.kind==='meter'&&e.text?.trim())return e.text.trim();if(e.template&&(e.template.labels||[]).some(l=>l.letter==='P')&&e.text?.trim())return e.text.trim();return '';}
+export function localCircuitName(e){if(e.circuitName?.trim())return e.circuitName.trim();const names=[...new Set(Object.values(e.functions||{}).map(f=>f.circuitName?.trim()).filter(Boolean))];if(names.length===1)return names[0];if(names.length>1)return '';const meterKeys=new Set((e.template?.labels||[]).filter(l=>l.letter==='P').map(l=>l.key));const descriptions=[...new Set(Object.entries(e.functions||{}).filter(([key])=>e.kind==='meter'||meterKeys.has(key)).map(([,f])=>f.description?.trim()).filter(Boolean))];if(descriptions.length===1)return descriptions[0];if(e.template){const named=(e.template.details?.texts||[]).map(t=>e.textEdits?.[t.key]??t.text).filter(t=>/^(Allgemein|E[- .]?Mob(?:ility|ilität|\.)?|Wohnung\b.*|Whg\.?\s*.*|Wärmepumpe|WP|Gewerbe|Hauswart)$/i.test(t.trim()));if(new Set(named).size===1)return named[0].trim();}if(e.kind==='meter'&&e.text?.trim())return e.text.trim();if(e.template&&(e.template.labels||[]).some(l=>l.letter==='P')&&e.text?.trim())return e.text.trim();return '';}
 export function circuitNames(doc,start){
  const queue=[start],seen=new Set(),names=new Set();let visits=0;
  const near=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<1;
