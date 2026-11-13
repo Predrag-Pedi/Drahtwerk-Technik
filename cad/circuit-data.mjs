@@ -1,5 +1,5 @@
-import {BUS} from './geometry.mjs?v=20261113-11';
-import {ports,wirePoints} from './model.mjs?v=20261113-11';
+import {BUS} from './geometry.mjs?v=20261113-12';
+import {ports,wirePoints} from './model.mjs?v=20261113-12';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');

@@ -1,10 +1,11 @@
-import {frameMarkup} from './frame-render.mjs?v=20261113-11';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-11';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261113-11';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-11';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-11';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261113-11';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-11';
+import {standardFrame} from './standard-render.mjs?v=20261113-12';
+import {frameMarkup} from './frame-render.mjs?v=20261113-12';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-12';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261113-12';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-12';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-12';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261113-12';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-12';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -35,17 +36,13 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type===
  if(e.kind==='reference'){const target=d.pages.find(p=>p.id===e.targetPage);body+=text(42,14,target?`${target.number}.${e.targetPath}`:'?','fill="#1d5bb5"');}
  let connections='';
  if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.autoPhases?.[i]||e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/>${editor?`<circle data-auto-port="${esc(e.id)}:${i}" cx="${pt.x}" cy="${y}" r="7" fill="transparent" stroke="none" pointer-events="all" style="cursor:ns-resize"/>`:""}</g>`;}}
+ if(p.type==='schema'&&e.template&&!e.template.ports?.length)for(const pt of ports(e,p))connections+=`<circle cx="${pt.x}" cy="${pt.y}" r="2.4" fill="#182c42" stroke="none"/>`;
+ for(const key of functionKeys(e)){const data=functionData(e,key),label=e.template?.labels?.find(l=>l.key===key),caption=data.description||(label?.letter==='P'?data.circuitName||e.circuitName:'');if(caption){const terminals=(e.template?.labels||[]).filter(l=>l.letter==='X').sort((a,b)=>b.matrix[5]-a.matrix[5]);const terminal=terminals.find(l=>!label||Math.abs(l.anchor.x-label.anchor.x)<e.template.viewWidth*.3)||terminals[0];const x=terminal?terminal.matrix[4]*w/e.template.viewWidth:label?label.matrix[4]*w/e.template.viewWidth:w/2,y=terminal?Math.min(h-32,terminal.matrix[5]*h/e.template.viewHeight+52):h+18;body+=text(x,y,caption,'font-size="10" fill="#000" stroke="none"');}}
  return connections+`<g data-element="${esc(e.id)}" ${editor&&e.template&&!groupSelect?'pointer-events="none"':''} transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}>${!e.template||editor&&groupSelect?`<rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>`:''}${body}</g>`;
 }
 export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=true}={}){
  let body='';if(editor&&grid&&p.grid)body+='<defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r=".65" fill="#b6c5d5"/></pattern></defs><rect x="40" y="40" width="1120" height="750" fill="url(#grid)" stroke="none"/>';
- body+='<rect x="25" y="25" width="1150" height="798" fill="none" stroke-width="1.5"/>';
- for(let n=0;n<10;n++){const x=40+n*112;body+=text(x+56,20,n,'text-anchor="middle" font-size="13"');}
- for(let n=0;n<6;n++)body+=text(12,95+n*120,'ABCDEF'[n],'text-anchor="middle"');
- body+=line(25,790,1175,790)+line(350,790,350,823)+line(740,790,740,823)+line(1030,790,1030,823);
- body+=text(40,803,'DRAHTWERK','font-size="13" font-weight="bold" fill="#173f70"')+text(40,817,`${d.author||'Gezeichnet'} · ${d.date}`,'font-size="11"')+text(365,803,d.name,'font-weight="bold"')+text(365,817,p.title)+text(755,803,`Auftrag: ${d.order||'–'}   Schema: ${d.schema||'–'}`,'font-size="11"')+text(755,817,p.type==='dispo'?`Massstab 1:${p.scale} · Masse in mm`:'Elektroschema · Strompfade 0–9','font-size="11"')+text(1045,803,`Blatt ${p.number}`,'font-size="13" font-weight="bold"')+text(1045,817,`${d.pages.indexOf(p)+1} / ${d.pages.length}`,'font-size="11"');
- if(p.type==='cover'){body+=text(110,180,'ELEKTROSCHEMA','font-size="36" font-weight="bold"')+text(110,240,d.name,'font-size="22"');[['Objekt',d.address],['Kunde',d.customer],['Auftrag',d.order],['Schema',d.schema],['Bearbeitet',d.author],['Seiten',d.pages.length]].forEach(([k,v],i)=>{body+=text(110,320+i*48,k,'fill="#60758a"')+text(300,320+i*48,v,'font-size="17"');});}
- if(p.type==='index'){body+=text(100,130,'Inhaltsverzeichnis','font-size="30" font-weight="bold"');const columns=Math.ceil(d.pages.length/40),cw=1000/columns;d.pages.forEach((q,i)=>{const x=100+Math.floor(i/40)*cw,y=180+(i%40)*14;body+=text(x,y,q.number,'font-size="10"')+text(x+35,y,q.title.length>Math.floor((cw-45)/5)?q.title.slice(0,Math.floor((cw-45)/5)-1)+'…':q.title,'font-size="10"');});}
+ body+=standardFrame(d,p);
  if(p.type==='schema'&&p.bus)for(let n=0;n<4;n++){const by=Object.values(BUS)[n];body+=`<g ${n===3?'stroke-dasharray="8 5"':''}>${line(60,by,1140,by)}</g>`+text(45,by-4,['L1','L2','L3','N'][n],'font-size="10"');}
  const wireMarkup=w=>{const pts=wirePoints(p,w);return `<g data-wire="${esc(w.id)}"><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" stroke="transparent" stroke-width="12" fill="none"/><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="${selected===w.id?'#2463eb':w.stroke||'#182c42'}" stroke-width="${w.strokeWidth||1.4}" ${w.dashed?'stroke-dasharray="7 5"':''}/>${w.label?text(pts[0].x+5,pts[0].y-7,w.label):''}</g>`;};
  body+=p.wires.filter(w=>!w.direct).map(wireMarkup).join('');
