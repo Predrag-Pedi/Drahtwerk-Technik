@@ -1,8 +1,8 @@
-import {continuationCut} from './meter-view.mjs?v=20261113-15';
-import {moveDispoElements} from './dispo-move.mjs?v=20261113-15';
-import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261113-15';
-import {bounds,localPoint} from './geometry.mjs?v=20261113-15';
-import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-15';
+import {continuationCut} from './meter-view.mjs?v=20261113-16';
+import {moveDispoElements} from './dispo-move.mjs?v=20261113-16';
+import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261113-16';
+import {bounds,localPoint} from './geometry.mjs?v=20261113-16';
+import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-16';
 export const selectionKey=s=>JSON.stringify([s.kind,s.id,s.index,s.key]);
 export function toggleSelection(items,item){const key=selectionKey(item);return items.some(s=>selectionKey(s)===key)?items.filter(s=>selectionKey(s)!==key):[...items,item];}
 const box=pts=>({left:Math.min(...pts.map(p=>p.x)),right:Math.max(...pts.map(p=>p.x)),top:Math.min(...pts.map(p=>p.y)),bottom:Math.max(...pts.map(p=>p.y))});

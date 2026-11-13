@@ -1,8 +1,8 @@
-import {frame,sourcePoint} from './alignment.mjs?v=20261113-15';
-import {frameLayout} from './frame-layout.mjs?v=20261113-15';
-import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-15';
-import {createElement,W} from './model.mjs?v=20261113-15';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-15';
+import {frame,sourcePoint} from './alignment.mjs?v=20261113-16';
+import {frameLayout} from './frame-layout.mjs?v=20261113-16';
+import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-16';
+import {createElement,W} from './model.mjs?v=20261113-16';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-16';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -59,7 +59,7 @@ export function generateDispo(p,devices,config){
  const required=Math.max(c.width/350,c.height/225),scale=p.elements.some(e=>!e.generatedDispo)?p.scale:([1,2,5,10,20,50,100].find(s=>s>=required)||100),factor=W/420/scale,origin={x:100,y:90};
  const elements=[];
  const add=(kind,x,y,width,height,extra={})=>{const e=createElement(p,kind,0,0);Object.assign(e,{x:origin.x+x*factor,y:origin.y+y*factor,width,height,generatedDispo:true,...extra});elements.push(e);return e;};
- add('cabinet',0,0,c.width,c.height,{depth:c.depth,text:c.frame?'Montagerahmen':'Schrank',dispoFrame:c.frame,frameStyle:c.construction});
+ add('cabinet',0,0,c.width,c.height,{depth:c.depth,text:'',dispoFrame:c.frame,frameStyle:c.construction});
  if(c.construction==='drahtwerk'){for(const r of layout.parts){const {kind,x,y,width,height,...extra}=r;add(kind,x,y,width,height,extra);}for(const d of layout.placed)add('module',d.x,d.y,d.width,d.height,{tag:d.tag,text:d.kind==='meter'?'kWh':'',depth:d.depth,phase:d.phase||'',manufacturer:d.manufacturer||'auto',lsMode:d.lsMode||'allpole',mountZ:d.mountZ??-100,frameStyle:d.frameStyle||'',dispoSource:d.source,dispoKind:d.kind,dimensionsConfirmed:d.confirmed,fuseType:d.fuseType||'',current:d.current??0,circuitName:d.circuitName||'',meterState:d.meterState||c.meterState,incoming:!!d.incoming});return {elements,scale,config:c};}
  for(let f=0;f<c.fields;f++){
   add('duct',f*c.width/c.fields+15,60,25,c.height-120,{depth:60});

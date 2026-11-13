@@ -1,7 +1,7 @@
-import {repairMask} from './template-masks.mjs?v=20261113-15';
-import {pathHash,validateDetails} from './template-text.mjs?v=20261113-15';
-import {frame,macroScale} from './alignment.mjs?v=20261113-15';
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261113-15';
+import {repairMask} from './template-masks.mjs?v=20261113-16';
+import {pathHash,validateDetails} from './template-text.mjs?v=20261113-16';
+import {frame,macroScale} from './alignment.mjs?v=20261113-16';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261113-16';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};
@@ -22,7 +22,7 @@ export function templateMarkup(t,w,h,labelValues={},edits={},editor=false,lineHi
  const graphic=t.paths.map(p=>repairMask(p,t)).filter(p=>!hidden.size||!hidden.has(pathHash(p.d))).map(p=>`<path d="${p.d}" fill="${p.fill}" stroke="${p.stroke}" stroke-width="${Math.max(p.sw,.75/Math.min(w/t.viewWidth,h/t.viewHeight))}"/>`).join('');
  let texts=(t.labels||[]).map(l=>`<text ${editor?`data-template-text="bmk:${escapeText(l.key)}" pointer-events="all"`:''} transform="matrix(${matrix(l,'bmk:'+l.key)})" font-family="Arial,sans-serif" font-size="${l.fontSize}" fill="#000000" stroke="none">${escapeText(edits['bmk:'+l.key]??labelValues[l.key]??l.text)}</text>`).join('');
  for(const l of t.details?.texts||[]){const edited=Object.hasOwn(edits,l.key);const lines=(edited?edits[l.key]:l.text).split('\n');
- if(edited)lines.forEach((text,i)=>{const r=l.runs[i]||l.runs[0];if(!r)return;texts+=`<text transform="matrix(${matrix(r,l.key)})" y="${i>=l.runs.length?i*r.fontSize*1.2:0}" font-family="Arial,sans-serif" font-size="${r.fontSize}" fill="#000000" stroke="none">${escapeText(text)}</text>`;});
+ if(edited)lines.forEach((text,i)=>{const r=l.runs[i]||l.runs[0];if(!r)return;texts+=`<text transform="matrix(${matrix(r,l.key)})" y="${i>=l.runs.length?i*r.fontSize*1.2:0}" font-family="Arial,sans-serif" ${t.category==='Dispo'&&t.width===250&&t.height===400&&['BMK','ORT'].includes(l.text.trim())?'text-anchor="middle"':''} font-size="${r.fontSize}" fill="#000000" stroke="none">${escapeText(text)}</text>`;});
  if(editor)l.runs.forEach((r,i)=>{const len=Math.max(r.text.length,lines[i]?.length||0,1);texts+=`<rect data-template-text="${escapeText(l.key)}" transform="matrix(${matrix(r,l.key)})" x="0" y="${-r.fontSize}" width="${len*r.fontSize*.63}" height="${r.fontSize*1.25}" fill="transparent" stroke="none" pointer-events="all"/>`;});
  }
  return `<svg width="${w}" height="${h}" viewBox="0 0 ${t.viewWidth} ${t.viewHeight}" overflow="visible" preserveAspectRatio="none"><g stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd">${graphic}${lineHits}${texts}</g></svg>`;
