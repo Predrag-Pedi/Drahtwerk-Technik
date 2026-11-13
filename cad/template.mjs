@@ -1,7 +1,7 @@
-import {repairPaths} from './template-masks.mjs?v=20261113-26';
-import {pathHash,validateDetails} from './template-text.mjs?v=20261113-26';
-import {frame,macroScale} from './alignment.mjs?v=20261113-26';
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261113-26';
+import {repairPaths} from './template-masks.mjs?v=20261113-27';
+import {pathHash,validateDetails} from './template-text.mjs?v=20261113-27';
+import {frame,macroScale} from './alignment.mjs?v=20261113-27';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261113-27';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};

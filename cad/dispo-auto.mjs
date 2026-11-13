@@ -1,7 +1,7 @@
-import {updateIncomingRails} from './dispo-move.mjs?v=20261113-26';
-import {validateTemplate} from './template.mjs?v=20261113-26';
-import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-26';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-26';
+import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261113-27';
+import {validateTemplate} from './template.mjs?v=20261113-27';
+import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-27';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-27';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  const text=d.name||'',amp=d.current||Number(text.match(/\b(\d+)\s*A\b/i)?.[1]);
@@ -30,13 +30,13 @@ export async function buildAutomaticDispo(doc,p,fetcher=fetch){
  // A project may omit the incoming schematic sheet; its rated current still
  // defines the required supply block. Never infer it by adding outgoing currents.
  const rated=Number(String(doc.ratedCurrent||'').match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',','.'));
- if(!devices.some(d=>d.incoming)&&rated>0)devices.push({kind:'terminal',incoming:true,current:rated,tag:'',name:'Einspeisblock',width:53,height:320,depth:70,source:{page:p.id,element:'incoming-supply',key:'$'}});
+ if((devices.some(d=>d.incoming)||rated>0))devices.push({kind:'terminal',incoming:true,current:rated,tag:'',name:'Einspeisblock',width:53,height:320,depth:70,source:{page:p.id,element:'incoming-supply',key:'$'}});
  const selected=devices.filter(d=>d.include!==false&&(d.kind!=='terminal'||d.incoming));
  if(!selected.length)throw Error('Keine Geräte im Schema erkannt.');
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.some(d=>d.incoming))throw Error('Einspeisblock: Bemessungsstrom in den Projektdaten ergänzen (Vorlagen bis 100 A bzw. bis 160 A).');
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261113-26');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const get=async path=>{const r=await fetcher(path+'?v=20261113-27');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
  const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set([...ids,...(ids.includes('tl-0581')?['tl-0580']:[])])].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.incoming&&t.id==='tl-0746')d.frameStyle='incoming-terminal';if(d.kind!=='meter'&&d.kind!=='fuse'){d.width=d.kind==='fils'&&d.manufacturer==='schneider'&&t.id==='tl-0624'?90:t.width;d.height=t.height;d.poles??=({'tl-0529':1,'tl-0530':1,'tl-0531':1,'tl-0534':2,'tl-0540':3,'tl-0541':3,'tl-0542':3,'tl-0543':4,'tl-0624':3,'tl-0626':1})[t.id];}d.confirmed=false;}
@@ -57,6 +57,8 @@ export async function buildAutomaticDispo(doc,p,fetcher=fetch){
   }
   if(e.dispoKind==='meter'){e.x-=(250-e.width)/2*factor;e.y-=45*factor;e.width=250;e.height=400;}
  }
- updateIncomingRails({...p,elements:assembled.elements,scale:assembled.scale});
+ const assembledPage={...p,elements:assembled.elements,scale:assembled.scale};
+ const inputs=assembled.elements.filter(e=>e.frameStyle==='incoming-terminal');for(const e of assembled.elements.filter(e=>e.dispoKind==='spd')){const input=inputs.find(i=>Math.abs(i.x+i.width*factor/2-e.x-e.width*factor/2)<125*factor);if(input)e.inputOwner=input.dispoSource.element;}
+ updateIncomingRails(assembledPage);updateSupplyBlocks(assembledPage);
  return {...assembled,warnings};
 }
