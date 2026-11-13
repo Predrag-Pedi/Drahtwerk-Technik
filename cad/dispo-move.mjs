@@ -1,0 +1,26 @@
+const factor=p=>1200/420/p.scale;
+const device=e=>!!e.dispoSource;
+const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
+export function dispoGroup(p,id){const e=p.elements.find(e=>e.id===id);if(!device(e||{})||e.dispoKind==='meter')return e?[e]:[];return p.elements.filter(q=>device(q)&&q.dispoKind!=='meter'&&q.frameStyle===e.frameStyle&&Math.abs(q.y-e.y)<.1&&(e.circuitName?q.circuitName===e.circuitName:q.dispoSource.element===e.dispoSource.element&&q.dispoSource.page===e.dispoSource.page));}
+export function moveDispoElements(p,ids,dx,dy){
+ const moving=p.elements.filter(e=>ids.has(e.id));
+ if(p.type==='dispo'){const mm=1/factor(p),meters=moving.filter(e=>e.dispoKind==='meter'&&e.width===250&&e.height===400);for(const c of p.elements.filter(q=>q.dispoStructure))for(const part of c.dispoStructure)if(part.plateType==='meter'&&meters.some(e=>Math.abs(c.x+part.x/mm-e.x)<.01&&Math.abs(c.y+part.y/mm-e.y)<.01)){part.x+=dx*mm;part.y+=dy*mm;}}
+ for(const e of moving){e.x+=dx;e.y+=dy;}
+}
+// Called at drop, with a pre-drag snapshot. Swaps whole plates or explicitly selected
+// device groups, preserving their internal offsets. Failed fits leave both untouched.
+export function swapDispoDrop(p,before,items){
+ if(p.type!=='dispo'||!items.length||items.some(s=>s.kind!=='element'))return false;
+ const ids=new Set(items.map(s=>s.id)),moving=p.elements.filter(e=>ids.has(e.id));if(moving.some(e=>!device(e)||e.rotation))return false;
+ const original=before.elements.filter(e=>ids.has(e.id)),a=box(p,original),now=box(p,moving),cx=(now.x+now.right)/2,cy=(now.y+now.bottom)/2;
+ const target=before.elements.find(e=>device(e)&&!ids.has(e.id)&&!e.rotation&&(e.dispoKind==='meter')===(moving[0].dispoKind==='meter')&&cx>=e.x&&cx<=e.x+e.width*factor(p)&&cy>=e.y&&cy<=e.y+e.height*factor(p));
+ if(!target)return false;const targets=items.length>1?dispoGroup(before,target.id):[target],b=box(p,targets),targetIds=new Set(targets.map(e=>e.id));if(targets.some(e=>ids.has(e.id)))return false;
+ const changes=[...original.map(e=>({...e,x:e.x+b.x-a.x,y:e.y+b.y-a.y})),...targets.map(e=>({...e,x:e.x+a.x-b.x,y:e.y+a.y-b.y}))];
+ const overlap=(a,b)=>a.x<b.right-.01&&a.right>b.x+.01&&a.y<b.bottom-.01&&a.bottom>b.y+.01;
+ const others=before.elements.filter(e=>device(e)&&!ids.has(e.id)&&!targetIds.has(e.id));
+ for(const e of changes){const eb=box(p,[e]);if([...others,...changes.filter(q=>q.id!==e.id)].some(q=>overlap(eb,box(p,[q]))))throw Error('Die Gerätegruppen passen an diesen Plätzen nicht nebeneinander.');const cabinet=before.elements.find(c=>c.kind==='cabinet'&&e.x>=c.x&&e.y>=c.y&&eb.right<=c.x+c.width*factor(p)+.01&&eb.bottom<=c.y+c.height*factor(p)+.01);if(!cabinet)throw Error('Die Gruppe passt nicht in den Rahmen.');}
+ // Reset structural plates first; simultaneous swaps must not move the same plate twice.
+ for(const c of p.elements.filter(e=>e.dispoStructure)){const old=before.elements.find(e=>e.id===c.id);c.dispoStructure=structuredClone(old.dispoStructure);for(const part of c.dispoStructure){if(part.plateType!=='meter')continue;const oldMeter=[...original,...targets].find(e=>e.dispoKind==='meter'&&Math.abs(c.x+part.x*factor(p)-e.x)<.01&&Math.abs(c.y+part.y*factor(p)-e.y)<.01);const next=oldMeter&&changes.find(e=>e.id===oldMeter.id);if(next){part.x+=(next.x-oldMeter.x)/factor(p);part.y+=(next.y-oldMeter.y)/factor(p);}}}
+ for(const e of changes)Object.assign(p.elements.find(q=>q.id===e.id),{x:e.x,y:e.y});return true;
+}
+export function arrowStep(p,key,shift=false,alt=false){const step=(shift?10:alt?.1:1)*(p.type==='dispo'?factor(p):1);return {dx:key==='ArrowLeft'?-step:key==='ArrowRight'?step:0,dy:key==='ArrowUp'?-step:key==='ArrowDown'?step:0};}

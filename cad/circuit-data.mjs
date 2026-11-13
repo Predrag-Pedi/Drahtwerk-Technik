@@ -1,4 +1,4 @@
-import {ports,wirePoints} from './model.mjs?v=20261113-5';
+import {ports,wirePoints} from './model.mjs?v=20261113-6';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
