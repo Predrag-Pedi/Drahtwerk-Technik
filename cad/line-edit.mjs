@@ -1,6 +1,6 @@
-import {frame} from './alignment.mjs?v=20261113-13';
-import {localPoint} from './geometry.mjs?v=20261113-13';
-import {templateSize} from './template.mjs?v=20261113-13';
+import {frame} from './alignment.mjs?v=20261113-14';
+import {localPoint} from './geometry.mjs?v=20261113-14';
+import {templateSize} from './template.mjs?v=20261113-14';
 // Normalize SVG segments without turning text outlines or filled masks into conductors.
 export function pathSegments(d){
  const tokens=d.match(/[a-df-z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/ig)||[],out=[];
@@ -35,7 +35,7 @@ export function detachLine(page,e,index,id){
 export function trimContinuationTails(doc,page,e){
  const anchors=(doc.links||[]).flatMap(l=>[l.a,l.b]).filter(a=>a.page===page.id&&a.element===e.id&&a.kind==='template').map(a=>e.template?.details?.ends?.find(t=>t.key===a.key)).filter(Boolean);if(!anchors.length)return 0;
  let count=0;const paths=e.template.paths.map(path=>{if(path.stroke==='none'||path.fill!=='none')return path;let changed=false;const segments=pathSegments(path.d).map(s=>{if(!s.line||Math.abs(s.a.x-s.b.x)>.01||Math.abs(s.a.y-s.b.y)<e.template.viewHeight*.1)return s;
-  const matching=anchors.filter(a=>a.x>=s.a.x&&a.x-s.a.x<e.template.viewWidth*.6&&a.y>Math.min(s.a.y,s.b.y)+1&&a.y<Math.max(s.a.y,s.b.y)-1).sort((a,b)=>a.x-s.a.x-(b.x-s.a.x));
+  const matching=anchors.filter(a=>a.x>=s.a.x&&a.x-s.a.x<e.template.viewWidth&&a.y>Math.min(s.a.y,s.b.y)+1&&a.y<Math.max(s.a.y,s.b.y)-1).sort((a,b)=>a.x-s.a.x-(b.x-s.a.x));
   // Prefer phase-matched source geometry; unknown lines are left untouched.
   const f=frame(e),line=f?.lines?.find(l=>matching.some(a=>a.phase===l.phase)&&Math.abs(l.x1-l.x2)<.001&&Math.abs((f.x+l.x1*f.unit)-s.a.x)<2);if(!line)return s;const a=matching.find(a=>a.phase===line.phase);
   if(page.wires.some(w=>[w.from,w.to].some(r=>r?.element===e.id&&r.local&&Math.abs(r.local.x*e.template.viewWidth-s.a.x)<2&&r.local.y*e.template.viewHeight>a.y)))return s;
