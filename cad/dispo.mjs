@@ -1,11 +1,11 @@
-import {DRAW} from './geometry.mjs?v=20261113-23';
-import {frame,sourcePoint} from './alignment.mjs?v=20261113-23';
-import {frameLayout} from './frame-layout.mjs?v=20261113-23';
-import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-23';
-import {createElement,W} from './model.mjs?v=20261113-23';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-23';
+import {DRAW} from './geometry.mjs?v=20261113-24';
+import {frame,sourcePoint} from './alignment.mjs?v=20261113-24';
+import {frameLayout} from './frame-layout.mjs?v=20261113-24';
+import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-24';
+import {createElement,W} from './model.mjs?v=20261113-24';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-24';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
-const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
+const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],spd:[72,134.8,75],terminal:[8,60,45]};
 export function schemaDevices(doc){
  const devices=[],warnings=[],seen=new Set();
  for(const {page,element:e,key,data} of allFunctions(doc)){
@@ -26,6 +26,7 @@ export function schemaDevices(doc){
   const residual=/\b\d+(?:[.,]\d+)?\s*mA\b/i.test(content),curve=/\b[BCD]\s*\d+|\d+\s*A\s*[/ ]*\s*[BCD]\b/i.test(content);
   const singleFuse=(e.template?.labels||[]).filter(l=>l.letter==='F').length===1;
   if(e.template&&kind==='fuse'&&(residual||curve||singleFuse&&/(?:^|_)LS(?:_|$)|FI.?LS/i.test(e.template.name)))kind=residual||/FI.?LS/i.test(content)||(singleFuse&&/FI.?LS/i.test(e.template.name))?'fils':'ls';
+  if(kind==='fuse'&&/SPD|Überspannungsableiter|Typ CT[12]|Surge/i.test(content+' '+(e.template?.name||'')))kind='spd';
   const poles=/\b1\s+2\s+3\s+4\s+5\s+6\b/.test(content)?3:/\b1\s+2\s+N\s+N\b|\b1\s+N\b/.test(content)?1:undefined;
   const rating=kind==='fuse'?fuseRating(content):isIncoming?{current:fuseRating(content).current||Number(String(doc.ratedCurrent||'').match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',','.'))||null}:{};if(rating.conflict)warnings.push(`${tag}: widersprüchliche Sicherungsangabe.`);if(kind==='fuse'&&!rating.fuseType)warnings.push(`${tag}: DII/DIII oder Stromstärke fehlt.`);
   let [width,height,depth]=envelopes[kind]||[54,100,80];

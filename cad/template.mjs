@@ -1,7 +1,7 @@
-import {repairMask} from './template-masks.mjs?v=20261113-23';
-import {pathHash,validateDetails} from './template-text.mjs?v=20261113-23';
-import {frame,macroScale} from './alignment.mjs?v=20261113-23';
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261113-23';
+import {repairPaths} from './template-masks.mjs?v=20261113-24';
+import {pathHash,validateDetails} from './template-text.mjs?v=20261113-24';
+import {frame,macroScale} from './alignment.mjs?v=20261113-24';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261113-24';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};
@@ -19,7 +19,7 @@ const escapeText=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>'
 export function templateMarkup(t,w,h,labelValues={},edits={},editor=false,lineHits='',offsets={}){
  const matrix=(r,key)=>{const m=[...r.matrix],o=offsets[key];if(o){m[4]+=o.x;m[5]+=o.y;}return m.join(' ');};
  const hidden=new Set((t.details?.texts||[]).filter(l=>Object.hasOwn(edits,l.key)).flatMap(l=>l.hashes));
- const graphic=t.paths.map(p=>repairMask(p,t)).filter(p=>!hidden.size||!hidden.has(pathHash(p.d))).map(p=>`<path d="${p.d}" fill="${p.fill}" stroke="${p.stroke}" stroke-width="${Math.max(p.sw,.75/Math.min(w/t.viewWidth,h/t.viewHeight))}"/>`).join('');
+ const graphic=t.paths.filter(p=>!hidden.size||!hidden.has(pathHash(p.d))).flatMap(p=>repairPaths(p,t)).map(p=>`<path d="${p.d}" fill="${p.fill}" stroke="${p.stroke}" stroke-width="${Math.max(p.sw,.75/Math.min(w/t.viewWidth,h/t.viewHeight))}"/>`).join('');
  let texts=(t.labels||[]).map(l=>`<text ${editor?`data-template-text="bmk:${escapeText(l.key)}" pointer-events="all"`:''} transform="matrix(${matrix(l,'bmk:'+l.key)})" font-family="Arial,sans-serif" font-size="${l.fontSize}" fill="#000000" stroke="none">${escapeText(edits['bmk:'+l.key]??labelValues[l.key]??l.text)}</text>`).join('');
  for(const l of t.details?.texts||[]){const edited=Object.hasOwn(edits,l.key);const lines=(edited?edits[l.key]:l.text).split('\n');
  if(edited)lines.forEach((text,i)=>{const r=l.runs[i]||l.runs[0];if(!r)return;texts+=`<text transform="matrix(${matrix(r,l.key)})" y="${i>=l.runs.length?i*r.fontSize*1.2:0}" font-family="Arial,sans-serif" ${t.category==='Dispo'&&t.width===250&&t.height===400&&['BMK','ORT'].includes(l.text.trim())?'text-anchor="middle"':''} font-size="${r.fontSize}" fill="#000000" stroke="none">${escapeText(text)}</text>`;});

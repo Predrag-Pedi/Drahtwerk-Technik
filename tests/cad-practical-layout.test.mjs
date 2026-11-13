@@ -29,8 +29,8 @@ test('DIN00 has a neutral disconnector only on L3, including after persistence',
  const g=await buildAutomaticDispo(d,d.pages[2],fetcher),fuses=g.elements.filter(e=>e.dispoKind==='fuse');assert.equal(fuses.length,3);assert.deepEqual(fuses.map(e=>[e.template.id,e.width,e.neutral]),[['tl-0580',90,false],['tl-0580',90,false],['tl-0581',126,true]]);assert.equal(new Set(fuses.map(e=>e.x)).size,1);
  Object.assign(d.pages[2],{elements:g.elements,scale:g.scale});const p=validateProject(d).pages[2];assert.deepEqual(p.elements.filter(e=>e.dispoKind==='fuse').map(e=>e.neutral),[false,false,true]);assert.deepEqual(sceneBoxes(p).filter(b=>b.color==='#3186b8'&&fuses.some(e=>e.id===b.id)).map(b=>b.id),[fuses[2].id]);
 });
-test('incoming blocks use original current bands and outgoing terminals remain omitted',async()=>{
- for(const [amp,id] of [[63,'tl-0552'],[100,'tl-0552'],[125,'tl-0553'],[160,'tl-0553']]){const d=project();d.ratedCurrent=amp+' A';insert(d,'tl-0000');insert(d,'tl-0007',600);const g=await buildAutomaticDispo(d,d.pages[2],fetcher),incoming=g.elements.filter(e=>e.incoming);assert.equal(incoming.length,1);assert.equal(incoming[0].template.id,id);assert.equal(g.elements.filter(e=>e.dispoKind==='terminal').length,1);}
+test('incoming terminals use Phoenix while project supply blocks retain current bands',async()=>{
+ for(const [amp,id] of [[63,'tl-0552'],[100,'tl-0552'],[125,'tl-0553'],[160,'tl-0553']]){const d=project();d.ratedCurrent=amp+' A';insert(d,'tl-0000');insert(d,'tl-0007',600);const g=await buildAutomaticDispo(d,d.pages[2],fetcher),incoming=g.elements.filter(e=>e.incoming);assert.equal(incoming.length,1);assert.equal(incoming[0].template.id,'tl-0746');assert.equal(g.elements.filter(e=>e.dispoKind==='terminal').length,1);}
  const d=project();d.ratedCurrent='125 A';insert(d,'tl-0007');let g=await buildAutomaticDispo(d,d.pages[2],fetcher);assert.equal(g.elements.filter(e=>e.incoming).length,1);d.ratedCurrent='200 A';await assert.rejects(buildAutomaticDispo(d,d.pages[2],fetcher),/Bemessungsstrom/);
 });
 test('meter feeder anchors meet at column centre and follow a plate swap after save and reopen',async()=>{
