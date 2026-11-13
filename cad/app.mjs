@@ -1,21 +1,22 @@
-import {drahtwerkDemo} from './dispo.mjs?v=20261113-4';
-import {editAutomaticDispo} from './dispo-ui.mjs?v=20261113-4';
-import {openDispo3D} from './dispo-3d.mjs?v=20261113-4';
-import {createTextClickTracker} from './text-click.mjs?v=20261113-4';
-import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261113-4';
-import {connectionCandidates,connectionPoint,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261113-4';
-import {installNavigation} from './navigation.mjs?v=20261113-4';
-import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-4';
-import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261113-4';
-import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261113-4';
-import {alignMacro,alignPage} from './alignment.mjs?v=20261113-4';
-import {DRAW,pathAt,bounds} from './geometry.mjs?v=20261113-4';
-import {validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261113-4';
-import {placement,placementMarkup} from './placement.mjs?v=20261113-4';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261113-4';
-import {svgPage,glyph,esc} from './render.mjs?v=20261113-4';
-import {database} from './storage.mjs?v=20261113-4';
-import {pdf,download} from './export.mjs?v=20261113-4';
+import {drahtwerkDemo} from './dispo.mjs?v=20261113-5';
+import {defaultConfig} from './dispo.mjs?v=20261113-5';
+import {editAutomaticDispo} from './dispo-ui.mjs?v=20261113-5';
+import {openDispo3D} from './dispo-3d.mjs?v=20261113-5';
+import {createTextClickTracker} from './text-click.mjs?v=20261113-5';
+import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261113-5';
+import {connectionCandidates,connectionPoint,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261113-5';
+import {installNavigation} from './navigation.mjs?v=20261113-5';
+import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-5';
+import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261113-5';
+import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261113-5';
+import {alignMacro,alignPage} from './alignment.mjs?v=20261113-5';
+import {DRAW,pathAt,bounds} from './geometry.mjs?v=20261113-5';
+import {validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261113-5';
+import {placement,placementMarkup} from './placement.mjs?v=20261113-5';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261113-5';
+import {svgPage,glyph,esc} from './render.mjs?v=20261113-5';
+import {database} from './storage.mjs?v=20261113-5';
+import {pdf,download} from './export.mjs?v=20261113-5';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null;
@@ -26,7 +27,7 @@ let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
-async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261113-4').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
+async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261113-5').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=templateDetails[e.template.id];}
 async function hydrateDetails(){try{await loadDetails();if(doc){doc.pages.forEach(p=>p.elements.forEach(attachDetails));render();}}catch(e){toast(e.message);}}
 function editTemplateText(e,key){
@@ -113,7 +114,13 @@ function inspector(){const root=$('inspector');if(multi.length>1||multi.some(s=>
  if(e.kind==='reference'){field(root,'Zielseite',e.targetPage,v=>update('targetPage',v),{options:[['','Zielseite wählen'],...doc.pages.map(p=>[p.id,`${p.number} · ${p.title}`])]});field(root,'Zielpfad',e.targetPath,v=>update('targetPath',Number(v)),{options:Array.from({length:10},(_,i)=>[i,String(i)])});}
  }else if(w){field(root,'Leiter / Beschriftung',w.label,v=>change(()=>w.label=v));field(root,'Gestrichelt (z. B. N)',w.dashed,v=>change(()=>w.dashed=v),{type:'checkbox'});const hint=document.createElement('p');hint.className='hint';hint.textContent='Linie ziehen zum Verschieben. Blaue Endpunkte ziehen zum Neuverbinden; Anschlussfang verbindet mit Symbolen, Vorlagenpunkten oder anderen Leitungsenden.';root.append(hint);
  for(const [i,name] of [[0,'Start'],[w.points.length-1,'Ende']]){const ref=i===0?'from':'to',position=endpoint(p,w[ref],w.points[i]);for(const axis of ['x','y'])field(root,name+' '+axis.toUpperCase(),position[axis],v=>change(()=>{w.points[i]={x:position.x,y:position.y,[axis]:v};w[ref]=null;}),{type:'number',min:-1000,max:3000});if(w[ref])inspectorButton(root,name+' lösen',()=>change(()=>{w.points[i]={x:position.x,y:position.y};w[ref]=null;}));}field(root,'Direkte Linie',w.direct,v=>change(()=>w.direct=v),{type:'checkbox'});
- }else{field(root,'Seitentitel',p.title,v=>change(()=>p.title=v));field(root,'Blattnummer',p.number,v=>{if(!Number.isInteger(v)||doc.pages.some(q=>q!==p&&q.number===v))throw Error('Bitte eine eindeutige ganze Blattnummer wählen.');change(()=>p.number=v);},{type:'number',min:1,max:9999});if(p.type==='dispo')field(root,'Massstab 1 :',p.scale,v=>change(()=>p.scale=v),{options:[[1,'1'],[2,'2'],[5,'5'],[10,'10'],[20,'20'],[50,'50']]});field(root,'Raster anzeigen',p.grid,v=>change(()=>p.grid=v),{type:'checkbox'});if(p.type==='schema')field(root,'Sammelschienen L1 / L2 / L3 / N',p.bus,v=>change(()=>p.bus=v),{type:'checkbox'});if(p.type==='schema'){const previous=doc.pages.filter(q=>q.type==='schema'&&q!==p&&q.number<p.number).sort((a,b)=>b.number-a.number)[0];if(previous)inspectorButton(root,`Sammelschienen von Blatt ${previous.number} übernehmen`,()=>change(()=>inheritBus(doc,previous,p)));}const hint=document.createElement('p');hint.className='hint';hint.textContent='Element auswählen, um Kennzeichen, Abmessungen und weitere Eigenschaften zu bearbeiten.';root.append(hint);}
+ }else{field(root,'Seitentitel',p.title,v=>change(()=>p.title=v));field(root,'Blattnummer',p.number,v=>{if(!Number.isInteger(v)||doc.pages.some(q=>q!==p&&q.number===v))throw Error('Bitte eine eindeutige ganze Blattnummer wählen.');change(()=>p.number=v);},{type:'number',min:1,max:9999});if(p.type==='dispo'){
+ const config={...defaultConfig(),...p.dispoConfig};const set=(key,value)=>change(()=>p.dispoConfig={...config,[key]:value});
+ for(const [key,label,min,max] of [['width','Rahmenbreite (mm)',300,10000],['height','Rahmenhöhe (mm)',400,4000],['depth','Rahmentiefe (mm)',165,1500],['fields','Felder',1,12],['reserve','Reserve je Reihe (%)',0,60],['topHeight','Obere Zone (mm)',200,500],['fuseHeight','Sicherungszone (mm)',200,600]])field(root,label,config[key],v=>set(key,v),{type:'number',min,max});
+ field(root,'Plattenbreite',config.plateWidth,v=>set('plateWidth',Number(v)),{options:[[250,'250 mm'],[500,'500 mm'],[750,'750 mm']]});
+ field(root,'Zählerplätze in 3D',config.meterState,v=>set('meterState',v),{options:[['prepared','Vorbereitet, ohne Zähler'],['installed','Zähler eingesetzt']]});
+ field(root,'Rückwand PVC',config.rearPanel,v=>set('rearPanel',v),{type:'checkbox'});
+ }if(p.type==='dispo')field(root,'Massstab 1 :',p.scale,v=>change(()=>p.scale=v),{options:[[1,'1'],[2,'2'],[5,'5'],[10,'10'],[20,'20'],[50,'50']]});field(root,'Raster anzeigen',p.grid,v=>change(()=>p.grid=v),{type:'checkbox'});if(p.type==='schema')field(root,'Sammelschienen L1 / L2 / L3 / N',p.bus,v=>change(()=>p.bus=v),{type:'checkbox'});if(p.type==='schema'){const previous=doc.pages.filter(q=>q.type==='schema'&&q!==p&&q.number<p.number).sort((a,b)=>b.number-a.number)[0];if(previous)inspectorButton(root,`Sammelschienen von Blatt ${previous.number} übernehmen`,()=>change(()=>inheritBus(doc,previous,p)));}const hint=document.createElement('p');hint.className='hint';hint.textContent='Element auswählen, um Kennzeichen, Abmessungen und weitere Eigenschaften zu bearbeiten.';root.append(hint);}
 }
 function showForm(title,fields,submit){$('dialogTitle').textContent=title;$('dialogError').textContent='';$('dialogFields').replaceChildren();const data={};for(const f of fields){data[f.key]=f.value??'';const input=field($('dialogFields'),f.label,f.value,v=>data[f.key]=v,f);input.dataset.key=f.key;}dialogSubmit=()=>{for(const input of $('dialogFields').querySelectorAll('[data-key]'))data[input.dataset.key]=input.type==='number'?Number(input.value):input.value;return submit(data);};$('formDialog').showModal();}
 $('dialogForm').onsubmit=async e=>{e.preventDefault();try{await dialogSubmit();$('formDialog').close();}catch(e){$('dialogError').textContent=e.message;}};$('closeDialog').onclick=()=>$('formDialog').close();
@@ -146,7 +153,7 @@ function symbolList(){
 }
 
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261113-4');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261113-5');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
  const groups=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>t.group))].sort((a,b)=>libraryName(a).localeCompare(libraryName(b),'de'));
@@ -232,11 +239,11 @@ $('editTemplateLines').onclick=()=>{multi=[];selected=null;lineMode=!lineMode;to
 
 $('contactDemo').onclick=async()=>{try{const d=contactDemo();await database('save',d);docs.push(d);open(d);}catch(e){toast(e.message);}};
 
-$('autoDispo').onclick=async()=>{try{await loadDetails();doc.pages.forEach(p=>p.elements.forEach(attachDetails));editAutomaticDispo(doc,current(),g=>change(()=>{const p=current();for(const e of [...p.elements])if(e.generatedDispo)removeElement(p,e.id);p.elements.push(...g.elements);p.scale=g.scale;p.dispoConfig=g.config;p.grid=false;selected=null;multi=[];}));}catch(e){toast(e.message);}};
+$('autoDispo').onclick=async()=>{const target=current(),sourceDoc=doc,button=$('autoDispo');if(button.disabled)return;button.disabled=true;try{await loadDetails();sourceDoc.pages.forEach(p=>p.elements.forEach(attachDetails));const result=await editAutomaticDispo(sourceDoc,target,g=>{if(doc!==sourceDoc)throw Error('Projekt gewechselt – Dispo nicht verändert.');change(()=>{for(const e of [...target.elements])if(e.generatedDispo)removeElement(target,e.id);target.elements.push(...g.elements);target.scale=g.scale;target.dispoConfig=g.config;target.grid=false;selected=null;multi=[];});});toast(result.warnings.length?result.warnings.join(' '):'Dispo automatisch aus Originalvorlagen erstellt.');}catch(e){toast(e.message);}finally{button.disabled=false;}};
 $('view3D').onclick=()=>{try{openDispo3D(current(),id=>{selected=id;multi=[{kind:'element',id}];render();});}catch(e){toast(e.message);}};
 
 $('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Drahtwerk-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
 
 const previewCache=new Map();
-const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261113-4`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
+const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261113-5`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
 new MutationObserver(()=>{for(const img of document.querySelectorAll('img[data-preview-id]:not([data-observed])')){img.dataset.observed='1';previewObserver.observe(img);}}).observe(document.body,{childList:true,subtree:true});

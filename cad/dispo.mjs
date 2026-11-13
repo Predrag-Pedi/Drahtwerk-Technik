@@ -1,7 +1,7 @@
-import {frameLayout} from './frame-layout.mjs?v=20261113-4';
-import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-4';
-import {createElement,W} from './model.mjs?v=20261113-4';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-4';
+import {frameLayout} from './frame-layout.mjs?v=20261113-5';
+import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-5';
+import {createElement,W} from './model.mjs?v=20261113-5';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-5';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -17,7 +17,7 @@ export function schemaDevices(doc){
   let [width,height,depth]=envelopes[kind]||[54,100,80];
   if(['ls','fils'].includes(kind)&&/3L|3P|3.pol/i.test(content+' '+(e.template?.name||'')))width=kind==='fils'?72:54;
   const incoming=kind==='terminal'&&(/einspeis|zuleitung|hauptklemme/i.test(content+' '+(e.template?.name||''))||/X0(?:$|[.])/i.test(tag));
-  devices.push({...rating,incoming,meterState:'prepared',circuitName:data.circuitName||circuitName(doc,{page:page.id,element:e.id}),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
+  devices.push({schemaTemplateName:e.template?.name||'',...rating,incoming,meterState:'prepared',circuitName:data.circuitName||circuitName(doc,{page:page.id,element:e.id}),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
  }
  for(const p of doc.pages.filter(p=>p.type==='schema'))for(const e of p.elements)if(e.template&&!e.template.labels?.length)warnings.push(`Blatt ${p.number}: «${e.template.name}» ohne auswertbare Gerätekennzeichen.`);
  return {devices,warnings};

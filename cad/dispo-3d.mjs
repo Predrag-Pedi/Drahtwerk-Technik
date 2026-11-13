@@ -1,10 +1,10 @@
-import {frameBoxes} from './frame-render.mjs?v=20261113-4';
+import {frameBoxes} from './frame-render.mjs?v=20261113-5';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];
  const add=(e,x,y,z,w,h,d,color)=>{const a=(e.rotation||0)*Math.PI/180,dx=x+w/2-(e.x*factor+e.width/2),dy=y+h/2-(e.y*factor+e.height/2);boxes.push({shape:e.shape,plate:e.kind==='plate',id:e.id,label:e.kind==='module'?e.tag:'',x:e.x*factor+e.width/2+dx*Math.cos(a)-dy*Math.sin(a)-w/2,y:e.y*factor+e.height/2+dx*Math.sin(a)+dy*Math.cos(a)-h/2,z,w,h,d,color,rotation:e.rotation||0});};
  const sources=p.elements.flatMap(e=>[e,...(e.dispoStructure||[]).map(part=>{const a=(e.rotation||0)*Math.PI/180,dx=part.x+part.width/2-e.width/2,dy=part.y+part.height/2-e.height/2;return {...part,id:e.id,x:e.x+(e.width/2+dx*Math.cos(a)-dy*Math.sin(a)-part.width/2)/factor,y:e.y+(e.height/2+dx*Math.sin(a)+dy*Math.cos(a)-part.height/2)/factor,rotation:e.rotation||0};})]);
- for(const source of sources){const e=source.kind==='template'&&source.dispoGeometryKind?{...source,kind:source.dispoGeometryKind}:source;const x=e.x*factor,y=e.y*factor,w=e.width,h=e.height,d=e.depth||({cabinet:400,rail:15,duct:60,module:80,plate:3})[e.kind];if(!d)continue;
+ for(const source of sources){const e=source.kind==='template'&&source.dispoGeometryKind?{...source,kind:source.dispoGeometryKind}:source;if(source.kind==='template'&&source.dispoKind==='meter'&&['tl-0740','tl-0741','tl-0743','tl-0744'].includes(source.template?.id)){e.x+=35/factor;e.y+=45/factor;e.width=180;e.height=260;}const x=e.x*factor,y=e.y*factor,w=e.width,h=e.height,d=e.depth||({cabinet:400,rail:15,duct:60,module:80,plate:3})[e.kind];if(!d)continue;
   if(frameBoxes(e,x,y,add))continue;if(e.kind==='cabinet'){if(e.frameStyle==='drahtwerk')continue;
    if(!e.dispoFrame)add(e,x,y,-d,w,h,8,'#b5c1ce');
    add(e,x,y,-d,12,h,d,'#6d8197');add(e,x+w-12,y,-d,12,h,d,'#6d8197');add(e,x,y,-d,w,12,d,'#8496a9');add(e,x,y+h-12,-d,w,12,d,'#8496a9');

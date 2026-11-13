@@ -1,0 +1,20 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';
+import {project,validateProject} from '../cad/model.mjs';import{placement}from '../cad/placement.mjs';import{validateTemplate,templateMarkup}from '../cad/template.mjs';
+import {buildAutomaticDispo,automaticTemplateId} from '../cad/dispo-auto.mjs';import{sceneBoxes}from '../cad/dispo-3d.mjs';
+const read=async path=>JSON.parse(await fs.readFile(new URL('../'+path,import.meta.url)));
+const fetcher=async path=>({ok:true,json:()=>read(path.split('?')[0])});
+async function fixture(ids){const d=project('Automatisch'),p=d.pages[1],details=await read('cad/template-details.json');for(const [i,id] of ids.entries()){const t=validateTemplate({...await read('cad/templates/'+id+'.json'),details:details[id]});p.elements.push(placement(p,'template',{x:200+i*230,y:300},true,0,t));}return d;}
+test('real meter macro automatically resolves originals, labels and full-size meter plate without mutating page',async()=>{
+ const d=await fixture(['tl-0007','tl-0007','tl-0007']),p=d.pages[2],before=structuredClone(p);d.pages[1].elements[0].circuitName='Allgemein';
+ const g=await buildAutomaticDispo(d,p,fetcher);assert.deepEqual(p,before);
+ const devices=g.elements.filter(e=>e.dispoSource);assert.equal(devices.length,6);assert.equal(devices.filter(e=>e.template.id==='tl-0582').length,3);
+ const meter=devices.find(e=>e.dispoKind==='meter');assert.equal(meter.template.id,'tl-0740');assert.equal(meter.width,250);assert.equal(meter.height,400);assert.equal(meter.textEdits.t0,meter.tag);assert.equal(meter.textEdits.t2,'Allgemein');
+ const svg=templateMarkup(meter.template,250,400,{},meter.textEdits);assert.ok(svg.includes(meter.tag));assert.ok(svg.includes('Allgemein'));
+ Object.assign(p,{elements:g.elements,scale:g.scale,dispoConfig:g.config});const restored=validateProject(d).pages[2];assert.equal(restored.elements.find(e=>e.id===meter.id).template.id,'tl-0740');
+ const boxes=sceneBoxes(restored).filter(b=>b.id===meter.id);assert.ok(boxes.length>5);assert.ok(!boxes.some(b=>b.color==='#214d64'));
+});
+test('equal size RSE and meters retain different originals',async()=>{const d=await fixture(['tl-0007','tl-0014']),g=await buildAutomaticDispo(d,d.pages[2],fetcher);assert.deepEqual(g.elements.filter(e=>e.dispoKind==='meter').map(e=>e.template.id),['tl-0740','tl-0743']);});
+test('real multipole and single phase LS macros resolve neutral pole and original dimensions',async()=>{const d=await fixture(['tl-0021','tl-0025','tl-0028']),g=await buildAutomaticDispo(d,d.pages[2],fetcher);assert.deepEqual(g.elements.filter(e=>e.dispoSource).map(e=>[e.template.id,e.width,e.height]),[['tl-0542',63,98],['tl-0531',27,98],['tl-0624',72,119.4]]);});
+test('unknown equipment and failed loads leave existing disposition intact',async()=>{const d=await fixture(['tl-0007']),p=d.pages[2],before=structuredClone(p);await assert.rejects(buildAutomaticDispo(d,p,async()=>({ok:false})),/unverändert/);assert.deepEqual(p,before);assert.equal(automaticTemplateId({kind:'unknown',name:'something'}),undefined);});
+test('all fuse families use correct originals and unsupported poles are not guessed',()=>{for(const [type,id]of[['DII','tl-0582'],['DIII','tl-0584'],['NH00','tl-0580']])assert.equal(automaticTemplateId({kind:'fuse',fuseType:type}),id);assert.equal(automaticTemplateId({kind:'fils',name:'2P'}),undefined);assert.equal(automaticTemplateId({kind:'meter',name:'Reserve Zähler'}),'tl-0741');});
+test('one-click entry invokes apply without creating a dialog',async()=>{const {editAutomaticDispo}=await import('../cad/dispo-ui.mjs');const d=await fixture(['tl-0007']),previous=globalThis.fetch,dom=globalThis.document;globalThis.fetch=fetcher;globalThis.document={createElement(){throw Error('Unexpected dialog');}};try{let called=0;await editAutomaticDispo(d,d.pages[2],g=>{called++;assert.equal(g.elements.filter(e=>e.dispoSource).length,2);});assert.equal(called,1);}finally{globalThis.fetch=previous;globalThis.document=dom;}});
