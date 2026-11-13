@@ -1,5 +1,5 @@
-import {localPoint} from './geometry.mjs?v=20261113-2';
-import {templateSize} from './template.mjs?v=20261113-2';
+import {localPoint} from './geometry.mjs?v=20261113-3';
+import {templateSize} from './template.mjs?v=20261113-3';
 // Normalize SVG segments without turning text outlines or filled masks into conductors.
 export function pathSegments(d){
  const tokens=d.match(/[a-df-z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/ig)||[],out=[];
@@ -25,7 +25,7 @@ export function detachLine(page,e,index,id){
  const remainder=segments.filter((_,i)=>i!==l.segment).map(s=>`M ${s.a.x} ${s.a.y} ${s.d}`).join(' ');
  const replacements=[];if(original.fill!=='none')replacements.push({...original,stroke:'none'});if(remainder)replacements.push({...original,d:remainder,fill:'none'});
  paths.splice(l.path,1,...replacements);if(!paths.length)paths.push({d:'M 0 0',fill:'none',stroke:'none',sw:0});
- const [w,h]=templateSize(e,page),wire={id,points:linePoints(e,page,l),from:null,to:null,label:'',dashed:false,direct:true,stroke:l.stroke,strokeWidth:Math.max(.75,l.sw*Math.min(w/e.template.viewWidth,h/e.template.viewHeight))};
+ const [w,h]=templateSize(e,page),wire={id,templateOwner:e.id,points:linePoints(e,page,l),from:null,to:null,label:'',dashed:false,direct:true,stroke:l.stroke,strokeWidth:Math.max(.75,l.sw*Math.min(w/e.template.viewWidth,h/e.template.viewHeight))};
  const anchors=[l.a,l.b].map(q=>({x:q.x/e.template.viewWidth,y:q.y/e.template.viewHeight}));
  for(const other of page.wires)for(const key of ['from','to']){const ref=other[key];if(ref?.element!==e.id||!ref.local)continue;const index=anchors.findIndex(a=>Math.abs(a.x-ref.local.x)<1e-8&&Math.abs(a.y-ref.local.y)<1e-8);if(index>=0)other[key]={wire:id,index};}
  wire.from={element:e.id,local:anchors[0]};wire.to={element:e.id,local:anchors[1]};e.template={...e.template,paths};page.wires.push(wire);return wire;

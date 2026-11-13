@@ -1,9 +1,9 @@
-import {frameBoxes} from './frame-render.mjs?v=20261113-2';
+import {frameBoxes} from './frame-render.mjs?v=20261113-3';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];
  const add=(e,x,y,z,w,h,d,color)=>{const a=(e.rotation||0)*Math.PI/180,dx=x+w/2-(e.x*factor+e.width/2),dy=y+h/2-(e.y*factor+e.height/2);boxes.push({id:e.id,label:e.kind==='module'?e.tag:'',x:e.x*factor+e.width/2+dx*Math.cos(a)-dy*Math.sin(a)-w/2,y:e.y*factor+e.height/2+dx*Math.sin(a)+dy*Math.cos(a)-h/2,z,w,h,d,color,rotation:e.rotation||0});};
- for(const e of p.elements){const x=e.x*factor,y=e.y*factor,w=e.width,h=e.height,d=e.depth||({cabinet:400,rail:15,duct:60,module:80,plate:3})[e.kind];if(!d)continue;
+ for(const source of p.elements){const e=source.kind==='template'&&source.dispoGeometryKind?{...source,kind:source.dispoGeometryKind}:source;const x=e.x*factor,y=e.y*factor,w=e.width,h=e.height,d=e.depth||({cabinet:400,rail:15,duct:60,module:80,plate:3})[e.kind];if(!d)continue;
   if(frameBoxes(e,x,y,add))continue;if(e.kind==='cabinet'){if(e.frameStyle==='drahtwerk')continue;
    if(!e.dispoFrame)add(e,x,y,-d,w,h,8,'#b5c1ce');
    add(e,x,y,-d,12,h,d,'#6d8197');add(e,x+w-12,y,-d,12,h,d,'#6d8197');add(e,x,y,-d,w,12,d,'#8496a9');add(e,x,y+h-12,-d,w,12,d,'#8496a9');
@@ -18,12 +18,12 @@ export function projectPoint(point,camera){const [x,y,z]=point,{yaw,pitch}=camer
 export function openDispo3D(p,onSelect){
  const boxes=sceneBoxes(p);if(!boxes.length)throw Error('Zuerst einen Schrank, Rahmen oder Geräte in der Dispo platzieren.');
  const dialog=document.createElement('dialog');dialog.className='dispo-3d';dialog.innerHTML='<header><strong>Disposition · 3D</strong><span>Planungsmodell</span><button data-view="front">Vorne</button><button data-view="side">Seite</button><button data-view="top">Oben</button><button data-view="iso">Einpassen</button><button data-view="plus" aria-label="Vergrössern">+</button><button data-view="minus" aria-label="Verkleinern">−</button><label><input type="checkbox" checked data-labels> BMK</label><label><input type="checkbox" checked data-plates> Platten</label><button data-close>Zurück zu 2D ✕</button></header><canvas tabindex="0" aria-label="3D-Anlage. Ziehen dreht, Mausrad zoomt, Mitteltaste verschiebt. Pfeiltasten drehen."></canvas><footer>Linke Maustaste: drehen · Mausrad: zoomen · Mitteltaste / Umschalt: verschieben · Doppelklick auf Gerät: Eigenschaften in 2D</footer>';
- const omitted=p.elements.filter(e=>e.kind==='template').length;if(omitted)dialog.querySelector('footer').textContent+=` · ${omitted} Grafikvorlagen ohne 3D-Körper`;document.body.append(dialog);const canvas=dialog.querySelector('canvas'),ctx=canvas.getContext('2d');if(!ctx){dialog.remove();throw Error('3D-Zeichenfläche konnte nicht gestartet werden.');}
+ const omitted=p.elements.filter(e=>e.kind==='template'&&!e.dispoGeometryKind).length;if(omitted)dialog.querySelector('footer').textContent+=` · ${omitted} Grafikvorlagen ohne 3D-Körper`;document.body.append(dialog);const canvas=dialog.querySelector('canvas'),ctx=canvas.getContext('2d');if(!ctx){dialog.remove();throw Error('3D-Zeichenfläche konnte nicht gestartet werden.');}
  const min=[Math.min(...boxes.map(b=>b.x)),Math.min(...boxes.map(b=>b.y)),Math.min(...boxes.map(b=>b.z))],max=[Math.max(...boxes.map(b=>b.x+b.w)),Math.max(...boxes.map(b=>b.y+b.h)),Math.max(...boxes.map(b=>b.z+b.d))],center=min.map((v,i)=>(v+max[i])/2),extent=Math.max(...max.map((v,i)=>v-min[i]));
  let camera={yaw:-.45,pitch:.2},zoom=1,pan=[0,0],pointer=null,faces=[],labels=true,showPlates=true,hitMap=null,hitWidth=0;
  const indices=[[0,3,2,1],[4,5,6,7],[0,1,5,4],[3,7,6,2],[0,4,7,3],[1,2,6,5]];
  function draw(){const r=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;canvas.width=r.width*dpr;canvas.height=r.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#edf2f7';ctx.fillRect(0,0,r.width,r.height);const scale=Math.min(r.width,r.height)*.72/extent*zoom;faces=[];
-  for(const b of boxes){if(!showPlates&&p.elements.some(e=>e.id===b.id&&e.kind==='plate'))continue;const a=b.rotation*Math.PI/180;const points=[[0,0,0],[b.w,0,0],[b.w,b.h,0],[0,b.h,0],[0,0,b.d],[b.w,0,b.d],[b.w,b.h,b.d],[0,b.h,b.d]].map(([x,y,z])=>{const dx=x-b.w/2,dy=y-b.h/2;return projectPoint([b.x+b.w/2+dx*Math.cos(a)-dy*Math.sin(a)-center[0],b.y+b.h/2+dx*Math.sin(a)+dy*Math.cos(a)-center[1],b.z+z-center[2]],camera);}).map(([x,y,z])=>[r.width/2+pan[0]+x*scale,r.height/2+pan[1]+y*scale,z]);
+  for(const b of boxes){if(!showPlates&&p.elements.some(e=>e.id===b.id&&(e.kind==='plate'||e.dispoGeometryKind==='plate')))continue;const a=b.rotation*Math.PI/180;const points=[[0,0,0],[b.w,0,0],[b.w,b.h,0],[0,b.h,0],[0,0,b.d],[b.w,0,b.d],[b.w,b.h,b.d],[0,b.h,b.d]].map(([x,y,z])=>{const dx=x-b.w/2,dy=y-b.h/2;return projectPoint([b.x+b.w/2+dx*Math.cos(a)-dy*Math.sin(a)-center[0],b.y+b.h/2+dx*Math.sin(a)+dy*Math.cos(a)-center[1],b.z+z-center[2]],camera);}).map(([x,y,z])=>[r.width/2+pan[0]+x*scale,r.height/2+pan[1]+y*scale,z]);
    indices.forEach((ids,i)=>faces.push({points:ids.map(j=>points[j]),z:ids.reduce((v,j)=>v+points[j][2],0)/4,b,front:i===1}));
   }
   // Per-pixel depth avoids a tall backplate hiding small devices at oblique angles.

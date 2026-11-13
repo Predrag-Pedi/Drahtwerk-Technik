@@ -1,7 +1,7 @@
-import {frameLayout} from './frame-layout.mjs?v=20261113-2';
-import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-2';
-import {createElement,W} from './model.mjs?v=20261113-2';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-2';
+import {frameLayout} from './frame-layout.mjs?v=20261113-3';
+import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-3';
+import {createElement,W} from './model.mjs?v=20261113-3';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-3';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -54,7 +54,7 @@ export function generateDispo(p,devices,config){
  for(const d of layout.placed)add('module',d.x,d.y,d.width,d.height,{tag:d.tag,text:d.kind==='unknown'?'?':d.kind==='meter'?'kWh':'',value:'',depth:d.depth,dispoSource:d.source,dispoKind:d.kind,dimensionsConfirmed:d.confirmed});
  return {elements,scale,config:c};
 }
-export function validateDispoMetadata(e,fail){const out={};for(const k of ['profile','plateType','frameStyle','fuseType','circuitName'])if(e[k]!==undefined){if(typeof e[k]!=='string'||e[k].length>200)fail();out[k]=e[k];}for(const k of ['mountZ','current'])if(e[k]!==undefined){if(!Number.isFinite(e[k])||Math.abs(e[k])>4000)fail();out[k]=e[k];}if(e.generatedDispo!==undefined)out.generatedDispo=e.generatedDispo===true;if(e.dispoFrame!==undefined)out.dispoFrame=e.dispoFrame===true;if(e.depth!==undefined){if(!Number.isFinite(e.depth)||e.depth<=0||e.depth>4000)fail();out.depth=e.depth;}if(e.dimensionsConfirmed!==undefined)out.dimensionsConfirmed=e.dimensionsConfirmed===true;if(e.dispoKind!==undefined){if(typeof e.dispoKind!=='string'||e.dispoKind.length>40)fail();out.dispoKind=e.dispoKind;}if(e.dispoSource){out.dispoSource={};for(const k of ['page','element','key']){if(typeof e.dispoSource[k]!=='string'||e.dispoSource[k].length>200)fail();out.dispoSource[k]=e.dispoSource[k];}}return out;}
+export function validateDispoMetadata(e,fail){const out={};for(const k of ['profile','plateType','frameStyle','fuseType','circuitName','dispoGeometryKind'])if(e[k]!==undefined){if(typeof e[k]!=='string'||e[k].length>200)fail();out[k]=e[k];}for(const k of ['mountZ','current'])if(e[k]!==undefined){if(!Number.isFinite(e[k])||Math.abs(e[k])>4000)fail();out[k]=e[k];}if(e.generatedDispo!==undefined)out.generatedDispo=e.generatedDispo===true;if(e.dispoFrame!==undefined)out.dispoFrame=e.dispoFrame===true;if(e.depth!==undefined){if(!Number.isFinite(e.depth)||e.depth<=0||e.depth>4000)fail();out.depth=e.depth;}if(e.dimensionsConfirmed!==undefined)out.dimensionsConfirmed=e.dimensionsConfirmed===true;if(e.dispoKind!==undefined){if(typeof e.dispoKind!=='string'||e.dispoKind.length>40)fail();out.dispoKind=e.dispoKind;}if(e.dispoSource){out.dispoSource={};for(const k of ['page','element','key']){if(typeof e.dispoSource[k]!=='string'||e.dispoSource[k].length>200)fail();out.dispoSource[k]=e.dispoSource[k];}}return out;}
 
 export function drahtwerkDemo(d){
  const p=d.pages.find(p=>p.type==='schema');p.title='Zählergruppen';
