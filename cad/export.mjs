@@ -1,4 +1,4 @@
-import {svgPage} from './render.mjs?v=20261113-5';
-import {imagePdf} from './image-pdf.mjs?v=20261113-5';
+import {svgPage} from './render.mjs?v=20261113-6';
+import {imagePdf} from './image-pdf.mjs?v=20261113-6';
 export function download(blob,name){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name.replace(/[\\/:*?"<>|]/g,'-');a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 export async function pdf(d,progress=()=>{}){const pages=[];for(let n=0;n<d.pages.length;n++){progress(n+1,d.pages.length);const url=URL.createObjectURL(new Blob([svgPage(d,d.pages[n])],{type:'image/svg+xml'}));try{const image=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(Error('Zeichnung konnte nicht gerendert werden'));i.src=url});const c=document.createElement('canvas');c.width=2400;c.height=Math.round(2400*297/420);const g=c.getContext('2d');g.fillStyle='white';g.fillRect(0,0,c.width,c.height);g.drawImage(image,0,0,c.width,c.height);const b=await new Promise(r=>c.toBlob(r,'image/jpeg',.97));if(!b)throw Error('PDF-Erstellung fehlgeschlagen');pages.push({width:c.width,height:c.height,bytes:new Uint8Array(await b.arrayBuffer())});c.width=c.height=1;}finally{URL.revokeObjectURL(url);}}return imagePdf(pages);}

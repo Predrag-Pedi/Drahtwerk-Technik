@@ -1,6 +1,7 @@
-import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261113-5';
-import {bounds,localPoint} from './geometry.mjs?v=20261113-5';
-import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-5';
+import {moveDispoElements} from './dispo-move.mjs?v=20261113-6';
+import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261113-6';
+import {bounds,localPoint} from './geometry.mjs?v=20261113-6';
+import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-6';
 export const selectionKey=s=>JSON.stringify([s.kind,s.id,s.index,s.key]);
 export function toggleSelection(items,item){const key=selectionKey(item);return items.some(s=>selectionKey(s)===key)?items.filter(s=>selectionKey(s)!==key):[...items,item];}
 const box=pts=>({left:Math.min(...pts.map(p=>p.x)),right:Math.max(...pts.map(p=>p.x)),top:Math.min(...pts.map(p=>p.y)),bottom:Math.max(...pts.map(p=>p.y))});
@@ -10,7 +11,7 @@ export function selectable(p,individual=true){const out=p.wires.map(w=>({kind:'w
 export function selectRectangle(p,a,b,individual=true){const r=box([a,b]),cross=b.x<a.x;const whole=p.elements.filter(e=>e.template).filter(e=>{const q=selectionBounds(p,{kind:'element',id:e.id});return q.left>=r.left&&q.right<=r.right&&q.top>=r.top&&q.bottom<=r.bottom;}).map(e=>({kind:'element',id:e.id}));const ids=new Set(whole.map(s=>s.id));return [...whole,...selectable(p,individual).filter(s=>!ids.has(s.id)).filter(s=>{const q=selectionBounds(p,s);return q&&(cross?q.right>=r.left&&q.left<=r.right&&q.bottom>=r.top&&q.top<=r.bottom:q.left>=r.left&&q.right<=r.right&&q.top>=r.top&&q.bottom<=r.bottom);})];}
 export function materializeLines(p,items,uid){if(p.elements.length+p.wires.length+items.filter(s=>s.kind==='line').length>5000)throw Error('Maximal 5000 Elemente pro Seite.');const result=items.map(s=>({...s}));const lines=result.filter(s=>s.kind==='line').sort((a,b)=>a.id.localeCompare(b.id)||b.index-a.index);for(const s of lines){const e=p.elements.find(e=>e.id===s.id),w=detachLine(p,e,s.index,uid());s.kind='wire';s.id=w.id;delete s.index;}return result;}
 export function moveSelection(p,items,dx,dy){const ids=new Set(items.filter(s=>s.kind==='element').map(s=>s.id));const wireIds=new Set(items.filter(s=>s.kind==='wire').map(s=>s.id));const previous=new Map(p.wires.filter(w=>wireIds.has(w.id)).map(w=>[w.id,wirePoints(p,w)]));
- for(const e of p.elements)if(ids.has(e.id)){e.x+=dx;e.y+=dy;}
+ moveDispoElements(p,ids,dx,dy);
  for(const s of items){if(s.kind==='wire'){const w=p.wires.find(w=>w.id===s.id);w.points=previous.get(w.id).map(pt=>({x:pt.x+dx,y:pt.y+dy}));for(const end of ['from','to']){const ref=w[end];if(!ref||!(ids.has(ref.element)||wireIds.has(ref.wire)))w[end]=null;}}
  if(s.kind==='text'&&!ids.has(s.id)){const e=p.elements.find(e=>e.id===s.id),[w,h]=size(e,p),a=e.rotation*Math.PI/180;e.textOffsets??={};const old=e.textOffsets[s.key]||{x:0,y:0};e.textOffsets[s.key]={x:old.x+(dx*Math.cos(a)+dy*Math.sin(a))*e.template.viewWidth/w,y:old.y+(-dx*Math.sin(a)+dy*Math.cos(a))*e.template.viewHeight/h};if(!s.key.startsWith('bmk:')){e.textEdits??={};e.textEdits[s.key]??=e.template.details.texts.find(l=>l.key===s.key).text;}}
  }

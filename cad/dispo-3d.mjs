@@ -1,10 +1,12 @@
-import {frameBoxes} from './frame-render.mjs?v=20261113-5';
+import {boxMesh} from './dispo-mesh.mjs?v=20261113-6';
+import {frameBoxes} from './frame-render.mjs?v=20261113-6';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];
- const add=(e,x,y,z,w,h,d,color)=>{const a=(e.rotation||0)*Math.PI/180,dx=x+w/2-(e.x*factor+e.width/2),dy=y+h/2-(e.y*factor+e.height/2);boxes.push({shape:e.shape,plate:e.kind==='plate',id:e.id,label:e.kind==='module'?e.tag:'',x:e.x*factor+e.width/2+dx*Math.cos(a)-dy*Math.sin(a)-w/2,y:e.y*factor+e.height/2+dx*Math.sin(a)+dy*Math.cos(a)-h/2,z,w,h,d,color,rotation:e.rotation||0});};
+ const add=(e,x,y,z,w,h,d,color)=>{const a=(e.rotation||0)*Math.PI/180,dx=x+w/2-(e.x*factor+e.width/2),dy=y+h/2-(e.y*factor+e.height/2);boxes.push({shape:e.shape,plate:e.kind==='plate'||!!e.plateMounted,id:e.id,label:e.kind==='module'?e.tag:'',x:e.x*factor+e.width/2+dx*Math.cos(a)-dy*Math.sin(a)-w/2,y:e.y*factor+e.height/2+dx*Math.sin(a)+dy*Math.cos(a)-h/2,z,w,h,d,color,rotation:e.rotation||0});};
  const sources=p.elements.flatMap(e=>[e,...(e.dispoStructure||[]).map(part=>{const a=(e.rotation||0)*Math.PI/180,dx=part.x+part.width/2-e.width/2,dy=part.y+part.height/2-e.height/2;return {...part,id:e.id,x:e.x+(e.width/2+dx*Math.cos(a)-dy*Math.sin(a)-part.width/2)/factor,y:e.y+(e.height/2+dx*Math.sin(a)+dy*Math.cos(a)-part.height/2)/factor,rotation:e.rotation||0};})]);
- for(const source of sources){const e=source.kind==='template'&&source.dispoGeometryKind?{...source,kind:source.dispoGeometryKind}:source;if(source.kind==='template'&&source.dispoKind==='meter'&&['tl-0740','tl-0741','tl-0743','tl-0744'].includes(source.template?.id)){e.x+=35/factor;e.y+=45/factor;e.width=180;e.height=260;}const x=e.x*factor,y=e.y*factor,w=e.width,h=e.height,d=e.depth||({cabinet:400,rail:15,duct:60,module:80,plate:3})[e.kind];if(!d)continue;
+ for(const source of sources){const e=source.kind==='template'&&source.dispoGeometryKind?{...source,kind:source.dispoGeometryKind}:{...source};if(source.kind==='template'&&source.dispoKind==='meter'&&['tl-0740','tl-0741','tl-0743','tl-0744'].includes(source.template?.id)){e.x+=35/factor;e.y+=45/factor;e.width=180;e.height=260;}const x=e.x*factor,y=e.y*factor,w=e.width,h=e.height,d=e.depth||({cabinet:400,rail:15,duct:60,module:80,plate:3})[e.kind];if(!d)continue;
+  if(e.kind==='module'&&e.dispoKind==='meter'){add({...e,tag:'',shape:'meterTube',plateMounted:false},x+w/2-20,y-25,-95,40,350,40,'#d8d8d2');e.plateMounted=true;}
   if(frameBoxes(e,x,y,add))continue;if(e.kind==='cabinet'){if(e.frameStyle==='drahtwerk')continue;
    if(!e.dispoFrame)add(e,x,y,-d,w,h,8,'#b5c1ce');
    add(e,x,y,-d,12,h,d,'#6d8197');add(e,x+w-12,y,-d,12,h,d,'#6d8197');add(e,x,y,-d,w,12,d,'#8496a9');add(e,x,y+h-12,-d,w,12,d,'#8496a9');
@@ -24,8 +26,8 @@ export function openDispo3D(p,onSelect){
  let camera={yaw:-.45,pitch:.2},zoom=1,pan=[0,0],pointer=null,faces=[],labels=true,showPlates=true,hitMap=null,hitWidth=0;
  const indices=[[0,3,2,1],[4,5,6,7],[0,1,5,4],[3,7,6,2],[0,4,7,3],[1,2,6,5]];
  function draw(){const r=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;canvas.width=r.width*dpr;canvas.height=r.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#edf2f7';ctx.fillRect(0,0,r.width,r.height);const scale=Math.min(r.width,r.height)*.72/extent*zoom;faces=[];
-  for(const b of boxes){if(!showPlates&&b.plate)continue;const a=b.rotation*Math.PI/180;const vertices=b.shape==='cylinder'?Array.from({length:40},(_,i)=>{const a=i%20*Math.PI/10;return [b.w/2+Math.cos(a)*b.w/2,b.h/2+Math.sin(a)*b.h/2,i<20?0:b.d];}):[[0,0,0],[b.w,0,0],[b.w,b.h,0],[0,b.h,0],[0,0,b.d],[b.w,0,b.d],[b.w,b.h,b.d],[0,b.h,b.d]];const points=vertices.map(([x,y,z])=>{const dx=x-b.w/2,dy=y-b.h/2;return projectPoint([b.x+b.w/2+dx*Math.cos(a)-dy*Math.sin(a)-center[0],b.y+b.h/2+dx*Math.sin(a)+dy*Math.cos(a)-center[1],b.z+z-center[2]],camera);}).map(([x,y,z])=>[r.width/2+pan[0]+x*scale,r.height/2+pan[1]+y*scale,z]);
-   const surfaces=b.shape==='cylinder'?[Array.from({length:20},(_,i)=>i),Array.from({length:20},(_,i)=>i+20),...Array.from({length:20},(_,i)=>[i,(i+1)%20,(i+1)%20+20,i+20])]:indices;surfaces.forEach((ids,i)=>faces.push({points:ids.map(j=>points[j]),z:ids.reduce((v,j)=>v+points[j][2],0)/ids.length,b,front:i===1}));
+  for(const b of boxes){if(!showPlates&&b.plate)continue;const a=b.rotation*Math.PI/180;const {vertices,surfaces}=boxMesh(b);const points=vertices.map(([x,y,z])=>{const dx=x-b.w/2,dy=y-b.h/2;return projectPoint([b.x+b.w/2+dx*Math.cos(a)-dy*Math.sin(a)-center[0],b.y+b.h/2+dx*Math.sin(a)+dy*Math.cos(a)-center[1],b.z+z-center[2]],camera);}).map(([x,y,z])=>[r.width/2+pan[0]+x*scale,r.height/2+pan[1]+y*scale,z]);
+   surfaces.forEach((ids,i)=>faces.push({points:ids.map(j=>points[j]),z:ids.reduce((v,j)=>v+points[j][2],0)/ids.length,b,front:i===1,shade:b.shape==='meterTube'?(ids.every(j=>j%48>=24)?.45:Math.min(1,.82+ids.reduce((v,j)=>v+(vertices[j][0]-b.w/2)*.35+(vertices[j][2]-b.d/2)*.65,0)/ids.length/b.w*.3)):undefined}));
   }
   // Per-pixel depth avoids a tall backplate hiding small devices at oblique angles.
   const width=Math.max(1,Math.round(r.width)),height=Math.max(1,Math.round(r.height)),pixels=ctx.createImageData(width,height),depth=new Float32Array(width*height).fill(-Infinity),hits=new Uint32Array(width*height);
@@ -34,8 +36,8 @@ export function openDispo3D(p,onSelect){
    const [a,b,c]=ids.map(i=>f.points[i]),den=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]);if(Math.abs(den)<.001)continue;
    const left=Math.max(0,Math.floor(Math.min(a[0],b[0],c[0]))),right=Math.min(width-1,Math.ceil(Math.max(a[0],b[0],c[0]))),top=Math.max(0,Math.floor(Math.min(a[1],b[1],c[1]))),bottom=Math.min(height-1,Math.ceil(Math.max(a[1],b[1],c[1])));
    for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){const u=((b[1]-c[1])*(x-c[0])+(c[0]-b[0])*(y-c[1]))/den,v=((c[1]-a[1])*(x-c[0])+(a[0]-c[0])*(y-c[1]))/den,w=1-u-v;if(u<0||v<0||w<0)continue;const z=u*a[2]+v*b[2]+w*c[2],index=y*width+x;if(z<depth[index])continue;depth[index]=z;hits[index]=objectIndex;
-    let edge=false;for(let j=0;j<f.points.length;j++){const q=f.points[j],t=f.points[(j+1)%f.points.length],length=Math.hypot(t[0]-q[0],t[1]-q[1]);if(length&&Math.abs((t[0]-q[0])*(q[1]-y)-(q[0]-x)*(t[1]-q[1]))/length<.65)edge=true;}
-    const shade=edge?.65:f.front?1:.86;for(let k=0;k<3;k++)pixels.data[index*4+k]=rgb[k]*shade;
+    let edge=false;for(let j=0;f.b.shape!=='meterTube'&&j<f.points.length;j++){const q=f.points[j],t=f.points[(j+1)%f.points.length],length=Math.hypot(t[0]-q[0],t[1]-q[1]);if(length&&Math.abs((t[0]-q[0])*(q[1]-y)-(q[0]-x)*(t[1]-q[1]))/length<.65)edge=true;}
+    const shade=f.shade??(edge?.65:f.front?1:.86);for(let k=0;k<3;k++)pixels.data[index*4+k]=rgb[k]*shade;
    }
   }}
   hitMap=hits;hitWidth=width;const buffer=document.createElement('canvas');buffer.width=width;buffer.height=height;buffer.getContext('2d').putImageData(pixels,0,0);ctx.drawImage(buffer,0,0,width,height);

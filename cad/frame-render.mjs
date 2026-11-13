@@ -1,4 +1,4 @@
-import {plateStrips} from './frame-layout.mjs?v=20261113-5';
+import {plateStrips} from './frame-layout.mjs?v=20261113-6';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  const sx=w/e.width,sy=h/e.height,rect=(x,y,a,b,fill='white')=>`<rect x="${x*sx}" y="${y*sy}" width="${a*sx}" height="${b*sy}" fill="${fill}"/>`,line=(x,y,a,b)=>`<path d="M${x*sx} ${y*sy}L${a*sx} ${b*sy}"/>`;
@@ -18,7 +18,7 @@ export function frameBoxes(e,x,y,add){
  if(e.kind==='duct'){add(e,x,y,z,w,h,3,'#bfc1bb');add(e,x,y,z,w,3,d,'#d8d9d3');add(e,x,y+h-3,z,w,3,d,'#d8d9d3');for(let xx=0;xx<w;xx+=14){add(e,x+xx,y,z+3,7,6,d-3,'#d8d9d3');add(e,x+xx,y+h-6,z+3,7,6,d-3,'#d8d9d3');}return true;}
  if(e.kind==='module'&&e.dispoKind==='terminal'){const pitch=8;for(let xx=0;xx<w;xx+=pitch){const color=xx>w-17?'#3186b8':'#b4b8ae';add(e,x+xx,y,z,Math.min(pitch-1,w-xx),h,d,color);add({...e,tag:''},x+xx+2,y+12,z+d,3,5,1,'#333c44');add({...e,tag:''},x+xx+2,y+h-17,z+d,3,5,1,'#333c44');}return true;}
  if(e.kind==='module'&&e.dispoKind==='meter'&&e.meterState==='prepared'){
-  // Hardware belongs to the device, so hiding front plates leaves it selectable.
+  // The plug terminals and mounting bridge are attached to the removable meter plate.
   const cx=x+w/2,part={...e,tag:''};add(part,cx-9,y+5,4,18,h-25,5,al);
   for(let yy=15;yy<h-30;yy+=30)add({...e,tag:''},cx-3,y+yy,9,6,8,1,'#596269');
   add(part,x-10,y+h-30,5,w+20,15,8,al);

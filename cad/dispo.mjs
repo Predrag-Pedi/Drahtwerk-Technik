@@ -1,7 +1,7 @@
-import {frameLayout} from './frame-layout.mjs?v=20261113-5';
-import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-5';
-import {createElement,W} from './model.mjs?v=20261113-5';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-5';
+import {frameLayout} from './frame-layout.mjs?v=20261113-6';
+import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-6';
+import {createElement,W} from './model.mjs?v=20261113-6';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-6';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -13,11 +13,18 @@ export function schemaDevices(doc){
   if(seen.has(tag)){warnings.push(`${tag}: mehrfach vorhanden; einmal übernommen. BMK prüfen.`);continue;}seen.add(tag);
   let kind=data.role==='coil'?'coil':e.kind;
   if(kind==='template'){const letter=tag.match(/[A-Z]+/i)?.[0]?.toUpperCase();kind=({F:'fuse',Q:'switch',S:'switch',K:'coil',P:'meter',Y:'meter',X:'terminal'})[letter]||'unknown';}
-  const content=deviceText(e,key);if(e.template&&kind==='fuse'&&(/(?:^|_)LS(?:_|$)|FI.?LS/i.test(e.template.name)||/\b[BCD]\s*\d+/.test(content)))kind=/FI|mA/i.test(content+' '+e.template.name)?'fils':'ls';if(e.template&&kind==='meter'&&/RSE|Rundsteuer|TRE/i.test(e.template.name))kind='meter';const rating=kind==='fuse'?fuseRating(content):{};if(rating.conflict)warnings.push(`${tag}: widersprüchliche Sicherungsangabe.`);if(kind==='fuse'&&!rating.fuseType)warnings.push(`${tag}: DII/DIII oder Stromstärke fehlt.`);
+  const content=deviceText(e,key);
+  // Classify each function inside a mixed macro from its own labels. A residual
+  // current (mA) denotes FI-LS even when the macro itself is named «Zähler».
+  const residual=/\b\d+(?:[.,]\d+)?\s*mA\b/i.test(content),curve=/\b[BCD]\s*\d+|\d+\s*A\s*[/ ]*\s*[BCD]\b/i.test(content);
+  const singleFuse=(e.template?.labels||[]).filter(l=>l.letter==='F').length===1;
+  if(e.template&&kind==='fuse'&&(residual||curve||singleFuse&&/(?:^|_)LS(?:_|$)|FI.?LS/i.test(e.template.name)))kind=residual||/FI.?LS/i.test(content)||(singleFuse&&/FI.?LS/i.test(e.template.name))?'fils':'ls';
+  const poles=/\b1\s+2\s+3\s+4\s+5\s+6\b/.test(content)?3:/\b1\s+2\s+N\s+N\b|\b1\s+N\b/.test(content)?1:undefined;
+  const rating=kind==='fuse'?fuseRating(content):{};if(rating.conflict)warnings.push(`${tag}: widersprüchliche Sicherungsangabe.`);if(kind==='fuse'&&!rating.fuseType)warnings.push(`${tag}: DII/DIII oder Stromstärke fehlt.`);
   let [width,height,depth]=envelopes[kind]||[54,100,80];
   if(['ls','fils'].includes(kind)&&/3L|3P|3.pol/i.test(content+' '+(e.template?.name||'')))width=kind==='fils'?72:54;
   const incoming=kind==='terminal'&&(/einspeis|zuleitung|hauptklemme/i.test(content+' '+(e.template?.name||''))||/X0(?:$|[.])/i.test(tag));
-  devices.push({schemaTemplateName:e.template?.name||'',...rating,incoming,meterState:'prepared',circuitName:data.circuitName||circuitName(doc,{page:page.id,element:e.id}),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
+  devices.push({poles,neutral:/\bN\b/.test(content),schemaTemplateName:e.template?.name||'',...rating,incoming,meterState:'prepared',circuitName:data.circuitName||circuitName(doc,{page:page.id,element:e.id}),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
  }
  for(const p of doc.pages.filter(p=>p.type==='schema'))for(const e of p.elements)if(e.template&&!e.template.labels?.length)warnings.push(`Blatt ${p.number}: «${e.template.name}» ohne auswertbare Gerätekennzeichen.`);
  return {devices,warnings};
@@ -35,7 +42,7 @@ export function layoutDevices(devices,config){
   if(x-60+d.width>usable)closeRow();
   if(y+Math.max(rowHeight,d.height)>c.height-120){closeRow();field++;y=100;}
   if(field>=c.fields){overflow.push(d);continue;}
-  placed.push({...d,x:field*fieldWidth+x,y});x+=d.width+8;rowHeight=Math.max(rowHeight,d.height);row=true;
+  placed.push({...d,x:field*fieldWidth+x,y});x+=d.width;rowHeight=Math.max(rowHeight,d.height);row=true;
  }
  closeRow();return {placed,overflow,rails,ducts};
 }
