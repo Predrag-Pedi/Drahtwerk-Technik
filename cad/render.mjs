@@ -1,10 +1,10 @@
-import {frameMarkup} from './frame-render.mjs?v=20261113-10';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-10';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261113-10';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-10';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-10';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261113-10';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-10';
+import {frameMarkup} from './frame-render.mjs?v=20261113-11';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-11';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261113-11';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-11';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-11';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261113-11';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-11';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -34,7 +34,7 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type===
  const tag=e.template?(e.dispoSource?'':e.tag):functionBmk(d,p,e);if(tag)body+=e.kind==='module'?text(w/2,-3,tag,`text-anchor="start" font-size="7" transform="rotate(-90 ${w/2} -3)"`):text(-8,18,tag,'text-anchor="end" font-weight="bold"');if(e.value)body+=text(-8,33,e.value,'text-anchor="end"');if(s.ports.length&&e.kind!=='reference'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  if(e.kind==='reference'){const target=d.pages.find(p=>p.id===e.targetPage);body+=text(42,14,target?`${target.number}.${e.targetPath}`:'?','fill="#1d5bb5"');}
  let connections='';
- if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/></g>`;}}
+ if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.autoPhases?.[i]||e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/>${editor?`<circle data-auto-port="${esc(e.id)}:${i}" cx="${pt.x}" cy="${y}" r="7" fill="transparent" stroke="none" pointer-events="all" style="cursor:ns-resize"/>`:""}</g>`;}}
  return connections+`<g data-element="${esc(e.id)}" ${editor&&e.template&&!groupSelect?'pointer-events="none"':''} transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}>${!e.template||editor&&groupSelect?`<rect x="-4" y="-4" width="${w+8}" height="${h+8}" fill="transparent" stroke="none"/>`:''}${body}</g>`;
 }
 export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=true}={}){
