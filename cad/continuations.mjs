@@ -1,6 +1,6 @@
-import {circuitNames} from './circuit-data.mjs?v=20261113-18';
-import {BUS,localPoint,pathAt} from './geometry.mjs?v=20261113-18';
-import {size,wirePoints,ports} from './model.mjs?v=20261113-18';
+import {circuitNames} from './circuit-data.mjs?v=20261113-19';
+import {BUS,localPoint,pathAt} from './geometry.mjs?v=20261113-19';
+import {size,wirePoints,ports} from './model.mjs?v=20261113-19';
 export const endpointKey=e=>JSON.stringify([e.page,e.kind,e.side,e.phase,e.element,e.key,e.wire,e.index,e.id]);
 export function connectionPoint(doc,e){const p=doc.pages.find(p=>p.id===e.page);if(!p)return null;
  if(e.kind==='bus')return p.bus?{x:e.side==='left'?60:1140,y:BUS[e.phase]}:null;
