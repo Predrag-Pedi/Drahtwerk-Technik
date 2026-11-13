@@ -1,4 +1,4 @@
-import {plateStrips} from './frame-layout.mjs?v=20261113-25';
+import {plateStrips} from './frame-layout.mjs?v=20261113-26';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  const sx=w/e.width,sy=h/e.height,rect=(x,y,a,b,fill='white')=>`<rect x="${x*sx}" y="${y*sy}" width="${a*sx}" height="${b*sy}" fill="${fill}"/>`,line=(x,y,a,b)=>`<path d="M${x*sx} ${y*sy}L${a*sx} ${b*sy}"/>`;
@@ -7,7 +7,7 @@ export function frameMarkup(e,w,h){
  if(e.profile){let out=rect(0,0,e.width,e.height,'#f1f3f5');if(e.height>e.width)return out+line(e.width*.3,0,e.width*.3,e.height)+line(e.width*.7,0,e.width*.7,e.height);out+=line(0,e.height*.2,e.width,e.height*.2)+line(0,e.height*.8,e.width,e.height*.8);if(['AS35','AS50','BS25'].includes(e.profile))for(let x=15;x<e.width-15;x+=35)out+=rect(x,e.height*.4,10,e.height*.2,'#9aa3aa');return out;}
  if(e.kind==='module'&&e.frameStyle==='recessed'){let out=rect(0,20,e.width,46,'#f1f2ef');for(let x=0;x<e.width-8;x+=18)out+=rect(x+3,25,Math.min(12,e.width-x-3),3,'#3b806c')+rect(x+4,43,Math.min(10,e.width-x-4),14,'#343a3d');return out;}
  if(e.kind==='module'&&e.dispoKind==='fuse'&&e.fuseType==='NH00')return rect(0,0,e.width,e.height,'#e7e7e3')+rect(10,8,e.width-20,e.height-16,'#aab1b6');
- if(e.kind==='module'&&e.dispoKind==='fuse'){let out='';for(let i=0;i<3;i++){const cy=(30+i*80)*sy,r=(e.fuseType==='DIII'?23:19)*sx;out+=rect(3,i*80,e.width-6,60)+`<circle cx="${w/2}" cy="${cy}" r="${r}" fill="#e5e8eb"/><circle cx="${w/2}" cy="${cy}" r="${r*.62}" fill="white"/>`; }return out+`<text x="${w/2}" y="${h+9}" text-anchor="middle" font-size="7">${esc(e.fuseType||'?')} ${e.current||'?'} A</text>`;}
+ if(e.kind==='module'&&e.dispoKind==='fuse'){let out='';for(let i=0;i<3;i++){const cy=(22.5+i*110)*sy,r=(e.fuseType==='DIII'?23:19)*sx;out+=rect(3,i*110,e.width-6,45)+`<circle cx="${w/2}" cy="${cy}" r="${r}" fill="#e5e8eb"/><circle cx="${w/2}" cy="${cy}" r="${r*.62}" fill="white"/>`; }return out+`<text x="${w/2}" y="${h+9}" text-anchor="middle" font-size="7">${esc(e.fuseType||'?')} ${e.current||'?'} A</text>`;}
  if(e.kind==='module'&&e.dispoKind==='meter')return rect(0,0,e.width,e.height)+rect(15,35,e.width-30,60,'#e2ebee')+rect(12,e.height-45,e.width-24,45,'#f1f3f5')+`<text x="${w/2}" y="${h*.55}" text-anchor="middle" font-size="9">kWh</text><text x="${w/2}" y="${h+12}" text-anchor="middle" font-size="8">${esc(e.circuitName)}</text>`;
  return null;
 }
@@ -34,6 +34,6 @@ export function frameBoxes(e,x,y,add){
  if(e.kind==='module'&&e.frameStyle==='recessed'){add(e,x,y,z,w,h,Math.max(1,d-8),'#dce0e3');add(e,x,y+20,0,w,46,8,'#f1f2ef');for(let xx=0;xx<w-8;xx+=18){add({...e,tag:''},x+xx+3,y+25,8,Math.min(12,w-xx-3),3,1,'#3b806c');add({...e,tag:''},x+xx+4,y+43,8,Math.min(10,w-xx-4),14,6,'#343a3d');}return true;}
  if(e.profile){if(e.profile==='SP165'){add(e,x,y,z,w,h,165,al);for(const zz of [0,45,95,150])add(e,e.frameStyle==='right'?x+w-25:x,y,z+zz,25,h,2,'#aab4be');}else{add(e,x,y,z,w,h,2,al);add(e,x,y,z,w,2,d,al);add(e,x,y+h-2,z,w,2,d,al);if(e.profile==='AS50')for(let xx=10;xx<w-10;xx+=30){add(e,x+xx,y-5,z,6,5,2,al);add(e,x+xx,y+h,z,6,5,2,al);}}return true;}
  if(e.kind==='module'&&e.dispoKind==='fuse'&&e.fuseType==='NH00'){const fw=e.neutral?90:w;add(e,x,y,z,fw,h,20,'#e1e1df');add(e,x+10,y+8,z+20,fw-20,h-16,30,'#a8b0b8');if(e.neutral){add({...e,tag:''},x+fw,y,z,w-fw,h,20,'#e1e1df');add({...e,tag:''},x+fw+8,y+8,z+20,w-fw-16,h-16,30,'#3186b8');}return true;}
- if(e.kind==='module'&&e.dispoKind==='fuse'){for(let i=0;i<3;i++){const cy=y+30+i*80,r=e.fuseType==='DIII'?23:19;add(e,x+3,y+i*80,z,w-6,60,20,'#e1e1df');add({...e,shape:'cylinder',tag:''},x+w/2-r,cy-r,z+20,2*r,2*r,25,'#dfded4');add({...e,shape:'cylinder',tag:''},x+w/2-r*.6,cy-r*.6,z+45,r*1.2,r*1.2,2,'#a0a49f');add({...e,shape:'cylinder',tag:''},x+w/2-5,cy-5,z+47,10,10,2,'#72766f');}return true;}
+ if(e.kind==='module'&&e.dispoKind==='fuse'){for(let i=0;i<3;i++){const cy=y+22.5+i*110,r=e.fuseType==='DIII'?23:19;add(e,x+3,y+i*110,z,w-6,45,20,'#e1e1df');add({...e,shape:'cylinder',tag:''},x+w/2-r,cy-r,z+20,2*r,2*r,25,'#dfded4');add({...e,shape:'cylinder',tag:''},x+w/2-r*.6,cy-r*.6,z+45,r*1.2,r*1.2,2,'#a0a49f');add({...e,shape:'cylinder',tag:''},x+w/2-5,cy-5,z+47,10,10,2,'#72766f');}return true;}
  return false;
 }

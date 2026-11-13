@@ -27,3 +27,5 @@ Bezügersicherungen beziehen sich über die Quellgeräte auf ihre Zählerplatte:
 Einspeiseklemmen aus dem Schema verwenden die vorhandene Phoenix-Prüfklemme URTK (80 mm, tl-0746). Der SPD wird als Überspannungsableiter erkannt und mit der Phoenix-Vorlage tl-0735 (72 mm = 4 PE) eingesetzt. Beide stehen auf einer eigenen 250 × 400 mm Platte, Klemme oberhalb des SPD mit Abstand zum oberen Plattenrand. Abgangsklemmen bleiben ausgeblendet. Die zugehörige Schiene führt von der Klemme zur gegenüberliegenden Rahmenseite und passt sich beim Verschieben an. Horizontale Tragschienen werden in der Dispo hinter den Geräten samt Profil und Länge dargestellt.
 
 Dispo-Schienen werden als schlichte, helle Umrisse mit kurzer Profilbeschriftung dargestellt. DIN-35-Schienen liegen mittig auf den Gerätereihen. Beim SPD und den Einspeiseklemmen erscheinen keine Schienen in der 2D-Disposition; die Montagegeometrie bleibt für 3D erhalten.
+
+Der obere Anschlussbereich zeigt Galip, Klemmenschiene und Kanal auch in 2D. NH00 und D-Sicherungen verwenden in 3D denselben Phasenabstand von 110 mm und dieselbe Phasenmitte; der N-Trenner bleibt ausschliesslich bei L3.

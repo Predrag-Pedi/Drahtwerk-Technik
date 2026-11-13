@@ -72,7 +72,7 @@ export function frameLayout(devices,c){
  for(let i=0;i<meters.length;i++){const d=meters[i],partial=meters.length%meterCols,col=partial&&i>=partial?(i-partial)%meterCols:i%meterCols,row=partial?(i<partial?0:1+Math.floor((i-partial)/meterCols)):Math.floor(i/meterCols),x=meterLeft+col*250,y=meterTop+row*400;if(y<plateTop||d.width>210||d.height>350){overflow.push(d);continue;}add('plate',x,y,250,400,{plateType:'meter',depth:3,mountZ:0});put(d,x+(250-d.width)/2,y+45,{mountZ:3,meterState:c.meterState||'prepared'});}
  for(let r=0;r<meterRows;r++)bar('ZS39',meterTop+r*400-22);
  if(hasFuses)for(let col=0;col<cols;col++)add('plate',left+col*c.plateWidth,fuseY,Math.min(c.plateWidth,c.width-left-(left+col*c.plateWidth)),fuseHeight,{plateType:'fuse',depth:3,mountZ:0});
- if(hasFuses)for(let pole=0;pole<3;pole++)add('rail',40,fuseY+80+pole*80,c.width-80,15,{profile:'copper',depth:5,mountZ:-70});
+ if(hasFuses)for(let pole=0;pole<3;pole++)add('rail',40,fuseY+80+pole*110,c.width-80,15,{profile:'copper',depth:5,mountZ:-70});
  // Place associated feeders at the common centre of their meter column.
  const occupiedBottom=[],widthOf=d=>d.fuseType==='NH00'?(d.neutral?126:90):d.fuseType==='DIII'?62:49;
  const meterOf=d=>d.meterSource&&placed.find(m=>m.kind==='meter'&&JSON.stringify(m.source)===JSON.stringify(d.meterSource));
