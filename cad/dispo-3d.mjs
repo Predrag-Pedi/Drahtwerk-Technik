@@ -1,5 +1,5 @@
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261113-8';
-import {frameBoxes} from './frame-render.mjs?v=20261113-8';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261113-9';
+import {frameBoxes} from './frame-render.mjs?v=20261113-9';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];

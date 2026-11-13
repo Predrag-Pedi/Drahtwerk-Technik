@@ -42,9 +42,9 @@ export function frameLayout(devices,c){
  const buckets=new Map();for(const d of regular){const key=family(d);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(d);}const ordered=[...buckets.values()].flat(),connections=new Map();
  for(const d of ordered){const key=family(d),individual=d.kind==='ls'&&d.lsMode==='individual',count=individual?(d.poles||1):1;
   let chosen=null;
-  for(const first of slots){const rows=Array.from({length:count},(_,i)=>slots.find(s=>s.x===first.x&&Math.abs(s.y-first.y-i*125)<.1));if(rows.some(s=>!s||s.group&&s.group!==key))continue;const used=Math.max(...rows.map(s=>s.used));if(rows.some(s=>used+d.width>s.width)||d.height>120)continue;chosen={rows,used};break;}
+  for(const first of slots){const rows=Array.from({length:count},(_,i)=>slots.find(s=>s.x===first.x&&Math.abs(s.y-first.y-i*125)<.1));if(rows.some(s=>!s))continue;const used=Math.max(...rows.map(s=>s.used+(s.group&&s.group!==key?18:0)));if(rows.some(s=>used+d.width>s.width)||d.height>120)continue;chosen={rows,used};break;}
   if(!chosen){overflow.push(d);continue;}
-  for(const [i,s]of chosen.rows.entries()){put(d,s.x+chosen.used,s.y-20,{mountZ:8-d.depth,frameStyle:'recessed',phase:individual?'L'+(i+1):''});s.used=chosen.used+d.width;s.group=key;
+  for(const [i,s]of chosen.rows.entries()){if(chosen.used>s.used)add('plate',s.x+s.used,s.y,chosen.used-s.used,46,{plateType:'blank',depth:3,mountZ:3});put(d,s.x+chosen.used,s.y-20,{mountZ:8-d.depth,frameStyle:'recessed',phase:individual?'L'+(i+1):''});s.used=chosen.used+d.width;s.group=key;
    if(d.circuitName&&(individual||d.manufacturer==='schneider'||d.manufacturer==='hager')){const k=key+'|'+s.y+'|'+s.x,group=connections.get(k)||{x:s.x+chosen.used,y:s.y+55,width:0,profile:individual?'copper':'comb'};group.width=s.used-(group.x-s.x);connections.set(k,group);}
   }
  }
