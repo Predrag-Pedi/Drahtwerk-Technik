@@ -1,5 +1,5 @@
-import {pathAt,localPoint} from './geometry.mjs?v=20261113-1';
-import {templateLabels,templateSize} from './template.mjs?v=20261113-1';
+import {pathAt,localPoint} from './geometry.mjs?v=20261113-2';
+import {templateLabels,templateSize} from './template.mjs?v=20261113-2';
 export function functionKeys(e){return e.template?[...new Set((e.template.labels||[]).map(l=>l.key))]:['$'];}
 export function functionData(e,key='$'){
  const stored=e.functions?.[key]||{};
