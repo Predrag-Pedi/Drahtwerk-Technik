@@ -6,3 +6,13 @@ test('reported F0010 black backgrounds become white; glyph and circular fill are
 test('fuse current boundaries and NH00 single-pole template envelopes',()=>{for(const [a,type] of [[25,'DII'],[26,'DIII'],[63,'DIII'],[64,'NH00'],[160,'NH00'],[161,'']])assert.equal(fuseRating(`${a} A`).fuseType,type);const l=frameLayout([{kind:'fuse',tag:'10F1',current:160,fuseType:'NH00',width:90,height:45,depth:70}],defaultConfig());assert.equal(l.placed.length,3);assert.ok(l.placed.every(e=>e.width===90&&e.height===45));});
 test('whole macro deletion also deletes detached constituents, preserving unrelated drawing',()=>{const d=project(),p=d.pages[1],e=createElement(p,'template',100,100);e.template=JSON.parse(fs.readFileSync(new URL('../cad/templates/tl-0552.json',import.meta.url)));e.width=e.template.width;e.height=e.template.height;p.elements.push(e);detachLine(p,e,0,'detached');p.wires.push({id:'own',points:[{x:1,y:1},{x:4,y:4}],from:null,to:null,label:''});const q=validateProject(d).pages[1];removeElement(q,e.id);assert.deepEqual(q.wires.map(w=>w.id),['own']);assert.equal(q.elements.length,0);});
 test('automatic assembly inserts chosen originals only and requires device assignments',()=>{const t=JSON.parse(fs.readFileSync(new URL('../cad/templates/tl-0580.json',import.meta.url)));const e={id:'device',kind:'module',width:90,height:45,dispoKind:'fuse',fuseType:'NH00',dispoSource:{page:'a',element:'b',key:'$'},tag:'10F1'};const g={elements:[e,{id:'frame',kind:'rail',width:1000,height:35}],scale:10};assert.throws(()=>templateAssembly(g,new Map()),/fehlt/);const result=templateAssembly(g,new Map([[assemblyKey(e),t]]));assert.equal(result.elements.length,1);assert.equal(result.elements[0].kind,'template');assert.deepEqual(result.elements[0].template.paths,t.paths);});
+
+ test('NH00 and D fuse bodies share all three phase centres in 3D',async()=>{
+ const {frameBoxes}=await import('../cad/frame-render.mjs');
+ const boxes=[],add=(e,x,y,z,w,h,d,color)=>boxes.push({id:e.id,y,h,color});
+ const common={kind:'module',dispoKind:'fuse',depth:70,mountZ:3};
+ frameBoxes({...common,id:'D',fuseType:'DII',width:49,height:265},0,100,add);
+ for(let pole=0;pole<3;pole++)frameBoxes({...common,id:'NH'+pole,fuseType:'NH00',width:pole===2?126:90,height:45,neutral:pole===2},100,100+pole*110,add);
+ const d=boxes.filter(b=>b.id==='D'&&b.color==='#e1e1df');
+ for(let pole=0;pole<3;pole++){const nh=boxes.find(b=>b.id==='NH'+pole&&b.color==='#e1e1df');assert.equal(d[pole].y+d[pole].h/2,nh.y+nh.h/2);}
+ });
