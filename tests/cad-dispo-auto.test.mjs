@@ -9,7 +9,7 @@ test('real meter macro automatically resolves originals, labels and full-size me
  const g=await buildAutomaticDispo(d,p,fetcher);assert.deepEqual(p,before);
  const devices=g.elements.filter(e=>e.dispoSource);assert.equal(devices.length,6);assert.equal(devices.filter(e=>e.template.id==='tl-0582').length,3);
  const meter=devices.find(e=>e.dispoKind==='meter');assert.equal(meter.template.id,'tl-0740');assert.equal(meter.width,250);assert.equal(meter.height,400);assert.equal(meter.textEdits.t0,meter.tag);assert.equal(meter.textEdits.t2,'Allgemein');
- const svg=templateMarkup(meter.template,250,400,{},meter.textEdits);assert.ok(svg.includes(meter.tag));assert.ok(svg.includes('Allgemein'));
+ const svg=templateMarkup(meter.template,250,400,{},meter.textEdits);assert.ok(svg.includes(meter.tag));assert.ok(svg.includes('Allgemein'));assert.match(svg,/text-anchor="middle"/);for(const l of meter.template.details.texts.filter(l=>['BMK','ORT'].includes(l.text.trim())))assert.ok(Math.abs(l.runs[0].matrix[4]+meter.textOffsets[l.key].x-meter.template.viewWidth/2)<1e-6);
  Object.assign(p,{elements:g.elements,scale:g.scale,dispoConfig:g.config});const restored=validateProject(d).pages[2];assert.equal(restored.elements.find(e=>e.id===meter.id).template.id,'tl-0740');
  const boxes=sceneBoxes(restored).filter(b=>b.id===meter.id);assert.ok(boxes.length>5);assert.ok(!boxes.some(b=>b.color==='#214d64'));
 });

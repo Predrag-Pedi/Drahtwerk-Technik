@@ -1,8 +1,8 @@
-import artwork from './standard-pages.mjs?v=20261113-15';
+import artwork from './standard-pages.mjs?v=20261113-16';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const t=(x,y,value,size=8)=>`<text x="${x}" y="${y}" fill="#000" stroke="none" font-family="Arial" font-size="${size}">${esc(value)}</text>`;
 export function standardFrame(d,p){
- const kind=p.standardType||(p.type==='cover'?'cover':p.type==='index'?'index':''),inner=artwork[kind]||artwork.symbols;
+ const kind=p.standardType||(p.type==='cover'?'cover':p.type==='index'?'index':''),inner=(artwork[kind]||artwork.symbols).replaceAll('#ff0000','#000000');
  const clip=kind?'':`<defs><clipPath id="frameOnly"><path d="M0 0H842V595H0Z M42 51V548H795V51Z" clip-rule="evenodd"/></clipPath></defs>`;
  let body=clip+`<g fill="#000" stroke="none" ${kind?'':'clip-path="url(#frameOnly)"'}>${inner}</g>`;
  if(kind==='cover'){
