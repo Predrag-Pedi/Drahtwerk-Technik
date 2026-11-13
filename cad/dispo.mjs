@@ -1,8 +1,8 @@
-import {frame,sourcePoint} from './alignment.mjs?v=20261113-12';
-import {frameLayout} from './frame-layout.mjs?v=20261113-12';
-import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-12';
-import {createElement,W} from './model.mjs?v=20261113-12';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-12';
+import {frame,sourcePoint} from './alignment.mjs?v=20261113-13';
+import {frameLayout} from './frame-layout.mjs?v=20261113-13';
+import {deviceText,fuseRating,circuitName,circuitNames} from './circuit-data.mjs?v=20261113-13';
+import {createElement,W} from './model.mjs?v=20261113-13';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-13';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -10,7 +10,10 @@ export function schemaDevices(doc){
  for(const {page,element:e,key,data} of allFunctions(doc)){
   if(data.role==='contact'){if(!data.owner)warnings.push(`Blatt ${page.number}: Kontakt ohne zugeordneten Schütz.`);continue;}
   if(['text','rect','dimension','junction','reference','cabinet','rail','duct','module'].includes(e.kind))continue;
-  const tag=functionBmk(doc,page,e,key);if(!tag){warnings.push(`Blatt ${page.number}: Gerät ohne BMK.`);continue;}
+  const tag=functionBmk(doc,page,e,key);
+  // Klemmen bleiben im Schema; auch Einspeiseklemmen gehören nicht in die Dispo.
+  if(e.kind==='terminal'||tag.match(/[A-Z]+/i)?.[0]?.toUpperCase()==='X')continue;
+  if(!tag){warnings.push(`Blatt ${page.number}: Gerät ohne BMK.`);continue;}
   if(seen.has(tag)){warnings.push(`${tag}: mehrfach vorhanden; einmal übernommen. BMK prüfen.`);continue;}seen.add(tag);
   let kind=data.role==='coil'?'coil':e.kind;
   if(kind==='template'){const letter=tag.match(/[A-Z]+/i)?.[0]?.toUpperCase();kind=({F:'fuse',Q:'switch',S:'switch',K:'coil',P:'meter',Y:'meter',X:'terminal'})[letter]||'unknown';}
