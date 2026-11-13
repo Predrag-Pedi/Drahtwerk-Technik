@@ -1,21 +1,21 @@
-import {drahtwerkDemo} from './dispo.mjs?v=20261113-1';
-import {editAutomaticDispo} from './dispo-ui.mjs?v=20261113-1';
-import {openDispo3D} from './dispo-3d.mjs?v=20261113-1';
-import {createTextClickTracker} from './text-click.mjs?v=20261113-1';
-import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261113-1';
-import {connectionCandidates,connectionPoint,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261113-1';
-import {installNavigation} from './navigation.mjs?v=20261113-1';
-import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-1';
-import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261113-1';
-import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261113-1';
-import {alignMacro,alignPage} from './alignment.mjs?v=20261113-1';
-import {DRAW,pathAt,bounds} from './geometry.mjs?v=20261113-1';
-import {validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261113-1';
-import {placement,placementMarkup} from './placement.mjs?v=20261113-1';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261113-1';
-import {svgPage,glyph,esc} from './render.mjs?v=20261113-1';
-import {database} from './storage.mjs?v=20261113-1';
-import {pdf,download} from './export.mjs?v=20261113-1';
+import {drahtwerkDemo} from './dispo.mjs?v=20261113-2';
+import {editAutomaticDispo} from './dispo-ui.mjs?v=20261113-2';
+import {openDispo3D} from './dispo-3d.mjs?v=20261113-2';
+import {createTextClickTracker} from './text-click.mjs?v=20261113-2';
+import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261113-2';
+import {connectionCandidates,connectionPoint,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261113-2';
+import {installNavigation} from './navigation.mjs?v=20261113-2';
+import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261113-2';
+import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261113-2';
+import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261113-2';
+import {alignMacro,alignPage} from './alignment.mjs?v=20261113-2';
+import {DRAW,pathAt,bounds} from './geometry.mjs?v=20261113-2';
+import {validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261113-2';
+import {placement,placementMarkup} from './placement.mjs?v=20261113-2';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261113-2';
+import {svgPage,glyph,esc} from './render.mjs?v=20261113-2';
+import {database} from './storage.mjs?v=20261113-2';
+import {pdf,download} from './export.mjs?v=20261113-2';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null;
@@ -26,7 +26,7 @@ let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
-async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261113-1').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
+async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261113-2').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=templateDetails[e.template.id];}
 async function hydrateDetails(){try{await loadDetails();if(doc){doc.pages.forEach(p=>p.elements.forEach(attachDetails));render();}}catch(e){toast(e.message);}}
 function editTemplateText(e,key){
@@ -141,19 +141,19 @@ function symbolList(){
  const imported=filterLibrary(originals,{query:q,group});
  const items=[...basic,...imported],shown=items.slice(0,symbolLimit);
  $('symbolStatus').textContent=`${items.length} Einträge · ${Math.min(items.length,symbolLimit)} angezeigt${templateCatalog?'':' · Originalbibliothek wird geladen …'}`;
- $('symbolList').innerHTML=shown.map(t=>t.kind?`<button class="symbol-card" data-symbol="${t.kind}"><span class="symbol-picture"><svg viewBox="-10 -5 ${t.w+20} ${t.h+10}" fill="none" stroke="currentColor" stroke-width="2">${glyph(t.kind)||'<rect x="2" y="2" width="32" height="40"/>'}</svg></span><strong>${esc(t.name)}</strong><small>Grundsymbol · ${esc(t.group)}</small></button>`:`<button class="symbol-card" data-template="${esc(t.id)}"><span class="symbol-picture"><img src="cad/templates/previews/${encodeURIComponent(t.id)}.svg?v=20261113-1" loading="lazy" alt="${esc(t.name)}"></span><strong>${esc(libraryName(t.name))}</strong><small>${esc(t.category)} · ${esc(libraryName(t.group))}</small></button>`).join('')||'<p class="hint">Keine Treffer. Suchbegriff oder Gruppe ändern.</p>';
+ $('symbolList').innerHTML=shown.map(t=>t.kind?`<button class="symbol-card" data-symbol="${t.kind}"><span class="symbol-picture"><svg viewBox="-10 -5 ${t.w+20} ${t.h+10}" fill="none" stroke="currentColor" stroke-width="2">${glyph(t.kind)||'<rect x="2" y="2" width="32" height="40"/>'}</svg></span><strong>${esc(t.name)}</strong><small>Grundsymbol · ${esc(t.group)}</small></button>`:`<button class="symbol-card" data-template="${esc(t.id)}"><span class="symbol-picture"><img src="cad/templates/previews/${encodeURIComponent(t.id)}.svg?v=20261113-2" loading="lazy" alt="${esc(t.name)}"></span><strong>${esc(libraryName(t.name))}</strong><small>${esc(t.category)} · ${esc(libraryName(t.group))}</small></button>`).join('')||'<p class="hint">Keine Treffer. Suchbegriff oder Gruppe ändern.</p>';
  $('moreSymbols').hidden=items.length<=symbolLimit;
 }
 
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261113-1');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261113-2');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
  const groups=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>t.group))].sort((a,b)=>libraryName(a).localeCompare(libraryName(b),'de'));
  $('templateGroup').innerHTML='<option value="">Alle Gruppen</option>'+groups.map(g=>`<option value="${esc(g)}">${esc(libraryName(g))}</option>`).join('');$('templateGroup').value=groups.includes(previous)?previous:'';
  const items=filterLibrary(templateCatalog.items,{query:$('templateSearch').value,category,group:$('templateGroup').value,scope:libraryScope,...librarySettings});
  $('templateStatus').textContent=`${items.length} Vorlagen · ${Math.min(items.length,templateLimit)} angezeigt`;
- $('templateList').innerHTML=items.slice(0,templateLimit).map(t=>`<div class="template-tile"><button class="favorite-toggle" data-favorite="${esc(t.id)}" aria-label="${esc(t.name)} als Favorit" aria-pressed="${librarySettings.favorites.includes(t.id)}" title="Favorit merken">${librarySettings.favorites.includes(t.id)?'★':'☆'}</button><button class="template-card ${activeTemplate?.id===t.id?'active':''}" data-template="${esc(t.id)}" title="${esc(t.name)}"><span class="template-picture"><img src="cad/templates/previews/${encodeURIComponent(t.id)}.svg?v=20261113-1" loading="lazy" alt="Vorschau ${esc(t.name)}"></span><strong>${esc(libraryName(t.name))}</strong><small>${esc(libraryName(t.group))} · ${t.width} × ${t.height} mm</small><span class="template-badge">${t.supplyPorts?'↳ Sammelschienen · ':''}${t.liveLabels?'Autom. Kennzeichen':esc(t.category)}</span></button></div>`).join('')||`<div class="library-empty"><strong>${libraryScope==='favorites'?'Noch keine passenden Favoriten':libraryScope==='recent'?'Noch keine passenden Vorlagen verwendet':'Keine passende Vorlage'}</strong><p>${libraryScope==='favorites'?'Mit ☆ auf einer Vorlage legst du sie hier ab.':'Suche oder Filter ändern. Unter «Alle» findest du die gesamte Bibliothek.'}</p><button id="resetLibrary">Alle Vorlagen anzeigen</button></div>`;
+ $('templateList').innerHTML=items.slice(0,templateLimit).map(t=>`<div class="template-tile"><button class="favorite-toggle" data-favorite="${esc(t.id)}" aria-label="${esc(t.name)} als Favorit" aria-pressed="${librarySettings.favorites.includes(t.id)}" title="Favorit merken">${librarySettings.favorites.includes(t.id)?'★':'☆'}</button><button class="template-card ${activeTemplate?.id===t.id?'active':''}" data-template="${esc(t.id)}" title="${esc(t.name)}"><span class="template-picture"><img src="cad/templates/previews/${encodeURIComponent(t.id)}.svg?v=20261113-2" loading="lazy" alt="Vorschau ${esc(t.name)}"></span><strong>${esc(libraryName(t.name))}</strong><small>${esc(libraryName(t.group))} · ${t.width} × ${t.height} mm</small><span class="template-badge">${t.supplyPorts?'↳ Sammelschienen · ':''}${t.liveLabels?'Autom. Kennzeichen':esc(t.category)}</span></button></div>`).join('')||`<div class="library-empty"><strong>${libraryScope==='favorites'?'Noch keine passenden Favoriten':libraryScope==='recent'?'Noch keine passenden Vorlagen verwendet':'Keine passende Vorlage'}</strong><p>${libraryScope==='favorites'?'Mit ☆ auf einer Vorlage legst du sie hier ab.':'Suche oder Filter ändern. Unter «Alle» findest du die gesamte Bibliothek.'}</p><button id="resetLibrary">Alle Vorlagen anzeigen</button></div>`;
  $('moreTemplates').hidden=items.length<=templateLimit;
  $('resetLibrary')?.addEventListener('click',()=>{$('templateSearch').value='';$('templateCategory').value='';$('templateGroup').value='';setLibraryScope('all');});
 }

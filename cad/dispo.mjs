@@ -1,7 +1,7 @@
-import {frameLayout} from './frame-layout.mjs?v=20261113-1';
-import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-1';
-import {createElement,W} from './model.mjs?v=20261113-1';
-import {allFunctions,functionBmk} from './references.mjs?v=20261113-1';
+import {frameLayout} from './frame-layout.mjs?v=20261113-2';
+import {deviceText,fuseRating,circuitName} from './circuit-data.mjs?v=20261113-2';
+import {createElement,W} from './model.mjs?v=20261113-2';
+import {allFunctions,functionBmk} from './references.mjs?v=20261113-2';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -21,7 +21,7 @@ export function schemaDevices(doc){
  return {devices,warnings};
 }
 export const defaultConfig=()=>({width:1008,height:2000,depth:165,fields:1,frame:true,reserve:20,construction:'drahtwerk',plateWidth:500});
-export function validateDispoConfig(c){if(!c||![c.width,c.height,c.depth,c.fields,c.reserve].every(Number.isFinite)||c.width<300||c.width>10000||c.height<400||c.height>4000||c.depth<100||c.depth>1500||!Number.isInteger(c.fields)||c.fields<1||c.fields>12||c.reserve<0||c.reserve>60||c.width/c.fields<250)throw Error('Schrankmasse prüfen: Breite 300–10000, Höhe 400–4000, Tiefe 100–1500 mm; mindestens 250 mm je Feld.');return {width:c.width,height:c.height,depth:c.depth,fields:c.fields,reserve:c.reserve,frame:!!c.frame,construction:c.construction==='drahtwerk'?'drahtwerk':'generic',plateWidth:c.plateWidth===250?250:500};}
+export function validateDispoConfig(c){if(!c||![c.width,c.height,c.depth,c.fields,c.reserve].every(Number.isFinite)||c.width<300||c.width>10000||c.height<400||c.height>4000||c.depth<100||c.depth>1500||!Number.isInteger(c.fields)||c.fields<1||c.fields>12||c.reserve<0||c.reserve>60||c.width/c.fields<250)throw Error('Schrankmasse prüfen: Breite 300–10000, Höhe 400–4000, Tiefe 100–1500 mm; mindestens 250 mm je Feld.');return {width:c.width,height:c.height,depth:c.depth,fields:c.fields,reserve:c.reserve,frame:!!c.frame,construction:c.construction==='drahtwerk'?'drahtwerk':'generic',plateWidth:[250,500,750].includes(c.plateWidth)?c.plateWidth:500};}
 export function layoutDevices(devices,config){
  const c=validateDispoConfig(config),placed=[],overflow=[],rails=[],ducts=[],fieldWidth=c.width/c.fields;
  let field=0,y=100,x=60,rowHeight=0,row=false;
@@ -44,7 +44,7 @@ export function generateDispo(p,devices,config){
  const elements=[];
  const add=(kind,x,y,width,height,extra={})=>{const e=createElement(p,kind,0,0);Object.assign(e,{x:origin.x+x*factor,y:origin.y+y*factor,width,height,generatedDispo:true,...extra});elements.push(e);return e;};
  add('cabinet',0,0,c.width,c.height,{depth:c.depth,text:c.frame?'Montagerahmen':'Schrank',dispoFrame:c.frame,frameStyle:c.construction});
- if(c.construction==='drahtwerk'){for(const r of layout.parts){const {kind,x,y,width,height,...extra}=r;add(kind,x,y,width,height,extra);}for(const d of layout.placed)add('module',d.x,d.y,d.width,d.height,{tag:d.tag,text:d.kind==='meter'?'kWh':'',depth:d.depth,mountZ:d.mountZ??-100,dispoSource:d.source,dispoKind:d.kind,dimensionsConfirmed:d.confirmed,fuseType:d.fuseType||'',current:d.current??0,circuitName:d.circuitName||''});return {elements,scale,config:c};}
+ if(c.construction==='drahtwerk'){for(const r of layout.parts){const {kind,x,y,width,height,...extra}=r;add(kind,x,y,width,height,extra);}for(const d of layout.placed)add('module',d.x,d.y,d.width,d.height,{tag:d.tag,text:d.kind==='meter'?'kWh':'',depth:d.depth,mountZ:d.mountZ??-100,frameStyle:d.frameStyle||'',dispoSource:d.source,dispoKind:d.kind,dimensionsConfirmed:d.confirmed,fuseType:d.fuseType||'',current:d.current??0,circuitName:d.circuitName||''});return {elements,scale,config:c};}
  for(let f=0;f<c.fields;f++){
   add('duct',f*c.width/c.fields+15,60,25,c.height-120,{depth:60});
   add('duct',(f+1)*c.width/c.fields-40,60,25,c.height-120,{depth:60});
