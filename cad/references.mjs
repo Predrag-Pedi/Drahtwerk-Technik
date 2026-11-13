@@ -1,5 +1,5 @@
-import {pathAt,localPoint} from './geometry.mjs?v=20261113-14';
-import {templateLabels,templateSize} from './template.mjs?v=20261113-14';
+import {pathAt,localPoint} from './geometry.mjs?v=20261113-15';
+import {templateLabels,templateSize} from './template.mjs?v=20261113-15';
 export function functionKeys(e){return e.template?[...new Set((e.template.labels||[]).map(l=>l.key))]:['$'];}
 export function functionData(e,key='$'){
  const stored=e.functions?.[key]||{};
@@ -29,3 +29,5 @@ export function validateFunctions(raw,keys,fail){if(raw===undefined)return undef
 }
 
 export function hasLsSettings(e,key='$'){return ['ls','fils'].includes(e.kind)||Boolean(e.template?.labels?.some(l=>l.key===key&&l.letter==='F'));}
+
+export function inspectorFunctionKey(e,preferred){const keys=functionKeys(e);return keys.includes(preferred)?preferred:e.template?.labels?.find(l=>l.letter==='P')?.key||keys.find(k=>functionData(e,k).description?.trim())||keys[0];}
