@@ -1,6 +1,6 @@
-import {validateTemplate} from './template.mjs?v=20261113-9';
-import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-9';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-9';
+import {validateTemplate} from './template.mjs?v=20261113-10';
+import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-10';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-10';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  const text=d.name||'',amp=d.current||Number(text.match(/\b(\d+)\s*A\b/i)?.[1]);
@@ -26,7 +26,7 @@ export async function buildAutomaticDispo(doc,p,fetcher=fetch){
  if(!selected.length)throw Error('Keine Geräte im Schema erkannt.');
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261113-9');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const get=async path=>{const r=await fetcher(path+'?v=20261113-10');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
  const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set(ids)].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.kind!=='meter'&&d.kind!=='fuse'){d.width=t.width;d.height=t.height;}d.confirmed=false;}
