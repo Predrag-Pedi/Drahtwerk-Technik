@@ -1,6 +1,6 @@
-import {createGpuRenderer} from './dispo-gpu.mjs?v=20261113-21';
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261113-21';
-import {frameBoxes} from './frame-render.mjs?v=20261113-21';
+import {createGpuRenderer} from './dispo-gpu.mjs?v=20261113-22';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261113-22';
+import {frameBoxes} from './frame-render.mjs?v=20261113-22';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];

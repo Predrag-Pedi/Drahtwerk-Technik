@@ -1,4 +1,4 @@
-import {plateStrips} from './frame-layout.mjs?v=20261113-21';
+import {plateStrips} from './frame-layout.mjs?v=20261113-22';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  const sx=w/e.width,sy=h/e.height,rect=(x,y,a,b,fill='white')=>`<rect x="${x*sx}" y="${y*sy}" width="${a*sx}" height="${b*sy}" fill="${fill}"/>`,line=(x,y,a,b)=>`<path d="M${x*sx} ${y*sy}L${a*sx} ${b*sy}"/>`;
@@ -17,6 +17,7 @@ export function frameBoxes(e,x,y,add){
  if(e.profile==='comb'){add(e,x,y,z,w,h,6,'#ece7d8');for(let xx=4;xx<w-3;xx+=18)add(e,x+xx,y-10,z,3,10,3,'#b67848');return true;}
  if(e.profile==='copper'){add(e,x,y,z,w,h,d,'#b67848');return true;}
  if(e.kind==='duct'){add(e,x,y,z,w,h,3,'#bfc1bb');add(e,x,y,z,w,3,d,'#d8d9d3');add(e,x,y+h-3,z,w,3,d,'#d8d9d3');for(let xx=0;xx<w;xx+=14){add(e,x+xx,y,z+3,7,6,d-3,'#d8d9d3');add(e,x+xx,y+h-6,z+3,7,6,d-3,'#d8d9d3');}return true;}
+ if(e.kind==='module'&&e.incoming){for(let row=0;row<3;row++){add(e,x,y+row*110,z,w,90,35,'#c6c9c2');add({...e,tag:''},x+w*.2,y+row*110+12,z+35,w*.6,18,2,'#495453');}return true;}
  if(e.kind==='module'&&e.dispoKind==='terminal'){const pitch=8;for(let xx=0;xx<w;xx+=pitch){const color=xx>w-17?'#3186b8':'#b4b8ae';add(e,x+xx,y,z,Math.min(pitch-1,w-xx),h,d,color);add({...e,tag:''},x+xx+2,y+12,z+d,3,5,1,'#333c44');add({...e,tag:''},x+xx+2,y+h-17,z+d,3,5,1,'#333c44');}return true;}
  if(e.kind==='module'&&e.dispoKind==='meter'&&e.meterState==='prepared'){
   // The plug terminals and mounting bridge are attached to the removable meter plate.
@@ -31,7 +32,7 @@ export function frameBoxes(e,x,y,add){
  if(['SP45','SP09048'].includes(e.profile)){add(e,x,y,z,w,2,d,al);add(e,x,y,z,w,h,2,al);add(e,x,y,z+d-2,w,h,2,al);if(e.profile==='SP09048')add(e,x,y-8,z+d-7,w,8,3,al);return true;}
  if(e.kind==='module'&&e.frameStyle==='recessed'){add(e,x,y,z,w,h,Math.max(1,d-8),'#dce0e3');add(e,x,y+20,0,w,46,8,'#f1f2ef');for(let xx=0;xx<w-8;xx+=18){add({...e,tag:''},x+xx+3,y+25,8,Math.min(12,w-xx-3),3,1,'#3b806c');add({...e,tag:''},x+xx+4,y+43,8,Math.min(10,w-xx-4),14,6,'#343a3d');}return true;}
  if(e.profile){if(e.profile==='SP165'){add(e,x,y,z,w,h,165,al);for(const zz of [0,45,95,150])add(e,e.frameStyle==='right'?x+w-25:x,y,z+zz,25,h,2,'#aab4be');}else{add(e,x,y,z,w,h,2,al);add(e,x,y,z,w,2,d,al);add(e,x,y+h-2,z,w,2,d,al);if(e.profile==='AS50')for(let xx=10;xx<w-10;xx+=30){add(e,x+xx,y-5,z,6,5,2,al);add(e,x+xx,y+h,z,6,5,2,al);}}return true;}
- if(e.kind==='module'&&e.dispoKind==='fuse'&&e.fuseType==='NH00'){add(e,x,y,z,w,h,20,'#e1e1df');add(e,x+10,y+8,z+20,w-20,h-16,30,'#a8b0b8');return true;}
+ if(e.kind==='module'&&e.dispoKind==='fuse'&&e.fuseType==='NH00'){const fw=e.neutral?90:w;add(e,x,y,z,fw,h,20,'#e1e1df');add(e,x+10,y+8,z+20,fw-20,h-16,30,'#a8b0b8');if(e.neutral){add({...e,tag:''},x+fw,y,z,w-fw,h,20,'#e1e1df');add({...e,tag:''},x+fw+8,y+8,z+20,w-fw-16,h-16,30,'#3186b8');}return true;}
  if(e.kind==='module'&&e.dispoKind==='fuse'){for(let i=0;i<3;i++){const cy=y+30+i*80,r=e.fuseType==='DIII'?23:19;add(e,x+3,y+i*80,z,w-6,60,20,'#e1e1df');add({...e,shape:'cylinder',tag:''},x+w/2-r,cy-r,z+20,2*r,2*r,25,'#dfded4');add({...e,shape:'cylinder',tag:''},x+w/2-r*.6,cy-r*.6,z+45,r*1.2,r*1.2,2,'#a0a49f');add({...e,shape:'cylinder',tag:''},x+w/2-5,cy-5,z+47,10,10,2,'#72766f');}return true;}
  return false;
 }
