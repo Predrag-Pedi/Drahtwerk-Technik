@@ -1,5 +1,5 @@
-import {BUS} from './geometry.mjs?v=20261113-21';
-import {ports,wirePoints} from './model.mjs?v=20261113-21';
+import {BUS} from './geometry.mjs?v=20261113-22';
+import {ports,wirePoints} from './model.mjs?v=20261113-22';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -8,7 +8,7 @@ export function deviceText(e,key='$'){
 }
 export function fuseRating(text){
  const amps=[...String(text).matchAll(/(?:^|[^\w.])(\d+(?:[.,]\d+)?)\s*A(?![a-z])/gi)].map(m=>Number(m[1].replace(',','.'))).filter(n=>n>0),unique=[...new Set(amps)];
- const explicit=/\bNH\s*00\b/i.test(text)?'NH00':/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';const current=unique.length===1?unique[0]:null;
+ const explicit=/\b(?:NH|DIN)\s*00\b/i.test(text)?'NH00':/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';const current=unique.length===1?unique[0]:null;
  const inferred=current!==null&&current<=25?'DII':current!==null&&current<=63?'DIII':current!==null&&current<=160?'NH00':'';
  return {current,fuseType:explicit||inferred,ratingInferred:!explicit,conflict:unique.length>1||explicit==='DII'&&current>25||explicit==='DIII'&&current>63||explicit==='NH00'&&current>160};
 }
