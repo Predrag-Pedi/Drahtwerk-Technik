@@ -72,7 +72,7 @@ export function frameLayout(devices,c){
  const free=w=>{let x=left+17;for(const b of [...occupiedBottom].sort((a,b)=>a.x-b.x)){if(x+w<=b.x)break;x=Math.max(x,b.x+b.w);}return x;};
  for(const [d,x] of anchors)if(!reserve(x,widthOf(d))){overflow.push(d);anchors.set(d,null);}
  for(const d of [...terminals,...bottom]){const x=free(d.width);if(d.height>fuseHeight-40||!reserve(x,d.width)){overflow.push(d);continue;}put(d,x,fuseY+30,{mountZ:8-d.depth});}
- for(const d of fuses){const w=widthOf(d),x=anchors.has(d)?anchors.get(d):free(w);if(x===null)continue;if(fuseHeight<330||!anchors.has(d)&&!reserve(x,w)){overflow.push(d);continue;}if(d.fuseType==='NH00'){for(let pole=0;pole<3;pole++)put({...d,width:w,height:45,depth:70},x,fuseY+65+pole*110,{mountZ:3});}else put({...d,width:w,height:265,depth:70},x,fuseY+65,{mountZ:3});}
+ for(const d of fuses){const w=widthOf(d),x=anchors.has(d)?anchors.get(d):free(w);if(x===null)continue;if(fuseHeight<330||!anchors.has(d)&&!reserve(x,w)){overflow.push(d);continue;}if(d.fuseType==='NH00'){for(let pole=0;pole<3;pole++)put({...d,neutral:!!d.neutral&&pole===2,width:d.neutral&&pole===2?126:90,height:45,depth:70},x,fuseY+65+pole*110,{mountZ:3});}else put({...d,width:w,height:265,depth:70},x,fuseY+65,{mountZ:3});}
 
  return {parts,placed,overflow};
 }
