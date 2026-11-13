@@ -1,4 +1,4 @@
-import {ports,wirePoints} from './model.mjs?v=20261113-2';
+import {ports,wirePoints} from './model.mjs?v=20261113-3';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -7,9 +7,9 @@ export function deviceText(e,key='$'){
 }
 export function fuseRating(text){
  const amps=[...String(text).matchAll(/(?:^|[^\w.])(\d+(?:[.,]\d+)?)\s*A(?![a-z])/gi)].map(m=>Number(m[1].replace(',','.'))).filter(n=>n>0),unique=[...new Set(amps)];
- const explicit=/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';const current=unique.length===1?unique[0]:null;
- const inferred=current!==null&&current<=25?'DII':current!==null&&current<=63?'DIII':'';
- return {current,fuseType:explicit||inferred,ratingInferred:!explicit,conflict:unique.length>1||explicit==='DII'&&current>25||explicit==='DIII'&&current>63};
+ const explicit=/\bNH\s*00\b/i.test(text)?'NH00':/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';const current=unique.length===1?unique[0]:null;
+ const inferred=current!==null&&current<=25?'DII':current!==null&&current<=63?'DIII':current!==null&&current<=160?'NH00':'';
+ return {current,fuseType:explicit||inferred,ratingInferred:!explicit,conflict:unique.length>1||explicit==='DII'&&current>25||explicit==='DIII'&&current>63||explicit==='NH00'&&current>160};
 }
 export function localCircuitName(e){if(e.circuitName?.trim())return e.circuitName.trim();const names=[...new Set(Object.values(e.functions||{}).map(f=>f.circuitName?.trim()).filter(Boolean))];if(names.length===1)return names[0];if(names.length>1)return '';if(e.template){const named=(e.template.details?.texts||[]).map(t=>e.textEdits?.[t.key]??t.text).filter(t=>/^(Allgemein|E[- .]?Mob(?:ility|ilität|\.)?|Wohnung\b.*|Whg\.?\s*.*|Wärmepumpe|WP|Gewerbe|Hauswart)$/i.test(t.trim()));if(new Set(named).size===1)return named[0].trim();}if(e.kind==='meter'&&e.text?.trim())return e.text.trim();if(e.template&&(e.template.labels||[]).some(l=>l.letter==='P')&&e.text?.trim())return e.text.trim();return '';}
 export function circuitNames(doc,start){

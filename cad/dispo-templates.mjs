@@ -1,0 +1,25 @@
+import {validateTemplate,templateMarkup} from './template.mjs?v=20261113-3';
+export const assemblyKey=e=>[e.profile||e.plateType||e.dispoKind||e.kind,e.fuseType||'',e.width,e.height].join('|');
+export function templateAssembly(generated,choices){
+ const elements=[];
+ for(const e of generated.elements){if(e.kind==='cabinet')continue;const t=choices.get(assemblyKey(e));if(!t){if(e.dispoSource)throw Error(`Vorlage für ${e.tag} fehlt.`);continue;}
+ const labels=Object.fromEntries((t.labels||[]).map(l=>['bmk:'+l.key,e.tag||'']));
+ elements.push({...e,kind:'template',template:structuredClone(t),dispoGeometryKind:e.kind,textEdits:labels});
+ }
+ if(!elements.length)throw Error('Mindestens eine vorhandene Vorlage wählen.');
+ return {...generated,elements};
+}
+export async function chooseAssemblyTemplates(generated,apply){
+ const response=await fetch('cad/templates/catalog.json?v=20261113-3');if(!response.ok)throw Error('Vorlagenbibliothek nicht erreichbar');const catalog=(await response.json()).items.filter(t=>t.category==='Dispo');
+ const groups=[...new Map(generated.elements.filter(e=>e.kind!=='cabinet').map(e=>[assemblyKey(e),e])).entries()];
+ const dialog=document.createElement('dialog');dialog.className='dispo-builder';dialog.innerHTML='<header><h2>Dispo aus vorhandenen Vorlagen</h2><button data-cancel>Abbrechen</button></header><p>Für Geräte, Platten und Profile die passende Bibliotheksvorlage wählen. Es werden ausschliesslich gewählte Vorlagen eingefügt. Nicht gewählte Rahmen-/Abdeckteile entfallen. Geräte benötigen eine Zuordnung. Abweichende Masse müssen ausdrücklich bestätigt werden.</p><div data-rows></div><p data-error role="status"></p><footer><button data-apply>Vorlagen einsetzen</button></footer>';
+ let saved={};try{saved=JSON.parse(localStorage.getItem('cad-dispo-template-map')||'{}');}catch{}
+ const root=dialog.querySelector('[data-rows]'),choices=new Map(),pending=new Set(),rows=[];
+ for(const [key,e] of groups){const row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:180px 1fr 90px;gap:12px;padding:12px;border-bottom:1px solid #ddd';const title=document.createElement('label');title.textContent=`${e.profile||e.plateType||e.dispoKind||e.kind} ${e.fuseType||''} · ${e.width} × ${e.height} mm`;const select=document.createElement('select');select.setAttribute('aria-label',title.textContent);select.add(new Option(e.dispoSource?'Vorlage wählen (erforderlich)':'Nicht einbauen',''));for(const t of catalog)select.add(new Option(`${t.name} · ${t.width} × ${t.height} mm`,t.id));const image=document.createElement('div');image.style.height='80px';const confirm=document.createElement('label');confirm.textContent='Auf geplante Masse skalieren';const check=document.createElement('input');check.type='checkbox';confirm.prepend(check);const controls=document.createElement('div');controls.append(select,confirm);row.append(title,controls,image);root.append(row);const record={e,key,check,select};rows.push(record);
+ select.onchange=async()=>{choices.delete(key);check.checked=false;image.replaceChildren();const id=select.value;if(!id)return;pending.add(key);try{const r=await fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261113-3`);if(!r.ok)throw Error('Vorlage konnte nicht geladen werden');const t=validateTemplate(await r.json());if(select.value!==id)return;choices.set(key,t);image.innerHTML=templateMarkup(t,80*t.width/Math.max(t.width,t.height),80*t.height/Math.max(t.width,t.height));}catch(err){dialog.querySelector('[data-error]').textContent=err.message;}finally{pending.delete(key);}};
+ // Recommend only exact physical dimensions and a matching family; never substitute a guessed device.
+ const family=e.fuseType==='DII'?/SI-325\b|Reiter DII\b/:e.fuseType==='DIII'?/SI-360\b|Reiter DIII\b/:e.fuseType==='NH00'?/DIN00-1P\b/:null;
+ const candidate=catalog.find(t=>t.id===saved?.[key]?.id)||(family&&catalog.find(t=>family.test(t.name)&&Math.abs(t.width-e.width)<.2&&Math.abs(t.height-e.height)<.2));if(candidate){select.value=candidate.id;select.onchange().then(()=>{check.checked=saved?.[key]?.scaled===true;});}
+ }
+ dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();dialog.onclose=()=>dialog.remove();dialog.querySelector('[data-apply]').onclick=()=>{try{if(pending.size)throw Error('Vorlagen werden noch geladen.');for(const {e,key,check} of rows){const t=choices.get(key);if(t&&(Math.abs(t.width-e.width)>.2||Math.abs(t.height-e.height)>.2)&&!check.checked)throw Error(`Masse für ${e.tag||e.profile||e.plateType} abgleichen oder Skalierung bestätigen.`);}const assembled=templateAssembly(generated,choices);apply(assembled);try{localStorage.setItem('cad-dispo-template-map',JSON.stringify(Object.fromEntries(rows.map(r=>[r.key,{id:r.select.value,scaled:r.check.checked}]))));}catch{}dialog.close();}catch(err){dialog.querySelector('[data-error]').textContent=err.message;}};document.body.append(dialog);dialog.showModal();
+}
