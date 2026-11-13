@@ -1,5 +1,5 @@
-import {pathAt,localPoint} from './geometry.mjs?v=20261113-9';
-import {templateLabels,templateSize} from './template.mjs?v=20261113-9';
+import {pathAt,localPoint} from './geometry.mjs?v=20261113-10';
+import {templateLabels,templateSize} from './template.mjs?v=20261113-10';
 export function functionKeys(e){return e.template?[...new Set((e.template.labels||[]).map(l=>l.key))]:['$'];}
 export function functionData(e,key='$'){
  const stored=e.functions?.[key]||{};
@@ -27,3 +27,5 @@ export function assignContact(doc,contact,owner){
 export function validateFunctions(raw,keys,fail){if(raw===undefined)return undefined;if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).length>3000)fail();const result={};const str=(v,max=200)=>typeof v==='string'&&v.length<=max?v:fail();
  for(const [key,f] of Object.entries(raw)){if(!keys.includes(key)||!f||!['none','coil','contact'].includes(f.role))fail();const item={role:f.role};for(const [key,values]of [['manufacturer',['auto','schneider','hager']],['lsMode',['allpole','individual']]])if(f[key]!==undefined){if(!values.includes(f[key]))fail();item[key]=f[key];}for(const name of ['circuitName','bmk','terminals','referenceOverride','mirrorReferenceOverride'])if(f[name]!==undefined)item[name]=str(f[name]);if(f.contactType!==undefined){if(!['NO','NC','CO'].includes(f.contactType))fail();item.contactType=f.contactType;}if(f.autoBmk!==undefined)item.autoBmk=f.autoBmk===true;if(f.owner!==undefined)item.owner={page:str(f.owner.page,100),element:str(f.owner.element,100),key:str(f.owner.key)};for(const name of ['mirrorX','mirrorY'])if(f[name]!==undefined){if(!Number.isFinite(f[name])||Math.abs(f[name])>3000)fail();item[name]=f[name];}result[key]=item;}return result;
 }
+
+export function hasLsSettings(e,key='$'){return ['ls','fils'].includes(e.kind)||Boolean(e.template?.labels?.some(l=>l.key===key&&l.letter==='F'));}
