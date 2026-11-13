@@ -1,5 +1,6 @@
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261113-18';
-import {frameBoxes} from './frame-render.mjs?v=20261113-18';
+import {createGpuRenderer} from './dispo-gpu.mjs?v=20261113-19';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261113-19';
+import {frameBoxes} from './frame-render.mjs?v=20261113-19';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];
@@ -25,9 +26,14 @@ export function openDispo3D(p,onSelect){
  const omitted=p.elements.filter(e=>e.kind==='template'&&!e.dispoGeometryKind).length;if(omitted)dialog.querySelector('footer').textContent+=` · ${omitted} Grafikvorlagen ohne 3D-Körper`;document.body.append(dialog);const canvas=dialog.querySelector('canvas'),ctx=canvas.getContext('2d');if(!ctx){dialog.remove();throw Error('3D-Zeichenfläche konnte nicht gestartet werden.');}
  const min=[Math.min(...boxes.map(b=>b.x)),Math.min(...boxes.map(b=>b.y)),Math.min(...boxes.map(b=>b.z))],max=[Math.max(...boxes.map(b=>b.x+b.w)),Math.max(...boxes.map(b=>b.y+b.h)),Math.max(...boxes.map(b=>b.z+b.d))],center=min.map((v,i)=>(v+max[i])/2),extent=Math.max(...max.map((v,i)=>v-min[i]));
  let camera={yaw:-.45,pitch:.2},zoom=1,pan=[0,0],pointer=null,faces=[],labels=true,showPlates=true,hitMap=null,hitWidth=0;
- const indices=[[0,3,2,1],[4,5,6,7],[0,1,5,4],[3,7,6,2],[0,4,7,3],[1,2,6,5]];
- function draw(){const r=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;canvas.width=r.width*dpr;canvas.height=r.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#edf2f7';ctx.fillRect(0,0,r.width,r.height);const scale=Math.min(r.width,r.height)*.72/extent*zoom;faces=[];
-  for(const b of boxes){if(!showPlates&&b.plate)continue;const a=b.rotation*Math.PI/180;const {vertices,surfaces}=boxMesh(b);const points=vertices.map(([x,y,z])=>{const dx=x-b.w/2,dy=y-b.h/2;return projectPoint([b.x+b.w/2+dx*Math.cos(a)-dy*Math.sin(a)-center[0],b.y+b.h/2+dx*Math.sin(a)+dy*Math.cos(a)-center[1],b.z+z-center[2]],camera);}).map(([x,y,z])=>[r.width/2+pan[0]+x*scale,r.height/2+pan[1]+y*scale,z]);
+ const gpu=createGpuRenderer(boxes,center,extent),meshes=new Map(boxes.map(b=>[b,boxMesh(b)]));
+ let pending=0,closed=false,settle=0,moving=false;
+ const schedule=()=>{if(!closed&&!pending)pending=requestAnimationFrame(()=>{pending=0;draw();});};
+ const interact=()=>{moving=true;clearTimeout(settle);settle=setTimeout(()=>{moving=false;schedule();},120);schedule();};
+ function draw(){const r=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1),cw=Math.max(1,Math.round(r.width*dpr)),ch=Math.max(1,Math.round(r.height*dpr));if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#edf2f7';ctx.fillRect(0,0,r.width,r.height);const scale=Math.min(r.width,r.height)*.86/extent*zoom;faces=[];
+  if(gpu?.draw({width:r.width,height:r.height,dpr,camera,pan,scale,plates:showPlates})){ctx.drawImage(gpu.canvas,0,0,r.width,r.height);if(labels&&!moving){const occupied=[];for(const label of gpu.labels){if(!showPlates&&label.plate)continue;const [px,py]=projectPoint(label.point,camera),x=r.width/2+pan[0]+px*scale,y=r.height/2+pan[1]+py*scale;if(label.width*scale<24||gpu.hit(x,y)!==label.index)continue;ctx.font='600 11px system-ui, sans-serif';const w=Math.min(160,ctx.measureText(label.text).width+12),h=19;if(occupied.some(a=>Math.abs(a.x-x)<(a.w+w)/2+3&&Math.abs(a.y-y)<h+3))continue;occupied.push({x,y,w});ctx.fillStyle='rgba(255,255,255,.9)';ctx.fillRect(x-w/2,y-h/2,w,h);ctx.fillStyle='#19324a';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label.text,x,y,w-8);}}return;}
+
+  for(const b of boxes){if(!showPlates&&b.plate)continue;const a=b.rotation*Math.PI/180;const {vertices,surfaces}=meshes.get(b);const points=vertices.map(([x,y,z])=>{const dx=x-b.w/2,dy=y-b.h/2;return projectPoint([b.x+b.w/2+dx*Math.cos(a)-dy*Math.sin(a)-center[0],b.y+b.h/2+dx*Math.sin(a)+dy*Math.cos(a)-center[1],b.z+z-center[2]],camera);}).map(([x,y,z])=>[r.width/2+pan[0]+x*scale,r.height/2+pan[1]+y*scale,z]);
    surfaces.forEach((ids,i)=>faces.push({points:ids.map(j=>points[j]),z:ids.reduce((v,j)=>v+points[j][2],0)/ids.length,b,front:i===1,shade:b.shape==='meterTube'?(ids.every(j=>j%48>=24)?.45:Math.min(1,.82+ids.reduce((v,j)=>v+(vertices[j][0]-b.w/2)*.35+(vertices[j][2]-b.d/2)*.65,0)/ids.length/b.w*.3)):undefined}));
   }
   // Per-pixel depth avoids a tall backplate hiding small devices at oblique angles.
@@ -42,17 +48,17 @@ export function openDispo3D(p,onSelect){
    }
   }}
   hitMap=hits;hitWidth=width;const buffer=document.createElement('canvas');buffer.width=width;buffer.height=height;buffer.getContext('2d').putImageData(pixels,0,0);ctx.drawImage(buffer,0,0,width,height);
-  for(const f of faces){if(!labels||!f.front||!f.b.label)continue;const [a,b,c]=f.points,x=(a[0]+c[0])/2,y=(a[1]+c[1])/2,z=(a[2]+c[2])/2,index=Math.round(y)*width+Math.round(x);if(x<0||x>=width||y<0||y>=height||z<depth[index]-1||Math.hypot(b[0]-a[0],b[1]-a[1])<22)continue;ctx.fillStyle='#132d48';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(f.b.label,x,y,Math.hypot(b[0]-a[0],b[1]-a[1]));}
+  for(const f of faces){if(!labels||!f.front||!f.b.label)continue;const [a,b,c]=f.points,x=(a[0]+c[0])/2,y=(a[1]+c[1])/2,z=(a[2]+c[2])/2,index=Math.round(y)*width+Math.round(x);if(x<0||x>=width||y<0||y>=height||z<depth[index]-1||Math.hypot(b[0]-a[0],b[1]-a[1])<22)continue;ctx.fillStyle='#132d48';ctx.font='11px sans-serif';ctx.textBaseline='alphabetic';ctx.textAlign='center';ctx.fillText(f.b.label,x,y,Math.hypot(b[0]-a[0],b[1]-a[1]));}
 
  }
- const clamp=()=>zoom=Math.max(.15,Math.min(10,zoom));
- canvas.onwheel=e=>{e.preventDefault();zoom*=Math.exp(-e.deltaY*.001);clamp();draw();};
- canvas.onpointerdown=e=>{if(![0,1,2].includes(e.button))return;e.preventDefault();pointer={id:e.pointerId,x:e.clientX,y:e.clientY,pan:e.button!==0||e.shiftKey};canvas.setPointerCapture(e.pointerId);};
- canvas.onpointermove=e=>{if(!pointer)return;const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;if(pointer.pan){pan[0]+=dx;pan[1]+=dy;}else{camera.yaw+=dx*.008;camera.pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,camera.pitch+dy*.008));}pointer.x=e.clientX;pointer.y=e.clientY;draw();};
- canvas.onpointerup=canvas.onpointercancel=()=>pointer=null;canvas.oncontextmenu=e=>e.preventDefault();
- canvas.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='ArrowLeft')camera.yaw-=.1;if(e.key==='ArrowRight')camera.yaw+=.1;if(e.key==='ArrowUp')camera.pitch-=.1;if(e.key==='ArrowDown')camera.pitch+=.1;if(e.key==='+')zoom*=1.1;if(e.key==='-')zoom/=1.1;if(e.key==='Home'){zoom=1;pan=[0,0];}clamp();draw();}};
- canvas.ondblclick=e=>{const r=canvas.getBoundingClientRect(),x=Math.floor(e.clientX-r.left),y=Math.floor(e.clientY-r.top),b=boxes[(hitMap?.[y*hitWidth+x]||0)-1];if(b){dialog.close();onSelect?.(b.id);}};
- dialog.querySelector('[data-plates]').onchange=e=>{showPlates=e.target.checked;draw();};dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.querySelector('[data-labels]').onchange=e=>{labels=e.target.checked;draw();};
- dialog.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;if(v==='plus')zoom*=1.2;else if(v==='minus')zoom/=1.2;else{camera=v==='front'?{yaw:0,pitch:0}:v==='side'?{yaw:Math.PI/2,pitch:0}:v==='rear'?{yaw:Math.PI,pitch:0}:v==='top'?{yaw:0,pitch:-Math.PI/2}:{yaw:-.45,pitch:.2};zoom=1;pan=[0,0];}clamp();draw();});
- const observer=new ResizeObserver(draw);dialog.onclose=()=>{observer.disconnect();dialog.remove();};dialog.showModal();observer.observe(canvas);draw();canvas.focus();
+ const clamp=()=>{zoom=Math.max(.15,Math.min(10,zoom));camera.pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,camera.pitch));};
+ canvas.onwheel=e=>{e.preventDefault();const r=canvas.getBoundingClientRect(),before=zoom,x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;zoom*=Math.exp(-e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?r.height:1)*.001);clamp();const ratio=zoom/before;pan=[x-(x-pan[0])*ratio,y-(y-pan[1])*ratio];interact();};
+ canvas.onpointerdown=e=>{if(![0,1,2].includes(e.button))return;e.preventDefault();pointer={id:e.pointerId,x:e.clientX,y:e.clientY,pan:e.button!==0||e.shiftKey};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';};
+ canvas.onpointermove=e=>{if(!pointer)return;const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;if(pointer.pan){pan[0]+=dx;pan[1]+=dy;}else{camera.yaw+=dx*.008;camera.pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,camera.pitch+dy*.008));}pointer.x=e.clientX;pointer.y=e.clientY;interact();};
+ canvas.onpointerup=canvas.onpointercancel=()=>{pointer=null;canvas.style.cursor='grab';moving=false;clearTimeout(settle);schedule();};canvas.oncontextmenu=e=>e.preventDefault();
+ canvas.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='ArrowLeft')camera.yaw-=.1;if(e.key==='ArrowRight')camera.yaw+=.1;if(e.key==='ArrowUp')camera.pitch-=.1;if(e.key==='ArrowDown')camera.pitch+=.1;if(e.key==='+')zoom*=1.1;if(e.key==='-')zoom/=1.1;if(e.key==='Home'){zoom=1;pan=[0,0];}clamp();interact();}};
+ canvas.ondblclick=e=>{const r=canvas.getBoundingClientRect(),x=Math.floor(e.clientX-r.left),y=Math.floor(e.clientY-r.top),b=boxes[gpu&&!gpu.lost?gpu.hit(x,y):(hitMap?.[y*hitWidth+x]||0)-1];if(b){dialog.close();onSelect?.(b.id);}};
+ dialog.querySelector('[data-plates]').onchange=e=>{showPlates=e.target.checked;schedule();};dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.querySelector('[data-labels]').onchange=e=>{labels=e.target.checked;schedule();};
+ dialog.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;if(v==='plus')zoom*=1.2;else if(v==='minus')zoom/=1.2;else{camera=v==='front'?{yaw:0,pitch:0}:v==='side'?{yaw:Math.PI/2,pitch:0}:v==='rear'?{yaw:Math.PI,pitch:0}:v==='top'?{yaw:0,pitch:-Math.PI/2}:{yaw:-.45,pitch:.2};zoom=1;pan=[0,0];}clamp();interact();});
+ const observer=new ResizeObserver(schedule);dialog.onclose=()=>{closed=true;cancelAnimationFrame(pending);clearTimeout(settle);observer.disconnect();gpu?.destroy();dialog.remove();};dialog.showModal();observer.observe(canvas);schedule();canvas.focus();
 }
