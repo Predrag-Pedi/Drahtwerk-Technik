@@ -44,3 +44,35 @@ Vorlagen sind in den Projekten eingebettet. Bereits platzierte ältere Grafikvor
 
 ### Reproduktion und Tests
 Konvertierung: `tools/tinline/README.md`. Prüfungen: `node --test tests/cad*.test.mjs`.
+
+### Drahtwerk-Aufbau und Schemaübernahme
+
+Die automatische Dispo übernimmt die physischen Funktionen aus den Schemaseiten.
+Normale Abgangsklemmen bleiben im Drahtwerk-Aufbau aus der Dispo ausgeschlossen.
+`X0` sowie Texte mit Einspeisung/Zuleitung/Hauptklemme schlagen eine Einspeiseklemme
+vor; die Checkbox in der Geräteauswahl kann diese Zuordnung korrigieren. Kontakte
+bleiben ihrer Spule zugeordnet und erzeugen kein zusätzliches physisches Gerät.
+
+Die Rahmenplanung unterstützt 250/500/750-mm-Platten, Restspalten von 250 mm,
+Geräteplatten neben Zählerplätzen, kurze Gerätezonen sowie anpassbare obere und
+untere Zonen. Ohne Bezügersicherungen oder grosse Hauptschalter wird keine untere
+Sicherungszone reserviert. Mehrere Felder können individuelle Breiten erhalten;
+deren Summe muss der Gesamtbreite entsprechen. Benannte Stromkreisgruppen bleiben
+bei der automatischen Feldverteilung zusammen. Ohne eindeutige Gruppennamen bleiben
+Geräte im ersten Feld; die Platzprüfung meldet Überfüllung statt Geräte zu verlieren.
+
+Die 2D-Geräte stammen weiterhin aus den zugeordneten Originalvorlagen. Nicht gewählte
+Strukturvorlagen werden nicht als neue 2D-Grafiken eingesetzt; ihre räumlichen
+Aufbauteile bleiben am Rahmen gespeichert und in 3D sichtbar. Das Löschen des
+Rahmens entfernt auch diese integrierte Struktur. Die integrierte Struktur folgt Position und Drehung des Rahmens.
+
+3D zeigt vorbereitete Zählerplätze standardmässig ohne eingesetzten Zähler, mit
+Befestigungsschiene, Querträger und Anschlussblock. Die Umschaltung auf eingesetzte
+Zähler, PVC-Rückwand, abnehmbare Frontplatten und Rückansicht stehen im Dialog zur
+Verfügung. Rundkörper bilden DII/DIII-Sicherungsköpfe ab. Profile, Klemmen,
+Anschlussblöcke und Geräte bleiben vereinfachte Planungsmodelle; exakte
+Herstellergeometrie, EW-spezifische Anschlussvarianten und Verdrahtung sind noch
+nicht hinterlegt. SP-165-Rahmen erfordern weiterhin mindestens 165 mm Tiefe.
+
+Validierung: CAD-Regressionstests inklusive Klemmenfilter, kompakter Anlagen,
+ungleicher Felder, gemischter Plattenzonen und Export/Import der 3D-Struktur.

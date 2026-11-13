@@ -1,10 +1,10 @@
-import {frameMarkup} from './frame-render.mjs?v=20261113-3';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-3';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261113-3';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-3';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-3';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261113-3';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-3';
+import {frameMarkup} from './frame-render.mjs?v=20261113-4';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-4';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261113-4';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-4';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-4';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261113-4';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-4';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
