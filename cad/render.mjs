@@ -1,10 +1,10 @@
-import {frameMarkup} from './frame-render.mjs?v=20261113-6';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-6';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261113-6';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-6';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-6';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261113-6';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-6';
+import {frameMarkup} from './frame-render.mjs?v=20261113-7';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-7';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261113-7';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-7';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-7';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261113-7';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-7';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -23,7 +23,7 @@ export function glyph(kind){switch(kind){
  case 'reference':return path('M0 10H30')+'<path d="M30 5L40 10L30 15Z" fill="currentColor"/>';
  default:return '';
 }}
-export function elementMarkup(e,p,d,editor=false,groupSelect=false){const [w,h]=size(e,p),s=symbols[e.kind];let body='';
+export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type==='dispo')groupSelect=true;const [w,h]=size(e,p),s=symbols[e.kind];let body='';
  if(frameMarkup(e,w,h)!==null){body=frameMarkup(e,w,h);}
  else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,e.textEdits||{},editor&&!groupSelect,hits,e.textOffsets||{});}
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;

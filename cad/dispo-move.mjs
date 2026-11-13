@@ -12,6 +12,7 @@ export function moveDispoElements(p,ids,dx,dy){
 export function swapDispoDrop(p,before,items){
  if(p.type!=='dispo'||!items.length||items.some(s=>s.kind!=='element'))return false;
  const ids=new Set(items.map(s=>s.id)),moving=p.elements.filter(e=>ids.has(e.id));if(moving.some(e=>!device(e)||e.rotation))return false;
+ if(items.length===1&&swapMeterBay(p,before,items[0].id))return true;
  const original=before.elements.filter(e=>ids.has(e.id)),a=box(p,original),now=box(p,moving),cx=(now.x+now.right)/2,cy=(now.y+now.bottom)/2;
  const target=before.elements.find(e=>device(e)&&!ids.has(e.id)&&!e.rotation&&(e.dispoKind==='meter')===(moving[0].dispoKind==='meter')&&cx>=e.x&&cx<=e.x+e.width*factor(p)&&cy>=e.y&&cy<=e.y+e.height*factor(p));
  if(!target)return false;const targets=items.length>1?dispoGroup(before,target.id):[target],b=box(p,targets),targetIds=new Set(targets.map(e=>e.id));if(targets.some(e=>ids.has(e.id)))return false;
@@ -24,3 +25,41 @@ export function swapDispoDrop(p,before,items){
  for(const e of changes)Object.assign(p.elements.find(q=>q.id===e.id),{x:e.x,y:e.y});return true;
 }
 export function arrowStep(p,key,shift=false,alt=false){const step=(shift?10:alt?.1:1)*(p.type==='dispo'?factor(p):1);return {dx:key==='ArrowLeft'?-step:key==='ArrowRight'?step:0,dy:key==='ArrowUp'?-step:key==='ArrowDown'?step:0};}
+
+// Exchange one 250 x 400 meter bay with a 250 mm section of an apparatus panel.
+// All devices in that bay move together, including different circuits and rows.
+export function swapMeterBay(p,before,id){
+ const old=before.elements.find(e=>e.id===id),moved=p.elements.find(e=>e.id===id),f=factor(p);
+ if(old?.dispoKind!=='meter'||old.width!==250||old.height!==400)return false;
+ const cx=moved.x+125*f,cy=moved.y+200*f;
+ for(const cabinet of before.elements.filter(e=>e.dispoStructure&&!e.rotation)){
+  const panel=cabinet.dispoStructure.find(s=>s.plateType==='slots'&&cx>=cabinet.x+s.x*f&&cx<cabinet.x+(s.x+s.width)*f&&cy>=cabinet.y+s.y*f&&cy<cabinet.y+(s.y+s.height)*f);
+  if(!panel)continue;
+  if(panel.height!==400||panel.width%250!==0)throw Error('Der Zählerplatz benötigt einen vollständigen Bereich von 250 × 400 mm.');
+   const cellX=panel.x+Math.floor(((cx-cabinet.x)/f-panel.x)/250)*250,cellY=panel.y;
+  const sourceX=(old.x-cabinet.x)/f,sourceY=(old.y-cabinet.y)/f;
+  const meterPlate=cabinet.dispoStructure.find(s=>s.plateType==='meter'&&Math.abs(s.x-sourceX)<.01&&Math.abs(s.y-sourceY)<.01);
+  if(!meterPlate)throw Error('Zählerplatte und Gerätebereich müssen zum selben Rahmen gehören.');
+  const target={x:cabinet.x+cellX*f,y:cabinet.y+cellY*f,right:cabinet.x+(cellX+250)*f,bottom:cabinet.y+(cellY+400)*f};
+  const intersects=b=>b.x<target.right-.01&&b.right>target.x+.01&&b.y<target.bottom-.01&&b.bottom>target.y+.01;
+  const displaced=before.elements.filter(e=>device(e)&&e.id!==id&&intersects(box(p,[e])));
+  if(displaced.some(e=>e.rotation||e.dispoKind==='meter'||box(p,[e]).x<target.x-.01||box(p,[e]).right>target.right+.01||box(p,[e]).y<target.y-.01||box(p,[e]).bottom>target.bottom+.01))throw Error('Ein Gerät überschreitet die 250-mm-Plattengrenze. Die Gruppe zuerst innerhalb des Gerätebereichs anordnen.');
+  const deltaX=old.x-target.x,deltaY=old.y-target.y;
+  const changes=displaced.map(e=>({...e,x:e.x+deltaX,y:e.y+deltaY}));
+  const other=before.elements.filter(e=>device(e)&&e.id!==id&&!displaced.some(q=>q.id===e.id));
+  if(changes.some(e=>{const a=box(p,[e]);return other.some(q=>{const b=box(p,[q]);return a.x<b.right-.01&&a.right>b.x+.01&&a.y<b.bottom-.01&&a.bottom>b.y+.01;});}))throw Error('Am bisherigen Zählerplatz ist nicht genug Platz für die Geräte.');
+  const structure=[];
+  for(const part of cabinet.dispoStructure){
+   if(part===meterPlate){structure.push({...part,x:cellX,y:cellY});continue;}
+   const movable=part.plateType==='slots'||part.plateType==='blank'||part.profile==='AS35';
+   const left=Math.max(part.x,cellX),right=Math.min(part.x+part.width,cellX+250);
+   if(!movable||right<=left||part.y<cellY-.01||part.y+part.height>cellY+400+.01){structure.push(structuredClone(part));continue;}
+   if(part.x<left)structure.push({...part,width:left-part.x});
+   if(part.x+part.width>right)structure.push({...part,x:right,width:part.x+part.width-right});
+   structure.push({...part,x:sourceX+left-cellX,y:sourceY+part.y-cellY,width:right-left});
+  }
+  p.elements.find(e=>e.id===cabinet.id).dispoStructure=structure;
+  Object.assign(moved,{x:target.x,y:target.y});for(const e of changes)Object.assign(p.elements.find(q=>q.id===e.id),{x:e.x,y:e.y});return true;
+ }
+ return false;
+}
