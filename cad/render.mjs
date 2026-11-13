@@ -1,12 +1,12 @@
-import {continuationCut,meterView} from './meter-view.mjs?v=20261113-24';
-import {standardFrame} from './standard-render.mjs?v=20261113-24';
-import {frameMarkup} from './frame-render.mjs?v=20261113-24';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-24';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261113-24';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-24';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-24';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261113-24';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-24';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261113-25';
+import {standardFrame} from './standard-render.mjs?v=20261113-25';
+import {frameMarkup} from './frame-render.mjs?v=20261113-25';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-25';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261113-25';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-25';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-25';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261113-25';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-25';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -32,7 +32,7 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type===
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
  else{body=`<rect width="${w}" height="${h}" fill="${e.kind==='duct'?'#f2f4f6':'white'}"/>`;if(e.kind==='cabinet')body+=`<rect x="5" y="5" width="${Math.max(1,w-10)}" height="${Math.max(1,h-10)}"/>`+text(w/2,-12,`${e.width} × ${e.height} mm`,'text-anchor="middle"');if(e.kind==='rail')body+=line(0,h/3,w,h/3)+line(0,2*h/3,w,2*h/3);if(e.kind==='module')body+=line(0,h*.3,w,h*.3);if(e.kind==='duct'){if(h>w){for(let y=6;y<h;y+=9)body+=line(0,y,w*.3,y)+line(w*.7,y,w,y);}else for(let x=6;x<w;x+=9)body+=line(x,0,x,h*.3)+line(x,h*.7,x,h);}if(e.text&&e.kind!=='cabinet')body+=text(w/2,h/2,e.text,'text-anchor="middle" font-size="10"');}
- if(e.kind==='cabinet'&&p.type==='dispo'&&e.dispoStructure){const f=W/420/p.scale;body+=e.dispoStructure.filter(r=>r.kind==='rail'&&r.width>r.height&&['AS35','AS50','BS25','copper','comb'].includes(r.profile)).map(r=>`<g transform="translate(${r.x*f} ${r.y*f})" fill="white" stroke="#333" stroke-width=".5"><rect width="${r.width*f}" height="${r.height*f}" fill="#f6f6f4"/>${line(0,r.height*f/3,r.width*f,r.height*f/3)}${line(0,r.height*f*2/3,r.width*f,r.height*f*2/3)}${text(3,Math.max(5,r.height*f/2),`${r.frameStyle?.startsWith('incoming:')?'Einspeiseklemmen · ':''}${r.profile==='AS35'?'DIN 35':r.profile==='copper'?'Cu':r.profile==='comb'?'Kamm':r.profile} · ${Math.round(r.width)} mm`,'font-size="6" fill="#333" stroke="none"')}</g>`).join('');}
+ if(e.kind==='cabinet'&&p.type==='dispo'&&e.dispoStructure){const f=W/420/p.scale;body+=dispoDrawingRails(e).map(r=>`<g transform="translate(${r.x*f} ${r.y*f})" fill="none" stroke="#899198" stroke-width=".45"><rect width="${r.width*f}" height="${r.height*f}" fill="#fafafa"/>${text(3,r.height*f/2+2,r.profile==='AS35'?'DIN 35':r.profile==='copper'?'Cu':'Kamm','font-size="6" fill="#6b7278" stroke="none"')}</g>`).join('');}
  if(cut!==null){const id='meter-cut-'+e.id.replace(/[^a-zA-Z0-9_-]/g,'');body=`<defs><clipPath id="${id}"><rect x="-20" y="-20" width="${w+40}" height="${cut*h/e.template.viewHeight+20}"/></clipPath></defs><g clip-path="url(#${id})">${body}</g>`;}
  if(e.kind==='template'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  const tag=e.template?(e.dispoSource?'':e.tag):functionBmk(d,p,e);if(tag)body+=e.kind==='module'?text(w/2,-3,tag,`text-anchor="start" font-size="7" transform="rotate(-90 ${w/2} -3)"`):text(-8,18,tag,'text-anchor="end" font-weight="bold"');if(e.value)body+=text(-8,33,e.value,'text-anchor="end"');if(s.ports.length&&e.kind!=='reference'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
@@ -73,3 +73,18 @@ function referenceMarkup(d,p,e){let out='';for(const key of functionKeys(e)){con
  }return out;}
 
 export function dispoCaptionGroups(p){const groups=[],factor=W/420/p.scale;for(const e of p.elements){if(!e.circuitName||!['ls','fils','coil','switch','timer'].includes(e.dispoKind))continue;let g={name:e.circuitName,left:e.x,right:e.x+e.width*factor,top:e.y};for(let i=groups.length-1;i>=0;i--){const other=groups[i];if(other.name===g.name&&other.right>=g.left-54*factor-.01&&g.right>=other.left-54*factor-.01){g.left=Math.min(g.left,other.left);g.right=Math.max(g.right,other.right);g.top=Math.min(g.top,other.top);groups.splice(i,1);}}groups.push(g);}return groups;}
+
+// Drawing-only rail presentation: the assembly structure remains available in 3D.
+export function dispoDrawingRails(c){
+ const parts=c.dispoStructure||[],slots=parts.filter(s=>s.plateType==='slots'),rails=[];
+ for(const r of parts){
+  if(r.kind!=='rail'||r.width<=r.height||r.frameStyle?.startsWith('incoming:'))continue;
+  if(['copper','comb'].includes(r.profile)){rails.push(r);continue;}
+  if(r.profile!=='AS35')continue;
+  const rows=slots.filter(s=>r.x<s.x+s.width&&r.x+r.width>s.x).flatMap(s=>(s.height>=400?[60,185,310]:[60]).map(y=>s.y+y+25));
+  const center=rows.sort((a,b)=>Math.abs(a-r.y-r.height/2)-Math.abs(b-r.y-r.height/2))[0];
+  if(center===undefined||Math.abs(center-r.y-r.height/2)>30)continue;
+  rails.push({...r,y:center-r.height/2});
+ }
+ return rails;
+}
