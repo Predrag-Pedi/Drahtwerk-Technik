@@ -1,6 +1,6 @@
-import {circuitNames} from './circuit-data.mjs?v=20261113-20';
-import {BUS,localPoint,pathAt} from './geometry.mjs?v=20261113-20';
-import {size,wirePoints,ports} from './model.mjs?v=20261113-20';
+import {circuitNames} from './circuit-data.mjs?v=20261113-21';
+import {BUS,localPoint,pathAt} from './geometry.mjs?v=20261113-21';
+import {size,wirePoints,ports} from './model.mjs?v=20261113-21';
 export const endpointKey=e=>JSON.stringify([e.page,e.kind,e.side,e.phase,e.element,e.key,e.wire,e.index,e.id]);
 export function connectionPoint(doc,e){const p=doc.pages.find(p=>p.id===e.page);if(!p)return null;
  if(e.kind==='bus')return p.bus?{x:e.side==='left'?60:1140,y:BUS[e.phase]}:null;
@@ -22,3 +22,17 @@ export function referenceText(doc,e){const l=linked(doc,e);if(!l)return '';if(l.
 export function connect(doc,a,b){if(a.page===b.page)throw Error('Bitte einen Anschluss auf einer anderen Seite wählen.');if(!connectionPoint(doc,a)||!connectionPoint(doc,b))throw Error('Anschluss nicht mehr vorhanden.');if(a.phase&&b.phase&&a.phase!==b.phase)throw Error('Die Leiterbezeichnungen stimmen nicht überein.');const groups=[...new Set([...circuitNames(doc,a),...circuitNames(doc,b)])];if(groups.length>1)throw Error('Unterschiedliche Einspeisegruppen dürfen nicht verbunden werden: '+groups.join(', '));const keys=[endpointKey(a),endpointKey(b)];doc.links=(doc.links||[]).filter(l=>!keys.includes(endpointKey(l.a))&&!keys.includes(endpointKey(l.b)));doc.links.push({a:{...a},b:{...b},text:''});}
 export function inheritBus(doc,source,target){if(source?.type!=='schema'||target.type!=='schema'||source.id===target.id)throw Error('Zwei unterschiedliche Schemaseiten erforderlich.');source.bus=target.bus=true;for(const phase of Object.keys(BUS))connect(doc,{page:source.id,kind:'bus',side:'right',phase},{page:target.id,kind:'bus',side:'left',phase});}
 export function validateConnections(raw,d,fail){const str=v=>typeof v==='string'&&v.length<=2000?v:fail();const ref=e=>{if(!e||!['bus','template','wire','point'].includes(e.kind))return fail();const r={page:str(e.page),kind:e.kind,phase:str(e.phase||'')};if(e.kind==='bus'){if(!['left','right'].includes(e.side)||!(e.phase in BUS))return fail();r.side=e.side;}if(e.kind==='template'){r.element=str(e.element);r.key=str(e.key);}if(e.kind==='wire'){r.wire=str(e.wire);if(![0,1].includes(e.index))return fail();r.index=e.index;}if(e.kind==='point')r.id=str(e.id);return r;};if(raw===undefined)return [];if(!Array.isArray(raw)||raw.length>10000)return fail();const seen=new Set();return raw.map(l=>{const a=ref(l.a),b=ref(l.b);if(a.page===b.page||a.phase&&b.phase&&a.phase!==b.phase)fail();for(const e of [a,b]){const key=endpointKey(e);if(seen.has(key))fail();seen.add(key);}return {a,b,text:str(l.text||''),...(l.name?{name:str(l.name)}:{})};});}
+// Resolve a selected group by phase, never by array position. Commit atomically.
+export function connectionGroup(doc,a){const p=doc.pages.find(p=>p.id===a.page);return connectionCandidates(doc,p).filter(b=>b.kind===a.kind&&(a.kind==='bus'?b.side===a.side:a.kind==='template'?b.element===a.element:a.kind==='point'?true:b.index===a.index));}
+export function connectSelected(doc,sources,target){
+ const unique=[...new Map(sources.map(a=>[endpointKey(a),a])).values()];
+ if(unique.length===1){connect(doc,unique[0],target);return;}
+ const group=connectionGroup(doc,target),keys=new Set(unique.map(endpointKey)),pairs=[],used=new Set();
+ for(const a of unique){if(!a.phase)throw Error('Für die gemeinsame Zuordnung müssen die Leiter L1, L2, L3 oder N bezeichnet sein.');const candidates=group.filter(b=>b.phase===a.phase&&!used.has(endpointKey(b))&&(!linked(doc,b)||keys.has(endpointKey(otherEnd(linked(doc,b),b)))));if(candidates.length!==1)throw Error(`Ziel für ${a.phase} ist nicht eindeutig oder bereits belegt. Bitte einen anderen Zielbereich wählen.`);pairs.push([a,candidates[0]]);used.add(endpointKey(candidates[0]));}
+ const draft={...doc,links:structuredClone(doc.links||[])};for(const [a,b]of pairs)connect(draft,a,b);doc.links=draft.links;
+}
+export function createContinuationInputs(doc,sources,target){
+ const copy={...target,connectionPoints:[...(target.connectionPoints||[])]},draft={...doc,pages:doc.pages.map(p=>p.id===target.id?copy:p),links:structuredClone(doc.links||[])};
+ for(const a of sources){const y=160+copy.connectionPoints.length*25;if(y>760)throw Error('Auf der Zielseite ist kein Platz für weitere Eingänge.');const id=crypto.randomUUID();copy.connectionPoints.push({id,x:80,y,phase:a.phase||''});connect(draft,a,{page:target.id,kind:'point',id,phase:a.phase||''});}
+ target.connectionPoints=copy.connectionPoints;doc.links=draft.links;
+}
