@@ -1,6 +1,6 @@
-import {validateTemplate} from './template.mjs?v=20261113-7';
-import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-7';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-7';
+import {validateTemplate} from './template.mjs?v=20261113-8';
+import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-8';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-8';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  const text=d.name||'',amp=d.current||Number(text.match(/\b(\d+)\s*A\b/i)?.[1]);
@@ -8,6 +8,9 @@ export function automaticTemplateId(d){
  if(d.kind==='fuse')return ({DII:'tl-0582',DIII:'tl-0584',NH00:'tl-0580'})[d.fuseType];
  const poleText=text+' '+(d.schemaTemplateName||'');
  const poles=d.poles||(/LS[_ -]L[123]N/i.test(poleText)?1:Number(poleText.match(/(?:\b|_)([1-4])\s*(?:L|P|pol)/i)?.[1])||(d.width>=54?3:d.width>=36&&d.kind==='ls'?2:1)),neutral=d.neutral||/[1-4]\s*(?:L|P)\s*\+?\s*N|L[123]N/i.test(poleText);
+ if(d.kind==='ls'&&d.lsMode==='individual')return 'tl-0530';
+ if(d.kind==='ls'&&d.manufacturer==='schneider')return poles===1?'tl-0529':poles===3?'tl-0540':undefined;
+ if(d.kind==='ls'&&d.manufacturer==='hager')return poles===1?'tl-0530':poles===3?'tl-0541':undefined;
  if(d.kind==='ls')return ({'1':'tl-0530','1N':'tl-0531','2':'tl-0534','2N':'tl-0535','3':'tl-0541','3N':'tl-0542','4':'tl-0543'})[poles+(neutral?'N':'')];
  if(d.kind==='fils')return poles===1?'tl-0626':poles===3?'tl-0624':undefined;
  if(d.kind==='coil'&&amp)return amp>=20&&amp<=50?'tl-0707':amp===63?'tl-0709':amp===100?'tl-0706':amp===250?'tl-0708':undefined;
@@ -15,7 +18,7 @@ export function automaticTemplateId(d){
 }
 export function templateTextEdits(t,d){
  const edits=Object.fromEntries((t.labels||[]).map(l=>['bmk:'+l.key,d.tag||'']));
- for(const l of t.details?.texts||[]){const s=l.text.trim();if(s==='BMK')edits[l.key]=d.tag||'';else if(s==='ORT')edits[l.key]=d.circuitName||'';else if(s==='AN'||s==='ID')edits[l.key]='';}
+ for(const l of t.details?.texts||[]){const s=l.text.trim();if(s==='BMK')edits[l.key]=(d.tag||'')+(d.phase?' '+d.phase:'');else if(s==='ORT')edits[l.key]=d.circuitName||'';else if(s==='AN'||s==='ID')edits[l.key]='';}
  return edits;
 }
 export async function buildAutomaticDispo(doc,p,fetcher=fetch){
@@ -23,7 +26,7 @@ export async function buildAutomaticDispo(doc,p,fetcher=fetch){
  if(!selected.length)throw Error('Keine Geräte im Schema erkannt.');
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261113-7');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const get=async path=>{const r=await fetcher(path+'?v=20261113-8');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
  const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set(ids)].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.kind!=='meter'&&d.kind!=='fuse'){d.width=t.width;d.height=t.height;}d.confirmed=false;}

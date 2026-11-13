@@ -1,6 +1,8 @@
 // CAD background masks were exported as black solids. Only large, axis-aligned
 // solid masks are repaired; glyphs, junction dots and curved fills remain.
 export function repairMask(p,t){
+ const contours=p.d.match(/[Mm][^Mm]*[Zz]/g)||[];
+ if(contours.length>1&&contours.join(' ').replace(/\s/g,'')===p.d.replace(/\s/g,'')){const parts=contours.map(d=>repairMask({...p,d},t));if(parts.every(q=>q.fill==='#ffffff'))return {...p,fill:'#ffffff'};}
  if(p.fill!=='#000000'||p.stroke!=='none'||/[cqast]/i.test(p.d))return p;
  const tokens=p.d.match(/[a-z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/ig)||[];let i=0,cmd='',x=0,y=0;const pts=[];
  while(i<tokens.length){if(/^[a-z]$/i.test(tokens[i]))cmd=tokens[i++];const c=cmd.toUpperCase(),rel=cmd!==c;if(c==='Z')break;if(!['M','L','H','V'].includes(c))return p;const a=Number(tokens[i++]);if(!Number.isFinite(a))return p;if(c==='H')x=a+(rel?x:0);else if(c==='V')y=a+(rel?y:0);else{const b=Number(tokens[i++]);if(!Number.isFinite(b))return p;x=a+(rel?x:0);y=b+(rel?y:0);}pts.push([x,y]);if(c==='M')cmd=rel?'l':'L';}
