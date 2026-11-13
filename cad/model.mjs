@@ -1,10 +1,10 @@
-import {validateDispoMetadata,validateDispoConfig} from './dispo.mjs?v=20261112-15';
-import {validateConnections} from './continuations.mjs?v=20261112-15';
-import {validateTextEdits,validateTextOffsets} from './template-text.mjs?v=20261112-13';
-import {functionKeys,validateFunctions} from './references.mjs?v=20261112-13';
-import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261112-13';
+import {validateDispoMetadata,validateDispoConfig} from './dispo.mjs?v=20261113-1';
+import {validateConnections} from './continuations.mjs?v=20261113-1';
+import {validateTextEdits,validateTextOffsets} from './template-text.mjs?v=20261113-1';
+import {functionKeys,validateFunctions} from './references.mjs?v=20261113-1';
+import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261113-1';
 export {W,H};
-import {validateTemplate,templateSize} from './template.mjs?v=20261112-13';
+import {validateTemplate,templateSize} from './template.mjs?v=20261113-1';
 export const uid=()=>crypto.randomUUID();
 export const clone=v=>structuredClone(v);
 export const GRID=10;
@@ -21,6 +21,7 @@ export const symbols={
  terminal:{name:'Klemme',group:'Anschluss',letter:'X',w:40,h:40,ports:[[20,0],[20,40]]},
  junction:{name:'Verbindungspunkt',group:'Anschluss',letter:'',w:20,h:20,ports:[[10,10]]},
  reference:{name:'Seitenverweis',group:'Anschluss',letter:'',w:60,h:20,ports:[[0,10]]},
+ plate:{name:'Drahtwerk-Platte',group:'Dispo',letter:'',w:500,h:400,ports:[]},
  cabinet:{name:'Schrank / SBR',group:'Dispo',letter:'',w:220,h:360,ports:[]},
  rail:{name:'DIN-Schiene',group:'Dispo',letter:'',w:180,h:14,ports:[]},
  duct:{name:'Kabelkanal',group:'Dispo',letter:'',w:180,h:30,ports:[]},
@@ -32,9 +33,9 @@ export const symbols={
 export function page(type='schema',number=1){return {id:uid(),number,title:({schema:'Elektroschema',dispo:'Disposition',cover:'Deckblatt',index:'Inhaltsverzeichnis'})[type],type,scale:10,grid:true,bus:type==='schema',elements:[],wires:[]};}
 export function project(name='Neues Projekt'){return {version:1,id:uid(),name,order:'',schema:'',customer:'',address:'',author:'',date:new Date().toLocaleDateString('sv-SE'),updated:Date.now(),pages:[page('cover',1),page('schema',10),page('dispo',9)]};}
 export const snap=(n,enabled=true)=>enabled?Math.round(n/GRID)*GRID:n;
-export function size(e,p){if(e.kind==='template'&&e.template)return templateSize(e,p);if(['cabinet','rail','duct','module'].includes(e.kind))return [e.width*W/420/p.scale,e.height*W/420/p.scale];return [e.width,e.height];}
+export function size(e,p){if(e.kind==='template'&&e.template)return templateSize(e,p);if(['cabinet','rail','duct','module','plate'].includes(e.kind))return [e.width*W/420/p.scale,e.height*W/420/p.scale];return [e.width,e.height];}
 export function createElement(p,kind,x,y){const s=symbols[kind];if(!s)throw Error('Unbekanntes Symbol');const used=new Set(p.elements.map(e=>e.tag));const base=`${p.number}${s.letter}${pathAt(x+s.w/2)}`;let n=1;while(used.has(n===1?base:`${base}.${n}`))n++;
- const physical={cabinet:[800,2000],rail:[700,35],duct:[700,60],module:[54,90]}[kind];
+ const physical={plate:[500,400],cabinet:[800,2000],rail:[700,35],duct:[700,60],module:[54,90]}[kind];
  return {id:uid(),kind,x:snap(x),y:snap(y),width:physical?.[0]??s.w,height:physical?.[1]??s.h,rotation:0,tag:s.letter?(n===1?base:`${base}.${n}`):'',value:'',text:kind==='text'?'Beschriftung':'',targetPage:'',targetPath:0,dashed:false};}
 export function ports(e,p){const [w,h]=size(e,p),s=symbols[e.kind],a=e.rotation*Math.PI/180;return (e.kind==='template'?(e.template.ports||[]).map(pt=>[pt.x/e.template.viewWidth*s.w,pt.y/e.template.viewHeight*s.h]):s.ports).map(([x,y],index)=>{x=x*w/s.w-w/2;y=y*h/s.h-h/2;return {element:e.id,index,x:e.x+w/2+x*Math.cos(a)-y*Math.sin(a),y:e.y+h/2+x*Math.sin(a)+y*Math.cos(a)};});}
 export function endpoint(p,ref,fallback,seen=new Set()){
