@@ -28,18 +28,27 @@ export function frameLayout(devices,c){
  add('plate',left,17,c.width-2*left,plateTop-17,{plateType:'cover',depth:3,mountZ:0});
  bar('ZS39',plateTop-22);bar('ZS39',fuseY-22);
  if(c.rearPanel)add('plate',4,17,c.width-8,c.height-34,{plateType:'rear',depth:3,mountZ:-c.depth});
- const meters=selected.filter(d=>d.kind==='meter'),fuses=selected.filter(d=>d.kind==='fuse'),terminals=selected.filter(d=>d.kind==='terminal'&&d.incoming),bottom=selected.filter(d=>d.kind==='switch'&&d.height>110),regular=selected.filter(d=>!['meter','fuse','terminal'].includes(d.kind)&&!bottom.includes(d));
+ const meters=selected.filter(d=>d.kind==='meter'),fuses=selected.filter(d=>d.kind==='fuse'),terminals=selected.filter(d=>d.kind==='terminal'&&d.incoming&&d.frameStyle!=='incoming-terminal'),inputs=selected.filter(d=>d.frameStyle==='incoming-terminal'),spds=selected.filter(d=>d.kind==='spd'),bottom=selected.filter(d=>d.kind==='switch'&&d.height>110),regular=selected.filter(d=>!['meter','fuse','terminal','spd'].includes(d.kind)&&!bottom.includes(d));
  const meterCols=Math.floor((c.width-8)/250),meterLeft=(c.width-meterCols*250)/2,meterRows=Math.ceil(meters.length/meterCols),meterTop=fuseY-meterRows*400,regularRows=Math.floor((meterTop-plateTop)/400),shortPanel=meterTop-plateTop-regularRows*400>=200;
  if(meterTop<plateTop+200&&regular.length&&!(meterTop>=plateTop&&meters.length%meterCols))throw Error('Zu wenig Höhe für Geräteplatten und Zählerplätze. Breite oder Höhe erhöhen.');
  const gap=meterTop-(plateTop+regularRows*400+(shortPanel?200:0));if(gap>0)add('plate',left,meterTop-gap,c.width-2*left,gap,{plateType:'cover',depth:3,mountZ:0});
  const put=(d,x,y,extra={})=>{if(d.depth>c.depth){overflow.push(d);return;}placed.push({...d,x,y,...extra});};
 
- const slots=[],hasMeterFeed=regular.some(d=>d.meterFed),devicePlateWidth=c.plateWidth,panels=[];for(let x=left;x<c.width-left;){const pw=Math.min(hasMeterFeed&&x===left?250:devicePlateWidth,c.width-left-x);panels.push({x,pw});x+=pw;}
+ const slots=[],hasMeterFeed=regular.some(d=>d.meterFed)||inputs.length>0||spds.length>0,devicePlateWidth=c.plateWidth,panels=[];for(let x=left;x<c.width-left;){const pw=Math.min(hasMeterFeed&&x===left?250:devicePlateWidth,c.width-left-x);panels.push({x,pw});x+=pw;}
  for(let r=0;r<regularRows+(shortPanel?1:0);r++){const y=plateTop+r*400,ph=r<regularRows?400:200,slotYs=ph===400?[60,185,310]:[60];bar('ZS39',y-22);for(const {x,pw} of panels){add('plate',x,y,pw,ph,{plateType:'slots',depth:3,mountZ:0});for(const sy of slotYs)for(const opening of plateOpenings(pw))slots.push({row:slotYs.indexOf(sy),x:x+opening.x,y:y+sy,used:0,panelWidth:250,width:216});}for(const sy of slotYs)bar('AS35',y+sy+20);}
  // Fill the unused cells beside the upper partial meter row with existing device-panel envelopes.
  if(meters.length%meterCols){const y=meterTop;let x=meterLeft+(meters.length%meterCols)*250;while(x<c.width-meterLeft){const pw=Math.min(devicePlateWidth,c.width-meterLeft-x);add('plate',x,y,pw,400,{plateType:'slots',depth:3,mountZ:0});for(const sy of [60,185,310]){for(const opening of plateOpenings(pw))slots.push({row:[60,185,310].indexOf(sy),x:x+opening.x,y:y+sy,used:0,panelWidth:250,width:216});add('rail',x+20,y+sy+20,pw-40,35,{profile:'AS35',depth:15,mountZ:-110});}x+=pw;}}
  slots.sort((a,b)=>a.y-b.y||a.x-b.x);
- const panelKey=s=>s.x+':'+(s.y-s.row*125);const meterPanels=new Set();if(regular.some(d=>d.meterFed)&&slots.length)meterPanels.add(panelKey(slots[0]));
+ const panelKey=s=>s.x+':'+(s.y-s.row*125);const inputPanels=new Set();
+ if(inputs.length||spds.length){
+  const bays=[...new Map(slots.filter(s=>s.row===0&&slots.some(q=>q.x===s.x&&q.y===s.y+250)).map(s=>[panelKey(s),s])).values()];
+  for(let i=0;i<Math.max(inputs.length,spds.length);i++){const bay=bays[i];if(!bay){overflow.push(...[inputs[i],spds[i]].filter(Boolean));continue;}inputPanels.add(panelKey(bay));const y=bay.y-60,x=bay.x-17;const panel=parts.find(p=>p.plateType==='slots'&&p.x===x&&p.y===y&&p.width===250);if(panel)panel.plateType='cover';for(const rail of [...parts])if(rail.profile==='AS35'&&!rail.frameStyle&&rail.y>=y&&rail.y<y+400&&rail.x<x+250&&rail.x+rail.width>x){const end=rail.x+rail.width;if(rail.x<x)parts.push({...rail,width:x-rail.x});rail.x=x+250;rail.width=Math.max(0,end-rail.x);if(!rail.width)parts.splice(parts.indexOf(rail),1);}
+   if(inputs[i]){const d=inputs[i];put(d,x+(250-d.width)/2,y+70,{mountZ:-70,frameStyle:'incoming-terminal'});add('rail',x+125,y+135,c.width-40-(x+125),35,{profile:'AS35',frameStyle:'incoming:'+d.source.element,depth:15,mountZ:-110});}
+   if(spds[i]){const d=spds[i];put(d,x+(250-d.width)/2,y+230,{mountZ:-70});add('rail',x+17,y+290,216,35,{profile:'AS35',depth:15,mountZ:-110});}
+  }
+ }
+ const usableSlots=slots.filter(s=>!inputPanels.has(panelKey(s)));slots.splice(0,slots.length,...usableSlots);
+ const meterPanels=new Set();if(regular.some(d=>d.meterFed)&&slots.length)meterPanels.add(panelKey(slots[0]));
  const owners=new Map(),named=[...new Set(regular.filter(d=>!d.meterFed).map(d=>d.circuitName).filter(Boolean))],separatePanels=named.length>1&&named.length<=[...new Set(slots.map(panelKey))].filter(k=>!meterPanels.has(k)).length;
  const phaseStack=d=>d.manufacturer==='hager'&&!d.meterFed&&['ls','fils'].includes(d.kind)&&(d.poles||1)===1&&/^L[123]$/.test(d.phase||'');
  const capacity=slots.length*216*(1-c.reserve/100);let occupied=0;

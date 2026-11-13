@@ -1,4 +1,4 @@
-import {plateStrips} from './frame-layout.mjs?v=20261113-23';
+import {plateStrips} from './frame-layout.mjs?v=20261113-24';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  const sx=w/e.width,sy=h/e.height,rect=(x,y,a,b,fill='white')=>`<rect x="${x*sx}" y="${y*sy}" width="${a*sx}" height="${b*sy}" fill="${fill}"/>`,line=(x,y,a,b)=>`<path d="M${x*sx} ${y*sy}L${a*sx} ${b*sy}"/>`;
@@ -17,7 +17,8 @@ export function frameBoxes(e,x,y,add){
  if(e.profile==='comb'){add(e,x,y,z,w,h,6,'#ece7d8');for(let xx=4;xx<w-3;xx+=18)add(e,x+xx,y-10,z,3,10,3,'#b67848');return true;}
  if(e.profile==='copper'){add(e,x,y,z,w,h,d,'#b67848');return true;}
  if(e.kind==='duct'){add(e,x,y,z,w,h,3,'#bfc1bb');add(e,x,y,z,w,3,d,'#d8d9d3');add(e,x,y+h-3,z,w,3,d,'#d8d9d3');for(let xx=0;xx<w;xx+=14){add(e,x+xx,y,z+3,7,6,d-3,'#d8d9d3');add(e,x+xx,y+h-6,z+3,7,6,d-3,'#d8d9d3');}return true;}
- if(e.kind==='module'&&e.incoming){for(let row=0;row<3;row++){add(e,x,y+row*110,z,w,90,35,'#c6c9c2');add({...e,tag:''},x+w*.2,y+row*110+12,z+35,w*.6,18,2,'#495453');}return true;}
+ if(e.kind==='module'&&e.dispoKind==='spd'){add(e,x,y,z,w,h,55,'#dadbd4');for(let i=0;i<4;i++)add({...e,tag:''},x+i*18+2,y+30,z+55,14,60,12,'#d7dfcf');return true;}
+ if(e.kind==='module'&&e.incoming&&e.frameStyle!=='incoming-terminal'){for(let row=0;row<3;row++){add(e,x,y+row*110,z,w,90,35,'#c6c9c2');add({...e,tag:''},x+w*.2,y+row*110+12,z+35,w*.6,18,2,'#495453');}return true;}
  if(e.kind==='module'&&e.dispoKind==='terminal'){const pitch=8;for(let xx=0;xx<w;xx+=pitch){const color=xx>w-17?'#3186b8':'#b4b8ae';add(e,x+xx,y,z,Math.min(pitch-1,w-xx),h,d,color);add({...e,tag:''},x+xx+2,y+12,z+d,3,5,1,'#333c44');add({...e,tag:''},x+xx+2,y+h-17,z+d,3,5,1,'#333c44');}return true;}
  if(e.kind==='module'&&e.dispoKind==='meter'&&e.meterState==='prepared'){
   // The plug terminals and mounting bridge are attached to the removable meter plate.

@@ -101,3 +101,5 @@
 .dispo-3d canvas{flex:1;min-height:0;height:auto;margin:0;background:#f2f5f8;outline:none}
 .dispo-3d canvas:focus-visible{outline:2px solid #5d91c5;outline-offset:2px}
 .dispo-3d footer{flex-shrink:0;padding-top:0;line-height:1.5}
+
+#pageCaption{position:relative;display:flex;gap:3px;min-width:0;overflow-x:auto;flex:1;scrollbar-width:thin}#pageCaption button{white-space:nowrap;flex:none;border-radius:3px;padding:7px 10px;min-height:30px;font-size:11px}#pageCaption button[aria-current=page]{border-bottom:3px solid #2463eb}.canvas-caption .view-controls{flex:none}
