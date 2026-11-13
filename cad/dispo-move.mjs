@@ -72,7 +72,8 @@ export function alignMeterFuses(p){
   const meter=meters.find(m=>JSON.stringify(m.dispoSource)===JSON.stringify(e.meterSource));if(!meter)continue;
   const center=meter.x+meter.width*f/2,cabinet=p.elements.find(c=>c.kind==='cabinet'&&center>=c.x&&center<c.x+c.width*f&&meter.y>=c.y&&meter.y<c.y+c.height*f);
   const column=meters.filter(m=>Math.abs(m.x+m.width*f/2-center)<.1&&(!cabinet||m.y>=cabinet.y&&m.y<cabinet.y+cabinet.height*f)).sort((a,b)=>b.y-a.y);
-  positions.set(e,center-(column[0]===meter?e.width*f:0));
+  const width=Math.max(e.width,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(e.meterSource)).map(q=>q.width));
+  positions.set(e,center-(column[0]===meter?width*f:0));
  }
  // Preserve independent bottom equipment whenever it still fits. When a moved
  // feeder occupies its old place, relocate the entire three-pole assembly.
@@ -81,7 +82,7 @@ export function alignMeterFuses(p){
   const occupied=[...positions].filter(([e])=>within(e)).map(([e,x])=>({x,w:e.width*f}));
   const groups=new Map();for(const e of p.elements.filter(e=>within(e)&&!e.meterSource&&(e.dispoKind==='fuse'||e.incoming))){const key=JSON.stringify(e.dispoSource)||e.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(e);}
   for(const group of groups.values()){
-   const e=group[0],w=e.width*f;let x=e.x;
+   const e=group[0],w=Math.max(...group.map(part=>part.width))*f;let x=e.x;
    if(occupied.some(b=>x<b.x+b.w-.01&&x+w>b.x+.01)){
     x=c.x+21*f;for(const b of [...occupied].sort((a,b)=>a.x-b.x)){if(x+w<=b.x+.01)break;x=Math.max(x,b.x+b.w);}
     if(x+w>c.x+(c.width-12)*f)throw Error('Kein Platz für die Bezügersicherungen an den neuen Zählerpositionen.');

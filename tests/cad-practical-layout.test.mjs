@@ -21,13 +21,13 @@ test('same supply LS and 2P RCBO share copper with exactly three PE reserve whil
  for(const name of ['A','B'])for(const phase of ['L1','L2','L3']){const ls=l.placed.find(e=>e.tag===name+'LS'+phase),fi=l.placed.find(e=>e.tag===name+'FI'+phase);assert.equal(fi.x-ls.x-ls.width,54);assert.equal(fi.y,ls.y);assert.ok(l.parts.some(e=>e.profile==='copper'&&e.x===ls.x&&e.width===117));}
  const a=l.placed.filter(e=>e.circuitName==='A'),b=l.placed.filter(e=>e.circuitName==='B');assert.ok(Math.max(...a.map(e=>e.x+e.width))<=Math.min(...b.map(e=>e.x)));
 });
-test('DIN00 with N uses 126 mm original in every row and N hardware survives persistence',async()=>{
+test('DIN00 has a neutral disconnector only on L3, including after persistence',async()=>{
  const d=project(),e=insert(d,'tl-0018'),key=e.template.labels.find(l=>l.letter==='F').key;
  // Turn the fuse into the same 100 A DIN00 family used by outgoing feeders.
  const label=e.template.details.texts.find(t=>/25A/.test(t.text));assert.ok(label);e.textEdits={[label.key]:'100A DIN00'};
  const device=schemaDevices(d).devices.find(e=>e.kind==='fuse');assert.equal(device.neutral,true);assert.equal(automaticTemplateId(device),'tl-0581');
- const g=await buildAutomaticDispo(d,d.pages[2],fetcher),fuses=g.elements.filter(e=>e.dispoKind==='fuse');assert.equal(fuses.length,3);assert.ok(fuses.every(e=>e.template.id==='tl-0581'&&e.width===126));
- Object.assign(d.pages[2],{elements:g.elements,scale:g.scale});const p=validateProject(d).pages[2];assert.ok(p.elements.filter(e=>e.dispoKind==='fuse').every(e=>e.neutral));assert.ok(sceneBoxes(p).some(b=>b.color==='#3186b8'&&fuses.some(e=>e.id===b.id)));
+ const g=await buildAutomaticDispo(d,d.pages[2],fetcher),fuses=g.elements.filter(e=>e.dispoKind==='fuse');assert.equal(fuses.length,3);assert.deepEqual(fuses.map(e=>[e.template.id,e.width,e.neutral]),[['tl-0580',90,false],['tl-0580',90,false],['tl-0581',126,true]]);assert.equal(new Set(fuses.map(e=>e.x)).size,1);
+ Object.assign(d.pages[2],{elements:g.elements,scale:g.scale});const p=validateProject(d).pages[2];assert.deepEqual(p.elements.filter(e=>e.dispoKind==='fuse').map(e=>e.neutral),[false,false,true]);assert.deepEqual(sceneBoxes(p).filter(b=>b.color==='#3186b8'&&fuses.some(e=>e.id===b.id)).map(b=>b.id),[fuses[2].id]);
 });
 test('incoming blocks use original current bands and outgoing terminals remain omitted',async()=>{
  for(const [amp,id] of [[63,'tl-0552'],[100,'tl-0552'],[125,'tl-0553'],[160,'tl-0553']]){const d=project();d.ratedCurrent=amp+' A';insert(d,'tl-0000');insert(d,'tl-0007',600);const g=await buildAutomaticDispo(d,d.pages[2],fetcher),incoming=g.elements.filter(e=>e.incoming);assert.equal(incoming.length,1);assert.equal(incoming[0].template.id,id);assert.equal(g.elements.filter(e=>e.dispoKind==='terminal').length,1);}

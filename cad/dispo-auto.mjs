@@ -1,6 +1,6 @@
-import {validateTemplate} from './template.mjs?v=20261113-22';
-import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-22';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-22';
+import {validateTemplate} from './template.mjs?v=20261113-23';
+import {generateDispo,defaultConfig,schemaDevices} from './dispo.mjs?v=20261113-23';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261113-23';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  const text=d.name||'',amp=d.current||Number(text.match(/\b(\d+)\s*A\b/i)?.[1]);
@@ -34,16 +34,17 @@ export async function buildAutomaticDispo(doc,p,fetcher=fetch){
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.some(d=>d.incoming))throw Error('Einspeisblock: Bemessungsstrom in den Projektdaten ergänzen (Vorlagen bis 100 A bzw. bis 160 A).');
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261113-22');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
- const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set(ids)].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
+ const get=async path=>{const r=await fetcher(path+'?v=20261113-23');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set([...ids,...(ids.includes('tl-0581')?['tl-0580']:[])])].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.kind!=='meter'&&d.kind!=='fuse'){d.width=d.kind==='fils'&&d.manufacturer==='schneider'&&t.id==='tl-0624'?90:t.width;d.height=t.height;d.poles??=({'tl-0529':1,'tl-0530':1,'tl-0531':1,'tl-0534':2,'tl-0540':3,'tl-0541':3,'tl-0542':3,'tl-0543':4,'tl-0624':3,'tl-0626':1})[t.id];}d.confirmed=false;}
  const g=generateDispo(p,selected,c),bySource=new Map(selected.map((d,i)=>[JSON.stringify(d.source),templates.get(ids[i])])),choices=new Map();
+ const originalFor=e=>e.dispoKind==='fuse'&&e.fuseType==='NH00'?templates.get(e.neutral?'tl-0581':'tl-0580'):bySource.get(JSON.stringify(e.dispoSource));
  // Assembly retains the original layout geometry in 3D; each source is resolved separately
  // so RSE and ordinary meters of identical dimensions never share a mistaken mapping.
- for(const e of g.elements)if(e.dispoSource)choices.set(assemblyKey(e),bySource.get(JSON.stringify(e.dispoSource)));
+ for(const e of g.elements)if(e.dispoSource)choices.set(assemblyKey(e),originalFor(e));
  const assembled=templateAssembly(g,choices),factor=1200/420/g.scale;
- for(const e of assembled.elements)if(e.dispoSource){const t=bySource.get(JSON.stringify(e.dispoSource));e.template=structuredClone(t);e.text='';e.textEdits=templateTextEdits(t,e);
+ for(const e of assembled.elements)if(e.dispoSource){const t=originalFor(e);e.template=structuredClone(t);e.text='';e.textEdits=templateTextEdits(t,e);
   // ORT is a centred plate caption in the source drawing. Keep longer group names
   // inside the plate instead of extending the original three-letter placeholder.
   if(e.dispoKind==='meter')for(const l of e.template.details?.texts||[])if(['BMK','ORT'].includes(l.text.trim())){
