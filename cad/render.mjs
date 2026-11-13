@@ -1,12 +1,12 @@
-import {continuationCut,meterView} from './meter-view.mjs?v=20261113-20';
-import {standardFrame} from './standard-render.mjs?v=20261113-20';
-import {frameMarkup} from './frame-render.mjs?v=20261113-20';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-20';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261113-20';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-20';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-20';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261113-20';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-20';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261113-21';
+import {standardFrame} from './standard-render.mjs?v=20261113-21';
+import {frameMarkup} from './frame-render.mjs?v=20261113-21';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-21';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261113-21';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-21';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-21';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261113-21';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-21';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -56,7 +56,7 @@ export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=true}
  const connections=connectionCandidates(d,p);
  for(const a of connections){const pt=connectionPoint(d,a),ref=referenceText(d,a),left=a.kind==='bus'&&a.side==='left',right=a.kind==='bus'&&a.side==='right'||pt.x>950,x=pt.x+(right?-5:left?3:5),y=pt.y-3;
  if(a.kind==='point')body+=line(pt.x,pt.y,pt.x+25,pt.y)+text(pt.x+28,pt.y+3,a.phase,'font-size="9"');
- if(ref)body+=text(x,y,ref,`font-size="8" fill="#1767aa" stroke="none" text-anchor="${right?'end':'start'}" ${editor?`data-connection="${esc(JSON.stringify(a))}" cursor="pointer"`:''}`);
+ if(ref)body+=text(x,y,ref,`font-size="10" font-weight="500" fill="#1767aa" stroke="#fff" stroke-width="2" paint-order="stroke" stroke-linejoin="round" text-anchor="${right?'end':'start'}" ${editor?`data-connection="${esc(JSON.stringify(a))}" cursor="pointer"`:''}`);
  if(editor)body+=`<circle data-connection="${esc(JSON.stringify(a))}" cx="${pt.x}" cy="${pt.y}" r="${a.kind==='bus'?3:4}" fill="${ref?'#e4f3ff':'#fff4d7'}" stroke="${ref?'#1877b9':'#c58a13'}" stroke-width="1" cursor="pointer"><title>${esc(ref?'Verweis '+ref:'Offener Anschluss '+a.phase+' – Ziel wählen')}</title></circle>`;
  }
  if(editor){
