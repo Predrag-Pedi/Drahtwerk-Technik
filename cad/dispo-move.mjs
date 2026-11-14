@@ -1,3 +1,4 @@
+import {feederOffset} from './meter-layout.mjs?v=20261114-05';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
@@ -75,7 +76,7 @@ export function alignMeterFuses(p){
   const center=meter.x+meter.width*f/2,cabinet=p.elements.find(c=>c.kind==='cabinet'&&center>=c.x&&center<c.x+c.width*f&&meter.y>=c.y&&meter.y<c.y+c.height*f);
   const column=meters.filter(m=>Math.abs(m.x+m.width*f/2-center)<.1&&(!cabinet||m.y>=cabinet.y&&m.y<cabinet.y+cabinet.height*f)).sort((a,b)=>b.y-a.y);
   const width=Math.max(e.width,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(e.meterSource)).map(q=>q.width));
-  positions.set(e,Math.max(cabinet?cabinet.x+12*f:-Infinity,center-(column[0]===meter?width*f:0)));
+  positions.set(e,Math.max(cabinet?cabinet.x+12*f:-Infinity,center+feederOffset(column.map(m=>Math.max(0,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(m.dispoSource)).map(q=>q.width))),column.indexOf(meter))*f));
  }
  // Preserve independent bottom equipment whenever it still fits. When a moved
  // feeder occupies its old place, relocate the entire three-pole assembly.
