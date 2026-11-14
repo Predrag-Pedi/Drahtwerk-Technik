@@ -1,12 +1,14 @@
-import {BUS} from './geometry.mjs?v=20261114-03';
-import {ports,wirePoints} from './model.mjs?v=20261114-03';
+import {BUS} from './geometry.mjs?v=20261114-04';
+import {ports,wirePoints} from './model.mjs?v=20261114-04';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
  const labels=[...new Map((e.template.labels||[]).map(l=>[l.key,l])).values()],target=labels.find(l=>l.key===key);if(!target)return '';
  return (e.template.details?.texts||[]).filter(t=>{const r=t.runs?.[0];if(!r)return false;const x=r.matrix[4],y=r.matrix[5];return labels.reduce((best,l)=>Math.hypot(x-l.matrix[4],y-l.matrix[5])<Math.hypot(x-best.matrix[4],y-best.matrix[5])?l:best,labels[0]).key===key;}).map(t=>e.textEdits?.[t.key]??t.text).join(' ');
 }
-export function fuseRating(text){
+export function disconnectBlade(text){return /\bTrennmesser\b/i.test(text)&&/\b(?:NH|DIN)\s*0\s*0\b/i.test(text);}
+export function fuseRating(text,ratedCurrent){
+ if(disconnectBlade(text)){const current=Number(String(ratedCurrent||'').match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',','.'))||null;return {current,fuseType:'NH00',ratingInferred:true,conflict:false,neutral:true};}
  const amps=[...String(text).matchAll(/(?:^|[^\w.])(\d+(?:[.,]\d+)?)\s*A(?![a-z])/gi)].map(m=>Number(m[1].replace(',','.'))).filter(n=>n>0),unique=[...new Set(amps)];
  const explicit=/\b(?:NH|DIN)\s*00\b/i.test(text)?'NH00':/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';const current=unique.length===1?unique[0]:null;
  const inferred=current!==null&&current<=25?'DII':current!==null&&current<=63?'DIII':current!==null&&current<=160?'NH00':'';

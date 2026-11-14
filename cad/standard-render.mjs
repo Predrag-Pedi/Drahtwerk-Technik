@@ -1,4 +1,4 @@
-import artwork from './standard-pages.mjs?v=20261114-03';
+import artwork from './standard-pages.mjs?v=20261114-04';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const t=(x,y,value,size=8)=>`<text x="${x}" y="${y}" fill="#000" stroke="none" font-family="Arial" font-size="${size}">${esc(value)}</text>`;
 export function standardFrame(d,p){

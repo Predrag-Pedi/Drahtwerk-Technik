@@ -1,4 +1,4 @@
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261114-03';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261114-04';
 // The page properties hold frame dimensions. Generating a disposition needs no dialog.
 export async function editAutomaticDispo(doc,p,apply){
  const generated=await buildAutomaticDispo(doc,p);
