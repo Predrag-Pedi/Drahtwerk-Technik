@@ -1,12 +1,13 @@
-import {continuationCut,meterView} from './meter-view.mjs?v=20261113-27';
-import {standardFrame} from './standard-render.mjs?v=20261113-27';
-import {frameMarkup} from './frame-render.mjs?v=20261113-27';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261113-27';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261113-27';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261113-27';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261113-27';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261113-27';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261113-27';
+import {joinDinRails} from './frame-layout.mjs?v=20261114-01';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261114-01';
+import {standardFrame} from './standard-render.mjs?v=20261114-01';
+import {frameMarkup} from './frame-render.mjs?v=20261114-01';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261114-01';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261114-01';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261114-01';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261114-01';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261114-01';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261114-01';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -88,5 +89,5 @@ export function dispoDrawingRails(c){
   if(center===undefined||Math.abs(center-r.y-r.height/2)>30){const channel=parts.find(p=>p.kind==='duct'&&Math.abs(p.x-r.x)<.01&&Math.abs(p.width-r.width)<.01&&Math.abs(p.y-r.y-70)<.01);if(channel)rails.push({...r,drawingLabel:'Klemmen'});continue;}
   rails.push({...r,y:center-r.height/2});
  }
- return rails;
+ return joinDinRails(rails,parts);
 }
