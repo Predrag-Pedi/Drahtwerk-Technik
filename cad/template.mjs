@@ -1,7 +1,9 @@
-import {repairPaths} from './template-masks.mjs?v=20261114-02';
-import {pathHash,validateDetails} from './template-text.mjs?v=20261114-02';
-import {frame,macroScale} from './alignment.mjs?v=20261114-02';
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261114-02';
+import auditedEnds from './template-ends.mjs?v=20261114-03';
+export function enrichedDetails(id,details){const out=details||{texts:[],ends:[]},extra=auditedEnds[id]||[];return {...out,ends:[...out.ends,...extra.filter(a=>!out.ends.some(b=>b.key===a.key))]};}
+import {repairPaths} from './template-masks.mjs?v=20261114-03';
+import {pathHash,validateDetails} from './template-text.mjs?v=20261114-03';
+import {frame,macroScale} from './alignment.mjs?v=20261114-03';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261114-03';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};
@@ -13,7 +15,7 @@ export function validateTemplate(raw){
  const labels=(raw.labels||[]);if(!Array.isArray(labels)||labels.length>3000)fail();
  const ports=(raw.ports||[]);if(!Array.isArray(ports)||ports.length>100)fail();
  const semantic=raw.semanticVersion===2?{semanticVersion:2,labels:labels.map(l=>{if(!Array.isArray(l.matrix)||l.matrix.length!==6||!/^\d*[A-Z]+(?:\d+(?:\.\d+)?)?$/.test(l.text)||!/^([A-Z]+)$/.test(l.letter))fail();return {text:str(l.text),key:str(l.key),letter:l.letter,matrix:l.matrix.map(finite),fontSize:number(l.fontSize),anchor:{x:finite(l.anchor.x),y:finite(l.anchor.y)}};}),ports:ports.map(p=>{if(!['L1','L2','L3','N'].includes(p.phase))fail();return {x:finite(p.x),y:finite(p.y),phase:p.phase};})}:{};
- return {...semantic,...(raw.details?{details:validateDetails(raw.details,fail)}:{}),id:str(raw.id),name:str(raw.name),category:raw.category==='Dispo'?'Dispo':'Schema',group:str(raw.group),source:str(raw.source),width:number(raw.width,10000),height:number(raw.height,10000),viewWidth:number(raw.viewWidth),viewHeight:number(raw.viewHeight),paths:raw.paths.map(p=>{if(typeof p.d!=='string'||!p.d.length||p.d.length>500000||!safePath.test(p.d)||(chars+=p.d.length)>5000000)fail();if(!['none','#000000','#ffffff'].includes(p.fill)||!['none','#000000','#ffffff'].includes(p.stroke)||!Number.isFinite(p.sw)||p.sw<0||p.sw>1e6)fail();return {d:p.d,fill:p.fill,stroke:p.stroke,sw:p.sw};})};
+ return {...semantic,...(raw.details||auditedEnds[raw.id]?{details:validateDetails(enrichedDetails(raw.id,raw.details),fail)}:{}),id:str(raw.id),name:str(raw.name),category:raw.category==='Dispo'?'Dispo':'Schema',group:str(raw.group),source:str(raw.source),width:number(raw.width,10000),height:number(raw.height,10000),viewWidth:number(raw.viewWidth),viewHeight:number(raw.viewHeight),paths:raw.paths.map(p=>{if(typeof p.d!=='string'||!p.d.length||p.d.length>500000||!safePath.test(p.d)||(chars+=p.d.length)>5000000)fail();if(!['none','#000000','#ffffff'].includes(p.fill)||!['none','#000000','#ffffff'].includes(p.stroke)||!Number.isFinite(p.sw)||p.sw<0||p.sw>1e6)fail();return {d:p.d,fill:p.fill,stroke:p.stroke,sw:p.sw};})};
 }
 const escapeText=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function templateMarkup(t,w,h,labelValues={},edits={},editor=false,lineHits='',offsets={}){
