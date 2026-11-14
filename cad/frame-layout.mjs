@@ -86,3 +86,13 @@ export function frameLayout(devices,c){
  return {parts,placed,overflow};
 }
 export function plateStrips(w,h,type){if(type==='meter'){const x=(w-90)/2,y=h-45;return [[0,0,w,y],[0,y,x,22],[x+90,y,w-x-90,22],[0,y+22,w,h-y-22]];}if(type!=='slots')return [[0,0,w,h]];const slotHeight=46,ys=h>=400?[60,185,310]:[60],strips=[],openings=plateOpenings(w);let y=0;for(const sy of ys){strips.push([0,y,w,sy-y]);let x=0;for(const opening of openings){if(opening.x>x)strips.push([x,sy,opening.x-x,slotHeight]);x=opening.x+opening.width;}if(x<w)strips.push([x,sy,w-x,slotHeight]);y=sy+slotHeight;}strips.push([0,y,w,h-y]);return strips;}
+
+// Join mechanical DIN supports across adjacent apparatus panels, never across a
+// meter/input bay or across electrically separate copper/comb conductors.
+export function joinDinRails(parts,panels=parts){
+ const out=parts.map(p=>({...p}));
+ const supports=out.filter(p=>p.kind==='rail'&&p.profile==='AS35'&&!p.frameStyle).sort((a,b)=>Math.abs(a.y-b.y)>.01?a.y-b.y:a.x-b.x);
+ const covered=(a,b)=>{let end=a.x;for(const p of panels.filter(p=>p.plateType==='slots'&&a.y+a.height/2>=p.y&&a.y+a.height/2<=p.y+p.height).sort((a,b)=>a.x-b.x)){if(p.x>end+.01)continue;end=Math.max(end,p.x+p.width);}return end>=b.x+b.width-.01;};
+ for(let i=0;i<supports.length;i++){const a=supports[i];if(!out.includes(a))continue;for(let j=i+1;j<supports.length;j++){const b=supports[j];if(!out.includes(b)||Math.abs(a.y-b.y)>.01||Math.abs(a.height-b.height)>.01||a.mountZ!==b.mountZ||a.depth!==b.depth||b.x>a.x+a.width+40.01||!covered(a,b))continue;a.width=Math.max(a.x+a.width,b.x+b.width)-a.x;out.splice(out.indexOf(b),1);}}
+ return out;
+}
