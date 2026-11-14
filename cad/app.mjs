@@ -1,25 +1,26 @@
-import {addStandardPages} from './model.mjs?v=20261114-01';
-import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261114-01';
-import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261114-01';
-import {drahtwerkDemo} from './dispo.mjs?v=20261114-01';
-import {defaultConfig} from './dispo.mjs?v=20261114-01';
-import {editAutomaticDispo} from './dispo-ui.mjs?v=20261114-01';
-import {openDispo3D} from './dispo-3d.mjs?v=20261114-01';
-import {createTextClickTracker} from './text-click.mjs?v=20261114-01';
-import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261114-01';
-import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261114-01';
-import {installNavigation} from './navigation.mjs?v=20261114-01';
-import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261114-01';
-import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261114-01';
-import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261114-01';
-import {alignMacro,alignPage} from './alignment.mjs?v=20261114-01';
-import {BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261114-01';
-import {validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261114-01';
-import {placement,placementMarkup} from './placement.mjs?v=20261114-01';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261114-01';
-import {svgPage,glyph,esc} from './render.mjs?v=20261114-01';
-import {database} from './storage.mjs?v=20261114-01';
-import {pdf,download} from './export.mjs?v=20261114-01';
+import {reconcilePageOrder} from './page-order.mjs?v=20261114-02';
+import {addStandardPages} from './model.mjs?v=20261114-02';
+import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261114-02';
+import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261114-02';
+import {drahtwerkDemo} from './dispo.mjs?v=20261114-02';
+import {defaultConfig} from './dispo.mjs?v=20261114-02';
+import {editAutomaticDispo} from './dispo-ui.mjs?v=20261114-02';
+import {openDispo3D} from './dispo-3d.mjs?v=20261114-02';
+import {createTextClickTracker} from './text-click.mjs?v=20261114-02';
+import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261114-02';
+import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261114-02';
+import {installNavigation} from './navigation.mjs?v=20261114-02';
+import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261114-02';
+import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261114-02';
+import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261114-02';
+import {alignMacro,alignPage} from './alignment.mjs?v=20261114-02';
+import {BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261114-02';
+import {validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261114-02';
+import {placement,placementMarkup} from './placement.mjs?v=20261114-02';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261114-02';
+import {svgPage,glyph,esc} from './render.mjs?v=20261114-02';
+import {database} from './storage.mjs?v=20261114-02';
+import {pdf,download} from './export.mjs?v=20261114-02';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null,connectionSelection=[];
@@ -30,7 +31,7 @@ let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
-async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261114-01').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
+async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261114-02').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=templateDetails[e.template.id];}
 async function hydrateDetails(){try{await loadDetails();if(doc){doc.pages.forEach(p=>p.elements.forEach(attachDetails));render();}}catch(e){toast(e.message);}}
 function editTemplateText(e,key){
@@ -61,10 +62,10 @@ function save(){if(!doc)return;doc.updated=Date.now();$('saveState').textContent
 function enqueueSave(snapshot){saveQueue=saveQueue.catch(()=>{}).then(()=>database('save',snapshot)).then(()=>{const i=docs.findIndex(d=>d.id===snapshot.id);if(i<0)docs.push(snapshot);else docs[i]=snapshot;if(doc?.id===snapshot.id)$('saveState').textContent='In diesem Browser gespeichert';}).catch(e=>{if(doc?.id===snapshot.id)$('saveState').textContent='Nicht gespeichert – bitte Projekt sichern';toast('Speichern fehlgeschlagen: '+e.message);});return saveQueue;}
 async function flush(){clearTimeout(saveTimer);if(doc)await enqueueSave(clone(doc));}
 function remember(){undo.push(clone(doc));if(undo.length>60)undo.shift();redo=[];}
-function change(fn){remember();fn();save();render();}
+function change(fn){remember();const before=undo.at(-1);try{fn();reconcilePageOrder(doc,before);}catch(error){doc=undo.pop();throw error;}save();render();}
 function history(direction){const from=direction==='undo'?undo:redo,to=direction==='undo'?redo:undo;if(!from.length)return;to.push(clone(doc));doc=from.pop();if(!current())pageId=doc.pages[0].id;selected=null;multi=[];wire=null;save();render();}
 function home(){const q=$('projectSearch').value.toLowerCase();$('projectCount').textContent=docs.length;const shown=docs.filter(d=>`${d.name} ${d.order} ${d.address}`.toLowerCase().includes(q)).sort((a,b)=>b.updated-a.updated);$('projectList').innerHTML=shown.length?shown.map(d=>`<div class="project-row"><span class="project-mark" aria-hidden="true">▱</span><button class="project-open" data-open="${esc(d.id)}"><strong>${esc(d.name)}</strong><small>${d.pages.length} Seiten · ${esc(d.address||'Noch keine Objektadresse')}</small></button><span class="project-number">${esc(d.order||'Ohne Auftragsnummer')}</span><button data-remove="${esc(d.id)}" class="danger" aria-label="${esc(d.name)} löschen">Löschen</button></div>`).join(''):'<div class="empty"><h3>Platz für deine nächste Zeichnung.</h3><p>Erstelle ein Projekt oder öffne das Beispiel, um den Editor kennenzulernen.</p></div>';}
-function open(d){hoverPoint=null;placementRotation=0;$('saveState').textContent='In diesem Browser gespeichert';doc=clone(d);pageId=(doc.pages.find(p=>/^disposition$/i.test(p.title.trim()))||doc.pages.find(p=>p.type==='dispo')||doc.pages[0]).id;selected=null;multi=[];tool='select';undo=[];redo=[];wire=null;$('cadHome').hidden=true;$('editor').hidden=false;loadTemplates();hydrateDetails();render();requestAnimationFrame(()=>{try{libraryWidth(Number(localStorage.getItem('cad-library-width'))||320);}catch{libraryWidth(320);}fit();});}
+function open(d){hoverPoint=null;placementRotation=0;$('saveState').textContent='In diesem Browser gespeichert';doc=clone(d);if(doc.pages.some((p,i)=>i&&p.number<doc.pages[i-1].number)){reconcilePageOrder(doc,d,{repair:true});save();}pageId=(doc.pages.find(p=>/^disposition$/i.test(p.title.trim()))||doc.pages.find(p=>p.type==='dispo')||doc.pages[0]).id;selected=null;multi=[];tool='select';undo=[];redo=[];wire=null;$('cadHome').hidden=true;$('editor').hidden=false;loadTemplates();hydrateDetails();render();requestAnimationFrame(()=>{try{libraryWidth(Number(localStorage.getItem('cad-library-width'))||320);}catch{libraryWidth(320);}fit();});}
 function setTool(t){textClicks.reset();if(t!=='template')activeTemplate=null;placementRotation=0;tool=t;wire=null;selected=null;multi=[];render();}
 function render(){if(!doc)return;$('autoDispo').hidden=current().type!=='dispo';$('view3D').hidden=current().type!=='dispo';if(selectionPage!==pageId){multi=[];connectionSelection=[];selectionPage=pageId;}$('projectTitle').textContent=doc.name;$('pageList').innerHTML=doc.pages.map(p=>`<button class="page-entry ${p.id===pageId?'current':''}" data-page="${p.id}"><span class="num">${p.number}</span><span><strong>${esc(p.title)}</strong><small>${{schema:'Schema',dispo:'Dispo',cover:'Deckblatt',index:'Verzeichnis'}[p.type]}</small></span></button>`).join('');$('pageCaption').innerHTML=doc.pages.map(p=>`<button data-page="${p.id}" class="${p.id===pageId?'active':''}" aria-current="${p.id===pageId?'page':'false'}">${p.number} · ${esc(p.title)}</button>`).join('');const tabs=$('pageCaption'),active=tabs.querySelector('[aria-current=page]');if(active){if(active.offsetLeft<tabs.scrollLeft)tabs.scrollLeft=active.offsetLeft;else if(active.offsetLeft+active.offsetWidth>tabs.scrollLeft+tabs.clientWidth)tabs.scrollLeft=active.offsetLeft+active.offsetWidth-tabs.clientWidth;}$('placementKeys').textContent=tool==='template'?'Klick platzieren · R drehen · Esc beenden':'Mausrad: Zoom · Mitteltaste ziehen: Ansicht';$('toolCaption').textContent=tool==='template'?activeTemplate?.name.replaceAll('_',' '):tool==='pan'?'Ansicht verschieben':tool==='select'?'Auswählen & verschieben':tool==='wire'?'Verbindung zeichnen':(symbols[tool]?.name||tool)+' platzieren';$('undo').disabled=!undo.length;$('redo').disabled=!redo.length;for(const id of ['deleteElement','duplicateElement'])$(id).disabled=!selected;$('rotate').disabled=!symbols[tool]&&!current().elements.some(e=>e.id===selected);$('deletePage').disabled=doc.pages.length===1;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));drawPaper();inspector();$('deleteElement').disabled=!selected&&!multi.length;$('duplicateElement').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||!selected;$('rotate').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||(!symbols[tool]&&!current().elements.some(e=>e.id===selected));}
 function syncSelection(){selected=multi.length===1&&['element','wire'].includes(multi[0].kind)?multi[0].id:null;}
@@ -144,7 +145,7 @@ $('projectList').onclick=async e=>{const button=e.target.closest('button');if(!b
 $('backHome').onclick=async()=>{await flush();doc=null;wire=null;$('editor').hidden=true;$('cadHome').hidden=false;home();};
 $('backupProject').onclick=()=>download(new Blob([JSON.stringify(doc,null,2)],{type:'application/json'}),`${doc.order||doc.name} - CAD.json`);
 $('importProject').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>20*1024*1024)throw Error('Projektdatei zu gross (max. 20 MB).');const d=validateProject(JSON.parse(await f.text()));d.id=uid();d.name+=' (Import)';await database('save',d);docs.push(d);open(d);}catch(e){toast(e.message)}finally{$('importProject').value=''}};
-$('addPage').onclick=()=>showForm('Seite hinzufügen',[{key:'title',label:'Seitentitel',value:'Neue Seite'},{key:'type',label:'Seitentyp',value:'schema',options:[['schema','Elektroschema'],['dispo','Disposition'],['cover','Deckblatt'],['index','Inhaltsverzeichnis']]},{key:'number',label:'Blattnummer',value:Math.max(...doc.pages.map(p=>p.number))+1,type:'number',min:1,max:9999},{key:'inherit',label:'Sammelschienen übernehmen von',value:current().type==='schema'?current().id:'',options:[['','Keine Übernahme'],...doc.pages.filter(p=>p.type==='schema').map(p=>[p.id,`Blatt ${p.number} · ${p.title}`])]}],data=>{if(doc.pages.length>=200)throw Error('Maximal 200 Seiten pro Projekt.');if(!data.title.trim()||!Number.isInteger(data.number)||doc.pages.some(p=>p.number===data.number))throw Error('Titel und eindeutige ganze Blattnummer erforderlich.');change(()=>{const p=page(data.type,data.number);p.title=data.title;doc.pages.push(p);if(data.type==='schema'&&data.inherit)inheritBus(doc,doc.pages.find(q=>q.id===data.inherit),p);pageId=p.id;selected=null;multi=[];wire=null;});});
+$('addPage').onclick=()=>showForm('Seite hinzufügen',[{key:'title',label:'Seitentitel',value:'Neue Seite'},{key:'type',label:'Seitentyp',value:'schema',options:[['schema','Elektroschema'],['dispo','Disposition'],['cover','Deckblatt'],['index','Inhaltsverzeichnis']]},{key:'before',label:'Einfügen vor',value:'',options:[['','Am Ende'],...doc.pages.map(p=>[p.id,`Blatt ${p.number} · ${p.title}`])]},{key:'inherit',label:'Sammelschienen übernehmen von',value:current().type==='schema'?current().id:'',options:[['','Keine Übernahme'],...doc.pages.filter(p=>p.type==='schema').map(p=>[p.id,`Blatt ${p.number} · ${p.title}`])]}],data=>{if(doc.pages.length>=200)throw Error('Maximal 200 Seiten pro Projekt.');if(!data.title.trim())throw Error('Seitentitel erforderlich.');change(()=>{const p=page(data.type,Math.max(...doc.pages.map(p=>p.number))+1);p.title=data.title;const index=doc.pages.findIndex(q=>q.id===data.before);doc.pages.splice(index<0?doc.pages.length:index,0,p);if(data.type==='schema'&&data.inherit)inheritBus(doc,doc.pages.find(q=>q.id===data.inherit),p);pageId=p.id;selected=null;multi=[];wire=null;});});
 $('pageCaption').onclick=$('pageList').onclick=e=>{const b=e.target.closest('[data-page]');if(b){pageId=b.dataset.page;hoverPoint=null;selected=null;multi=[];wire=null;render();}};
 $('copyPage').onclick=()=>{if(doc.pages.length>=200)return toast('Maximal 200 Seiten pro Projekt.');change(()=>{const q=duplicatePage(doc,current());doc.pages.splice(doc.pages.indexOf(current())+1,0,q);pageId=q.id;selected=null;multi=[];wire=null;});};
 $('deletePage').onclick=()=>{if(doc.pages.length>1&&confirm('Diese Seite mit allen Elementen entfernen?'))change(()=>{doc.pages=doc.pages.filter(p=>p.id!==pageId);pageId=doc.pages[0].id;selected=null;multi=[];wire=null;});};
@@ -165,7 +166,7 @@ function symbolList(){
 }
 
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261114-01');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261114-02');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
  const groups=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>t.group))].sort((a,b)=>libraryName(a).localeCompare(libraryName(b),'de'));
@@ -258,7 +259,7 @@ $('view3D').onclick=()=>{try{openDispo3D(current(),id=>{selected=id;multi=[{kind
 $('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Drahtwerk-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
 
 const previewCache=new Map();
-const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261114-01`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
+const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261114-02`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
 new MutationObserver(()=>{for(const img of document.querySelectorAll('img[data-preview-id]:not([data-observed])')){img.dataset.observed='1';previewObserver.observe(img);}}).observe(document.body,{childList:true,subtree:true});
 
 const breakerButton=document.createElement('button');breakerButton.textContent='Sicherungen';breakerButton.title='Hersteller für alle Sicherungen der Dispo';$('autoDispo').after(breakerButton);breakerButton.onclick=()=>{if(current().type!=='dispo'){toast('Bitte zuerst die Dispo-Seite öffnen.');return;}showForm('Sicherungen – für die ganze Dispo',[{key:'manufacturer',label:'Hersteller für alle LS / FI-LS',value:current().dispoConfig?.breakerManufacturer||'auto',options:[['auto','Einzeleinstellungen / Vorlagen'],['hager','Hager – nach L1 / L2 / L3 in drei Reihen'],['schneider','Schneider – nebeneinander']]}],data=>{change(()=>current().dispoConfig={...defaultConfig(),...current().dispoConfig,breakerManufacturer:data.manufacturer});toast('Gespeichert. Mit Dispo erzeugen die Anordnung aktualisieren.');});};
