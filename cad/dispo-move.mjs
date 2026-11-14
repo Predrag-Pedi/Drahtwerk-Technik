@@ -1,10 +1,10 @@
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
-export function dispoGroup(p,id){const e=p.elements.find(e=>e.id===id);if(e?.frameStyle==='incoming-terminal')return [e,...incomingCompanions(p,e)];if(!device(e||{})||e.dispoKind==='meter')return e?[e]:[];return p.elements.filter(q=>device(q)&&q.dispoKind!=='meter'&&q.frameStyle===e.frameStyle&&Math.abs(q.y-e.y)<.1&&(e.circuitName?q.circuitName===e.circuitName:q.dispoSource.element===e.dispoSource.element&&q.dispoSource.page===e.dispoSource.page));}
+export function dispoGroup(p,id){const e=p.elements.find(e=>e.id===id);if(e?.measurementOwner){const meter=p.elements.find(q=>q.dispoKind==='meter'&&q.measurementOwner===e.measurementOwner);return meter?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):[e];}if(e?.frameStyle==='incoming-terminal')return [e,...incomingCompanions(p,e)];if(!device(e||{})||e.dispoKind==='meter')return e?[e]:[];return p.elements.filter(q=>device(q)&&q.dispoKind!=='meter'&&q.frameStyle===e.frameStyle&&Math.abs(q.y-e.y)<.1&&(e.circuitName?q.circuitName===e.circuitName:q.dispoSource.element===e.dispoSource.element&&q.dispoSource.page===e.dispoSource.page));}
 export function moveDispoElements(p,ids,dx,dy){
- const linked=new Set(ids);for(const e of p.elements.filter(e=>ids.has(e.id)))for(const q of incomingCompanions(p,e))linked.add(q.id);const moving=p.elements.filter(e=>linked.has(e.id)),before=moving.some(e=>e.dispoKind==='meter'||e.frameStyle==='incoming-terminal')?structuredClone(p.elements):null;
- if(p.type==='dispo'){const mm=1/factor(p),meters=moving.filter(e=>e.dispoKind==='meter'&&e.width===250&&e.height===400);for(const c of p.elements.filter(q=>q.dispoStructure))for(const part of c.dispoStructure)if(part.plateType==='meter'&&meters.some(e=>Math.abs(c.x+part.x/mm-e.x)<.01&&Math.abs(c.y+part.y/mm-e.y)<.01)){part.x+=dx*mm;part.y+=dy*mm;}}
+ const linked=new Set(ids);for(const e of p.elements.filter(e=>ids.has(e.id)))for(const q of e.measurementOwner?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):incomingCompanions(p,e))linked.add(q.id);const moving=p.elements.filter(e=>linked.has(e.id)),before=moving.some(e=>e.dispoKind==='meter'||e.frameStyle==='incoming-terminal')?structuredClone(p.elements):null;
+ if(p.type==='dispo'){const mm=1/factor(p),meters=moving.filter(e=>e.dispoKind==='meter'&&e.width===250&&e.height===400);for(const c of p.elements.filter(q=>q.dispoStructure))for(const part of c.dispoStructure)if((part.frameStyle?.startsWith('measurement:')&&meters.some(e=>part.frameStyle==='measurement:'+e.measurementOwner))||(part.plateType==='meter'&&meters.some(e=>Math.abs(c.x+part.x/mm-e.x)<.01&&Math.abs(c.y+part.y/mm-e.y)<.01))){part.x+=dx*mm;part.y+=dy*mm;}}
  for(const e of moving){e.x+=dx;e.y+=dy;}
  if(before)try{if(moving.some(e=>e.dispoKind==='meter'))alignMeterFuses(p);updateIncomingRails(p);updateSupplyBlocks(p);}catch(error){p.elements=before;throw error;}
 }
@@ -13,6 +13,7 @@ export function moveDispoElements(p,ids,dx,dy){
 export function swapDispoDrop(p,before,items){
  if(p.type!=='dispo'||!items.length||items.some(s=>s.kind!=='element'))return false;
  const ids=new Set(items.map(s=>s.id)),moving=p.elements.filter(e=>ids.has(e.id));if(moving.some(e=>!device(e)||e.rotation))return false;
+ if(moving.some(e=>e.measurementOwner))return swapMeasurementPair(p,before,moving.find(e=>e.measurementOwner).measurementOwner);
  const input=moving.find(e=>e.frameStyle==='incoming-terminal');if(input)return shiftIncomingBay(p,before,input.id);
  if(items.length===1&&swapMeterBay(p,before,items[0].id))return true;
  const original=before.elements.filter(e=>ids.has(e.id)),a=box(p,original),now=box(p,moving),cx=(now.x+now.right)/2,cy=(now.y+now.bottom)/2;
@@ -74,7 +75,7 @@ export function alignMeterFuses(p){
   const center=meter.x+meter.width*f/2,cabinet=p.elements.find(c=>c.kind==='cabinet'&&center>=c.x&&center<c.x+c.width*f&&meter.y>=c.y&&meter.y<c.y+c.height*f);
   const column=meters.filter(m=>Math.abs(m.x+m.width*f/2-center)<.1&&(!cabinet||m.y>=cabinet.y&&m.y<cabinet.y+cabinet.height*f)).sort((a,b)=>b.y-a.y);
   const width=Math.max(e.width,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(e.meterSource)).map(q=>q.width));
-  positions.set(e,center-(column[0]===meter?width*f:0));
+  positions.set(e,Math.max(cabinet?cabinet.x+12*f:-Infinity,center-(column[0]===meter?width*f:0)));
  }
  // Preserve independent bottom equipment whenever it still fits. When a moved
  // feeder occupies its old place, relocate the entire three-pole assembly.
@@ -154,4 +155,23 @@ export function shiftIncomingBay(p,before,id){
   updateIncomingRails(p);updateSupplyBlocks(p);return true;
  }
  return false;
+}
+
+// Exchange a meter plus its lower 250 mm measurement module as one 250 x 800 bay.
+function swapMeasurementPair(p,before,owner){
+ const f=factor(p),old=before.elements.find(e=>e.dispoKind==='meter'&&e.measurementOwner===owner),meter=p.elements.find(e=>e.id===old?.id);if(!old||!meter)return false;
+ const cabinet=before.elements.find(c=>c.dispoStructure&&old.x>=c.x&&old.x<c.x+c.width*f);if(!cabinet)return false;
+ const px=(meter.x-cabinet.x)/f+125,py=(meter.y-cabinet.y)/f+200;
+ const target=cabinet.dispoStructure.find(s=>['meter','slots','cover'].includes(s.plateType)&&s.height===400&&px>=s.x&&px<s.x+s.width&&py>=s.y&&py<s.y+s.height);if(!target)return false;
+ const tx=cabinet.x+(target.x+Math.floor((px-target.x)/250)*250)*f,ty=cabinet.y+target.y*f,dx=tx-old.x,dy=ty-old.y;
+ if(Math.abs(dx)+Math.abs(dy)<.01)return false;
+ const area={x:tx,y:ty,right:tx+250*f,bottom:ty+800*f},hit=b=>b.x<area.right-.01&&b.right>area.x+.01&&b.y<area.bottom-.01&&b.bottom>area.y+.01,inside=b=>b.x>=area.x-.01&&b.right<=area.right+.01&&b.y>=area.y-.01&&b.bottom<=area.bottom+.01;
+ const sources=before.elements.filter(e=>e.measurementOwner===owner),displaced=before.elements.filter(e=>device(e)&&e.measurementOwner!==owner&&hit(box(p,[e])));
+ if(displaced.some(e=>!inside(box(p,[e])))||area.bottom>cabinet.y+(cabinet.height-400)*f+.01)throw Error('Wandlermessung benötigt zwei freie 250-mm-Module übereinander.');
+ if(displaced.some(e=>e.measurementOwner&&before.elements.some(q=>q.measurementOwner===e.measurementOwner&&!displaced.includes(q))))throw Error('Eine andere Wandlermessung kann nur vollständig getauscht werden.');
+ const changes=[...sources.map(e=>({...e,x:e.x+dx,y:e.y+dy})),...displaced.map(e=>({...e,x:e.x-dx,y:e.y-dy}))];
+ const others=before.elements.filter(e=>device(e)&&!changes.some(q=>q.id===e.id));for(const e of changes){const b=box(p,[e]);if(others.some(q=>{const a=box(p,[q]);return b.x<a.right-.01&&b.right>a.x+.01&&b.y<a.bottom-.01&&b.bottom>a.y+.01;}))throw Error('Am Ziel ist nicht genügend Platz für die gesamte Messgruppe.');}
+ const sx=(old.x-cabinet.x)/f,sy=(old.y-cabinet.y)/f,xx=(tx-cabinet.x)/f,yy=(ty-cabinet.y)/f,structure=[];
+ for(const part of cabinet.dispoStructure){const src=part.x>=sx-.01&&part.x+part.width<=sx+250+.01&&part.y>=sy-.01&&part.y+part.height<=sy+800+.01;const dest=part.x>=xx-.01&&part.x+part.width<=xx+250+.01&&part.y>=yy-.01&&part.y+part.height<=yy+800+.01;if(src)structure.push({...part,x:part.x+dx/f,y:part.y+dy/f});else if(dest)structure.push({...part,x:part.x-dx/f,y:part.y-dy/f});else if((part.plateType||part.profile==='AS35')&&part.y>=yy-.01&&part.y+part.height<=yy+800+.01&&part.x<xx+250-.01&&part.x+part.width>xx+.01){const l=Math.max(part.x,xx),r=Math.min(part.x+part.width,xx+250);if(part.x<l-.01)structure.push({...part,width:l-part.x});if(part.x+part.width>r+.01)structure.push({...part,x:r,width:part.x+part.width-r});structure.push({...part,x:l-dx/f,y:part.y-dy/f,width:r-l});}else structure.push(structuredClone(part));}
+ p.elements.find(e=>e.id===cabinet.id).dispoStructure=structure;for(const e of changes)Object.assign(p.elements.find(q=>q.id===e.id),{x:e.x,y:e.y});alignMeterFuses(p);return true;
 }
