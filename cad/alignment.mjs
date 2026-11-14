@@ -1,5 +1,5 @@
-import frames from './macro-frames.mjs?v=20261114-04';
-import {MM,BUS,DRAW,bounds} from './geometry.mjs?v=20261114-04';
+import frames from './macro-frames.mjs?v=20261114-05';
+import {MM,BUS,DRAW,bounds} from './geometry.mjs?v=20261114-05';
 export function frame(e){const t=e.template,f=frames[t?.id];return f&&t.category==='Schema'&&Math.abs(f.viewWidth-t.viewWidth)<.01&&Math.abs(f.viewHeight-t.viewHeight)<.01?f:null;}
 export function macroScale(e){const f=frame(e);return f?{x:MM*e.width/e.template.width,y:MM*e.height/e.template.height}:null;}
 export function sourcePoint(e,x,y){const f=frame(e),s=macroScale(e);return {x:e.x+(f.x/f.unit+x)*s.x,y:e.y+(f.y/f.unit-y)*s.y};}

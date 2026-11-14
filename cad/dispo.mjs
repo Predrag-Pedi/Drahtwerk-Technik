@@ -1,10 +1,10 @@
-import {measurementGroups} from './metering.mjs?v=20261114-04';
-import {DRAW} from './geometry.mjs?v=20261114-04';
-import {frame,sourcePoint} from './alignment.mjs?v=20261114-04';
-import {frameLayout} from './frame-layout.mjs?v=20261114-04';
-import {deviceText,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261114-04';
-import {createElement,W} from './model.mjs?v=20261114-04';
-import {allFunctions,functionBmk} from './references.mjs?v=20261114-04';
+import {measurementGroups} from './metering.mjs?v=20261114-05';
+import {DRAW} from './geometry.mjs?v=20261114-05';
+import {frame,sourcePoint} from './alignment.mjs?v=20261114-05';
+import {frameLayout} from './frame-layout.mjs?v=20261114-05';
+import {deviceText,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261114-05';
+import {createElement,W} from './model.mjs?v=20261114-05';
+import {allFunctions,functionBmk} from './references.mjs?v=20261114-05';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],spd:[72,134.8,75],terminal:[8,60,45]};
 export function schemaDevices(doc){
