@@ -1,4 +1,4 @@
-import {frameLayout} from './frame-layout.mjs?v=20261115-16';
+import {frameLayout} from './frame-layout.mjs?v=20261115-17';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;
