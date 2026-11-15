@@ -16,11 +16,16 @@ export function meterCells(meters,cols,maxRows=3){
   const cells=new Map(),occupied=new Set();let failed=false;
   // Reference order is bottom-to-top within a column, then the next column.
   // A measurement module occupies the lower cell of its two-cell pair.
-  let col=0,level=0;
-  for(const d of ordered){const span=d.measurementOwner?2:1;
-   if(level+span>rows){col++;level=0;}
+  let col=0;
+  for(const d of ordered){const span=d.measurementOwner?2:1;let row;
+   while(col<cols){
+    // CT meter above its bay, preferably in the first two rows.
+    const candidates=span===2?Array.from({length:rows-1},(_,i)=>i):Array.from({length:rows},(_,i)=>rows-1-i);
+    row=candidates.find(r=>!occupied.has(r*cols+col)&&(span===1||!occupied.has((r+1)*cols+col)));
+    if(row!==undefined)break;col++;
+   }
    if(col>=cols){failed=true;break;}
-   const row=rows-level-span,cell=row*cols+col;cells.set(d,cell);occupied.add(cell);if(span===2)occupied.add(cell+cols);level+=span;
+   const cell=row*cols+col;cells.set(d,cell);occupied.add(cell);if(span===2)occupied.add(cell+cols);
   }
   if(!failed)return {rows,cells:new Map(ordered.map(d=>[d,cells.get(d)])),occupied};
  }

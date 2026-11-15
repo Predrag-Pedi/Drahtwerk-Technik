@@ -1,4 +1,4 @@
-import {feederOffset} from './meter-layout.mjs?v=20261115-05';
+import {feederOffset} from './meter-layout.mjs?v=20261115-06';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
@@ -119,7 +119,7 @@ export function updateSupplyBlocks(p){
   for(const b of p.elements.filter(e=>e.dispoSource?.element==='incoming-supply'&&e.x>=c.x-.01&&e.x<c.x+c.width*f&&e.y>=c.y&&e.y<c.y+c.height*f)){
    const x=c.x+(input.x+input.width*f/2<c.x+c.width*f/2?21:c.width-21-b.width)*f;
    const a={x,right:x+b.width*f,y:b.y,bottom:b.y+b.height*f};
-   if(p.elements.some(e=>e.id!==b.id&&device(e)&&e.dispoKind==='fuse'&&e.x<a.right-.01&&e.x+e.width*f>a.x+.01&&e.y<a.bottom-.01&&e.y+e.height*f>a.y+.01))throw Error('Am Rand ist kein Platz für den Einspeisblock. Die unteren Sicherungen bleiben unverändert.');
+   if(p.elements.some(e=>e.id!==b.id&&device(e)&&e.x<a.right-.01&&e.x+e.width*f>a.x+.01&&e.y<a.bottom-.01&&e.y+e.height*f>a.y+.01))throw Error('Am Rand ist kein Platz für den Einspeisblock. Die unteren Geräte bleiben unverändert.');
    b.x=x;
   }
  }

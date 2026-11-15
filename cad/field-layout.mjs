@@ -1,17 +1,21 @@
-import {compareMeters} from './meter-layout.mjs?v=20261115-05';
+import {compareMeters} from './meter-layout.mjs?v=20261115-06';
 const key=d=>JSON.stringify(d.source);
 // Contiguous meter sequences replace the former round-robin circuit allocation.
 // Each CT bay and each meter feeder travels with its source meter.
 export function fieldLayout(devices,c,layout){
+ if(c._preferLocal===undefined){const local=fieldLayout(devices,{...c,_preferLocal:true},layout);if(!local.overflow.length)return local;return fieldLayout(devices,{...c,_preferLocal:false},layout);}
  const widths=c.fieldWidths||Array(c.fields).fill(c.width/c.fields),selected=devices.filter(d=>d.include!==false),groups=widths.map(()=>[]),assigned=new Set();
  const fuseZone=selected.some(d=>d.kind==='fuse'||d.incoming||d.kind==='switch'&&d.height>110);
  const config=i=>({...c,width:widths[i],fields:1,_fuseZone:fuseZone});
  const fits=(i,ds)=>{try{return !layout(ds,config(i)).overflow.length;}catch{return false;}};
  const add=(i,ds)=>{groups[i].push(...ds);ds.forEach(d=>assigned.add(d));};
+ // Reserve both ends of every field handover before packing devices.
+ const supply=selected.find(d=>d.source?.element==='incoming-supply');
+ if(supply)for(let i=0;i<widths.length-1;i++)for(const [field,side] of [[i,'right'],[i+1,'left']])groups[field].push({...supply,frameStyle:'transfer-'+side,name:side==='right'?'Ausspeiseblock':'Einspeiseblock',source:{...supply.source,element:`field-transfer-${i}-${side}`}});
  const incoming=selected.filter(d=>d.incoming||d.kind==='spd');
- if(incoming.length){if(!fits(0,incoming))return {parts:[],placed:[],overflow:incoming};add(0,incoming);}
+ if(incoming.length){if(!fits(0,[...groups[0],...incoming]))return {parts:[],placed:[],overflow:incoming};add(0,incoming);}
  const meters=selected.filter(d=>d.kind==='meter').sort(compareMeters);let field=0;
- for(const meter of meters){const bundle=selected.filter(d=>d===meter||meter.measurementOwner&&d.measurementOwner===meter.measurementOwner||d.meterSource&&JSON.stringify(d.meterSource)===key(meter)).filter(d=>!assigned.has(d));
+ for(const meter of meters){const bundle=selected.filter(d=>d===meter||meter.measurementOwner&&d.measurementOwner===meter.measurementOwner||d.meterSource&&JSON.stringify(d.meterSource)===key(meter)||c._preferLocal&&meter.circuitName&&d.kind!=='meter'&&!d.incoming&&!d.meterSource&&!d.measurementOwner&&d.circuitName===meter.circuitName).filter(d=>!assigned.has(d));
   while(field<widths.length&&!fits(field,[...groups[field],...bundle]))field++;
   if(field===widths.length)return {parts:[],placed:[],overflow:bundle};add(field,bundle);
  }

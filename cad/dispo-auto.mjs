@@ -1,9 +1,9 @@
-import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261115-05';
-import {horizontalCT} from './ct-template.mjs?v=20261115-05';
-import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261115-05';
-import {validateTemplate} from './template.mjs?v=20261115-05';
-import {generateDispo,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261115-05';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261115-05';
+import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261115-06';
+import {horizontalCT} from './ct-template.mjs?v=20261115-06';
+import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261115-06';
+import {validateTemplate} from './template.mjs?v=20261115-06';
+import {generateDispo,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261115-06';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261115-06';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  const text=d.name||'',amp=d.current||Number(text.match(/\b(\d+)\s*A\b/i)?.[1]);
@@ -42,13 +42,14 @@ export async function buildAutomaticDispo(doc,p,fetcher=fetch){
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.some(d=>d.incoming))throw Error('Einspeisblock: Bemessungsstrom in den Projektdaten ergänzen (Vorlagen bis 100 A bzw. bis 160 A).');
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261115-05');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const get=async path=>{const r=await fetcher(path+'?v=20261115-06');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
  const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set([...ids,...(ids.includes('tl-0581')?['tl-0580']:[])])].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,id==='tl-0849'?horizontalCT(validateTemplate({...t,details:details[id]})):validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.incoming&&t.id==='tl-0746')d.frameStyle='incoming-terminal';if(d.kind!=='meter'&&d.kind!=='fuse'){d.width=d.kind==='fils'&&d.manufacturer==='schneider'&&t.id==='tl-0624'?90:t.width;d.height=t.height;d.poles??=({'tl-0529':1,'tl-0530':1,'tl-0531':1,'tl-0534':2,'tl-0540':3,'tl-0541':3,'tl-0542':3,'tl-0543':4,'tl-0624':3,'tl-0626':1})[t.id];}d.confirmed=false;}
  c=siteConfig(selected,c);
+ if(c.fields>1&&!selected.some(d=>d.source?.element==='incoming-supply'))warnings.push('Feldübergabeblöcke fehlen: Bemessungsstrom in den Projektdaten ergänzen und neu erzeugen.');
  const g=generateDispo(p,selected,c),bySource=new Map(selected.map((d,i)=>[JSON.stringify(d.source),templates.get(ids[i])])),choices=new Map();
- const originalFor=e=>e.dispoKind==='fuse'&&e.fuseType==='NH00'?templates.get(e.neutral?'tl-0581':'tl-0580'):bySource.get(JSON.stringify(e.dispoSource));
+ const originalFor=e=>e.frameStyle?.startsWith('transfer-')?bySource.get(JSON.stringify(selected.find(d=>d.source?.element==='incoming-supply')?.source)):e.dispoKind==='fuse'&&e.fuseType==='NH00'?templates.get(e.neutral?'tl-0581':'tl-0580'):bySource.get(JSON.stringify(e.dispoSource));
  // Assembly retains the original layout geometry in 3D; each source is resolved separately
  // so RSE and ordinary meters of identical dimensions never share a mistaken mapping.
  for(const e of g.elements)if(e.dispoSource)choices.set(assemblyKey(e),originalFor(e));
@@ -67,5 +68,8 @@ export async function buildAutomaticDispo(doc,p,fetcher=fetch){
  const assembledPage={...p,elements:assembled.elements,scale:assembled.scale};
  const inputs=assembled.elements.filter(e=>e.frameStyle==='incoming-terminal');for(const e of assembled.elements.filter(e=>e.dispoKind==='spd')){const input=inputs.find(i=>Math.abs(i.x+i.width*factor/2-e.x-e.width*factor/2)<125*factor);if(input)e.inputOwner=input.dispoSource.element;}
  updateIncomingRails(assembledPage);updateSupplyBlocks(assembledPage);
+ const cabinets=assembled.elements.filter(e=>e.kind==='cabinet'),fieldOf=e=>cabinets.findIndex(b=>e.x>=b.x-.01&&e.x<b.x+b.width*factor);
+ const separated=[...new Set(assembled.elements.filter(e=>e.dispoKind==='meter'&&e.circuitName).filter(m=>assembled.elements.some(e=>e.dispoSource&&e.dispoKind!=='meter'&&e.circuitName===m.circuitName&&fieldOf(e)!==fieldOf(m))).map(m=>m.circuitName))];
+ if(separated.length)warnings.push('Feldübergreifende Abgänge erforderlich: '+separated.join(', ')+'. Kein vollständig gemeinsamer Aufbau innerhalb der gewählten Masse gefunden.');
  return {...assembled,warnings};
 }
