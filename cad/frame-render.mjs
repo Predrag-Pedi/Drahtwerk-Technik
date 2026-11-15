@@ -1,5 +1,5 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261115-22';
-import {plateStrips} from './frame-layout.mjs?v=20261115-22';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261115-23';
+import {plateStrips} from './frame-layout.mjs?v=20261115-23';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  const sx=w/e.width,sy=h/e.height,rect=(x,y,a,b,fill='white')=>`<rect x="${x*sx}" y="${y*sy}" width="${a*sx}" height="${b*sy}" fill="${fill}"/>`,line=(x,y,a,b)=>`<path d="M${x*sx} ${y*sy}L${a*sx} ${b*sy}"/>`;

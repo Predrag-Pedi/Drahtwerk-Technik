@@ -1,11 +1,11 @@
-import {compareMeters} from './meter-layout.mjs?v=20261115-22';
+import {compareMeters} from './meter-layout.mjs?v=20261115-23';
 const key=d=>JSON.stringify(d.source);
 // Contiguous meter sequences replace the former round-robin circuit allocation.
 // Each CT bay and each meter feeder travels with its source meter.
 export function fieldLayout(devices,c,layout){
  if(c._preferLocal===undefined){for(const [local,upper] of [[true,true],[true,false],[false,true],[false,false]]){const result=fieldLayout(devices,{...c,_preferLocal:local,_upperDevices:upper},layout);if(!result.overflow.length)return result;}return {parts:[],placed:[],overflow:devices};}
  const widths=c.fieldWidths||Array(c.fields).fill(c.width/c.fields),selected=devices.filter(d=>d.include!==false),groups=widths.map(()=>[]),assigned=new Set();
- const fuseZone=selected.some(d=>d.kind==='fuse'||d.incoming||d.kind==='switch'&&d.height>110);
+ const fuseZone=selected.some(d=>d.kind==='fuse'||d.kind==='rse-fuse'&&!d.measurementOwner||d.incoming||d.kind==='switch'&&d.height>110);
  const config=i=>({...c,width:widths[i],fields:1,_fuseZone:fuseZone});
  const fits=(i,ds)=>{try{return !layout(ds,config(i)).overflow.length;}catch{return false;}};
  const add=(i,ds)=>{groups[i].push(...ds);ds.forEach(d=>assigned.add(d));};
