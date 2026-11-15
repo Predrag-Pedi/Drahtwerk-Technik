@@ -34,3 +34,16 @@ export function meterCells(meters,cols,maxRows=3){
 // Lower meter left of the column centre, upper meter right. Three feeders
 // form one contiguous bank centred on the column, in bottom-to-top order.
 export function feederOffset(widths,index){return widths.length<=2?(index===0?-widths[0]:0):-widths.reduce((a,b)=>a+b,0)/2+widths.slice(0,index).reduce((a,b)=>a+b,0);}
+
+// Keep bank order and preferred centres where possible, but allow lateral
+// compression around fixed supply blocks. Each NH bank includes all poles.
+export function packFeederBanks(banks,left,right,obstacles=[]){
+ const spans=obstacles.map(b=>({x:Math.max(left,b.x),end:Math.min(right,b.x+b.width)})).filter(b=>b.end>b.x).sort((a,b)=>a.x-b.x),gaps=[];let edge=left;
+ for(const b of spans){if(b.x>edge)gaps.push({left:edge,right:b.x});edge=Math.max(edge,b.end);}if(edge<right)gaps.push({left:edge,right});
+ const result=new Map();let index=0;
+ for(const gap of gaps){const group=[];let used=0;while(index<banks.length&&used+banks[index].width<=gap.right-gap.left+.001){const b=banks[index++];group.push(b);used+=b.width;}
+  let x=gap.left,remaining=used;
+  for(const b of group){remaining-=b.width;const pos=Math.max(x,Math.min(b.preferred,gap.right-remaining-b.width));result.set(b.key,pos);x=pos+b.width;}
+ }
+ return index===banks.length?result:null;
+}

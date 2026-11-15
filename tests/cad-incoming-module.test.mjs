@@ -25,8 +25,10 @@ test('decoupled SPD stays in place when the input changes module',()=>{
 test('unlinked legacy input movement does not realign any bottom fuse',()=>{
  const p=fixture();delete p.elements.find(e=>e.id==='spd').inputOwner;const bottom=structuredClone(p.elements.find(e=>e.id==='bottom'));moveDispoElements(p,new Set(['input']),10*f,0);assert.deepEqual(p.elements.find(e=>e.id==='bottom'),bottom);assert.equal(p.elements.find(e=>e.id==='spd').x,103*f);
 });
-test('blocked supply-block edge reports a conflict without moving any fuses',()=>{
- const p=fixture();p.elements.find(e=>e.id==='input').x=839*f;const fuse=p.elements.find(e=>e.id==='bottom');fuse.x=1190*f;assert.throws(()=>updateSupplyBlocks(p),/kein Platz/);assert.equal(fuse.x,1190*f);
+test('supply-block edge shifts a feeder sideways inside the existing field',()=>{
+ const p=fixture();p.elements.find(e=>e.id==='input').x=839*f;const fuse=p.elements.find(e=>e.id==='bottom');fuse.x=1190*f;updateSupplyBlocks(p);const block=p.elements.find(e=>e.id==='incoming-supply');assert.ok(fuse.x+fuse.width*f<=block.x+.001);assert.equal(block.x,1184*f);assert.equal(p.elements[0].width,1258);
 });
 
 test('SPD coupling and owner persist in saved metadata',async()=>{const {validateDispoMetadata}=await import('../cad/dispo.mjs');assert.deepEqual(validateDispoMetadata({inputOwner:'source-input',spdCoupled:false},()=>assert.fail('metadata rejected')),{inputOwner:'source-input',spdCoupled:false});});
+
+test('an actually full bottom zone rejects atomically without widening the cabinet',()=>{const p=fixture();p.elements.find(e=>e.id==='input').x=839*f;const fuse=p.elements.find(e=>e.id==='bottom');fuse.width=1200;fuse.x=12*f;const before=structuredClone(p);assert.throws(()=>updateSupplyBlocks(p),/Kein Platz/);assert.deepEqual(p,before);});
