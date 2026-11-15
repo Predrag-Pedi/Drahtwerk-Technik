@@ -4,3 +4,13 @@ test('apply stores numeric limits and reserve count without losing existing fram
 test('invalid automatic limits and fractional reserve counts do not apply',()=>{let submit,count=0;editSiteSettings({},(_,f,cb)=>submit=cb,()=>count++);const values={mode:'auto',maxWidth:0,maxHeight:2000,maxDepth:0,passageWidth:0,passageHeight:0,reserveMeters:0};assert.throws(()=>submit(values),/Einbaubreite/);assert.throws(()=>submit({...values,maxWidth:1258,reserveMeters:1.5}),/Reserve/);assert.equal(count,0);});
 
 test('manual fields require explicit matching choice and retain automatic limits',()=>{let submit,next;editManualSettings({dispoConfig:{...defaultConfig(),autoSize:true,maxWidth:2000}},(_,f,cb)=>submit=cb,c=>next=c);assert.throws(()=>submit({multiple:'no',widths:'758 / 758',height:2000,depth:165}),/mehreren Feldern/);submit({multiple:'yes',widths:'758 / 758',height:2000,depth:165});assert.equal(next.autoSize,false);assert.equal(next.width,1516);assert.deepEqual(next.fieldWidths,[758,758]);assert.equal(next.maxWidth,2000);});
+test('distribution type selection persists across project reload and unconfigured types never generate SBR',async()=>{
+ const {project,validateProject}=await import('../cad/model.mjs'),{buildAutomaticDispo}=await import('../cad/dispo-auto.mjs');
+ for(const type of ['sbr','standing','wall','field']){
+  const d=project(),p=d.pages[2];let submit;
+  editSiteSettings(p,(_,fields,cb)=>{assert.deepEqual(fields[0].options.map(o=>o[0]),['sbr','standing','wall','field']);assert.equal(fields[0].value,'sbr');submit=cb;},c=>p.dispoConfig=c);
+  submit({distributionType:type,maxWidth:2000,maxHeight:2000,maxDepth:165,passageWidth:1000,passageHeight:0,reserveMeters:2});
+  const restored=validateProject(JSON.parse(JSON.stringify(d))),q=restored.pages[2];assert.equal(q.dispoConfig.distributionType,type);
+  if(type!=='sbr'){const before=structuredClone(q);await assert.rejects(buildAutomaticDispo(restored,q,()=>assert.fail('No template fetch for unconfigured type')),e=>e.code==='DISPO_TYPE_NOT_CONFIGURED');assert.deepEqual(q,before);}
+ }
+});

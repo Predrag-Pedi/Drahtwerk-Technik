@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261115-18';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261115-18';
+import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261115-19';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261115-19';
 // Only a proven capacity failure may offer a reduction; never change the
 // saved page or reserve until the complete alternative has been approved.
 export async function editAutomaticDispo(doc,p,apply,confirmReduction=()=>false,build=null){
@@ -28,9 +28,10 @@ Nein: bisherige Dispo und Einstellungen beibehalten.`);
 export function editSiteSettings(p,showForm,apply){
  const c={...defaultConfig(),...p.dispoConfig};
  showForm('Einbaumasse / Reserve',[
+  {key:'distributionType',label:'Verteilungsart',value:c.distributionType,options:Object.entries(distributionTypes).map(([key,label])=>[key,key==='sbr'?label:label+' – noch nicht konfiguriert'])},
   ...[['maxWidth','Max. Einbaubreite gesamt (mm)',c.maxWidth||c.width,10000],['maxHeight','Max. Einbauhöhe (mm)',c.maxHeight||c.height,4000],['maxDepth','Max. Einbautiefe (mm, 0 = offen)',c.maxDepth||0,1500],['passageWidth','Durchgangsbreite, aufrecht (mm, 0 = offen)',c.passageWidth||0,10000],['passageHeight','Durchgangshöhe, aufrecht (mm, 0 = offen)',c.passageHeight||0,4000],['reserveMeters','Reserve-Zählerplätze gesamt (inkl. Schema)',c.reserveMeters||0,120]].map(([key,label,value,max])=>({key,label,value,type:'number',min:0,max}))
  ],data=>{
-  const next=validateDispoConfig({...c,autoSize:true,...Object.fromEntries(['maxWidth','maxHeight','maxDepth','passageWidth','passageHeight','reserveMeters'].map(k=>[k,Number(data[k])]))});
+  const next=validateDispoConfig({...c,distributionType:data.distributionType??c.distributionType,autoSize:true,...Object.fromEntries(['maxWidth','maxHeight','maxDepth','passageWidth','passageHeight','reserveMeters'].map(k=>[k,Number(data[k])]))});
   if(next.autoSize&&(next.maxWidth<258||next.maxHeight<400))throw Error('Für die automatische Berechnung Einbaubreite ab 258 mm und Einbauhöhe ab 400 mm eingeben.');
   apply(next);
  });
