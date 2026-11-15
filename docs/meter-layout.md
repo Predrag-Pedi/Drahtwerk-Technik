@@ -19,7 +19,7 @@ Das ist ein abgeleiteter Drahtwerk-Planungsstandard, **keine Prüfung von EW-Vor
 
 ## Einbau- und Transportmasse (15.11.2026)
 
-Über **Einbaumasse / Reserve** werden die Seiteneinstellungen geöffnet. „Automatisch nach Einbau- und Durchgangsmassen“ aktiviert die Berechnung. Benötigt werden die maximale gesamte Einbaubreite und Einbauhöhe. Einbautiefe und freie Durchgangsbreite/-höhe können zusätzlich begrenzt werden (0 bedeutet dort keine zusätzliche Grenze). Die Eingabe beschreibt die nutzbaren Masse nach Abzug gewünschter Transportluft.
+Über **Einbaumasse / Reserve** öffnet sich ein Einstellungsfenster. Darin können Berechnungsmodus, Einbau-/Durchgangsmasse und Reserveplätze gemeinsam geändert und mit «Übernehmen» gespeichert werden. Abbrechen lässt die bisherigen Werte unverändert. „Automatisch nach Einbau- und Durchgangsmassen“ aktiviert die Berechnung. Benötigt werden die maximale gesamte Einbaubreite und Einbauhöhe. Einbautiefe und freie Durchgangsbreite/-höhe können zusätzlich begrenzt werden (0 bedeutet dort keine zusätzliche Grenze). Die Eingabe beschreibt die nutzbaren Masse nach Abzug gewünschter Transportluft.
 
 Die Referenz Forchstrasse zeigt 1508 + 2008 mm breite Felder, Sihlhallenstrasse 1758 mm. Deshalb gilt **250 mm × Plattenspalten + 8 mm je Feld**. Zwei 500er-Felder benötigen insgesamt 1016 mm. Bevorzugt werden wenige Felder, dann eine geringe Gesamtbreite. Geprüft werden dazu Standardhöhen aus den Platten-/Zonenhöhen und die angegebene Maximalhöhe. Alle gefundenen Kandidaten werden mit der echten Geräteplatzierung geprüft. Es ist eine begrenzte Layoutsuche, kein Beweis, dass jede denkbare manuelle Anordnung ausgeschlossen ist, wenn kein Aufbau gefunden wird.
 
