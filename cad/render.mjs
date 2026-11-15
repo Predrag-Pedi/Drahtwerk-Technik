@@ -1,13 +1,13 @@
-import {joinDinRails} from './frame-layout.mjs?v=20261115-11';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261115-11';
-import {standardFrame} from './standard-render.mjs?v=20261115-11';
-import {frameMarkup} from './frame-render.mjs?v=20261115-11';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261115-11';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261115-11';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261115-11';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261115-11';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261115-11';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261115-11';
+import {joinDinRails} from './frame-layout.mjs?v=20261115-12';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261115-12';
+import {standardFrame} from './standard-render.mjs?v=20261115-12';
+import {frameMarkup} from './frame-render.mjs?v=20261115-12';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261115-12';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261115-12';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261115-12';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261115-12';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261115-12';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261115-12';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -79,7 +79,7 @@ function referenceMarkup(d,p,e){let out='';for(const key of functionKeys(e)){con
  if(f.role==='coil'){const contacts=contactsFor(d,p,e,key);if(!contacts.length)continue;const mx=x+(f.mirrorX||0),my=y+(f.mirrorY||0);out+=`<g data-contact-mirror="${esc(e.id)}" fill="none" stroke="#52677e" stroke-width=".7"><rect x="${mx-4}" y="${my-12}" width="160" height="${20+contacts.length*18}" fill="white"/>${text(mx,my,'Kontaktspiegel · '+functionBmk(d,p,e,key),'font-size="9"')}`;contacts.forEach((c,i)=>{const yy=my+18*(i+1),type=c.data.contactType||'NO';out+=path(`M${mx+3} ${yy-5}h6 M${mx+18} ${yy-5}h7 M${mx+9} ${yy-5}l8 -5`);if(type==='NC')out+=path(`M${mx+14} ${yy-10}v10`);if(type==='CO')out+=path(`M${mx+18} ${yy-12}h7`);out+=text(mx+31,yy,`${type} ${c.data.terminals||''}`,'font-size="9"')+text(mx+107,yy,c.data.mirrorReferenceOverride||referenceLocation(c.element,c.page,c.key),'font-size="9" fill="#1d5bb5"');});out+='</g>';}
  }return out;}
 
-export function dispoCaptionGroups(p){const groups=[],factor=W/420/p.scale;for(const e of p.elements){if(!e.circuitName||!['ls','fils','coil','switch','timer'].includes(e.dispoKind))continue;let g={name:e.circuitName,left:e.x,right:e.x+e.width*factor,top:e.y};for(let i=groups.length-1;i>=0;i--){const other=groups[i];if(other.name===g.name&&other.right>=g.left-54*factor-.01&&g.right>=other.left-54*factor-.01){g.left=Math.min(g.left,other.left);g.right=Math.max(g.right,other.right);g.top=Math.min(g.top,other.top);groups.splice(i,1);}}groups.push(g);}return groups;}
+export function dispoCaptionGroups(p){const groups=[],factor=W/420/p.scale;for(const e of p.elements){if((!e.circuitName&&!e.meterFed)||!['ls','fils','coil','switch','timer'].includes(e.dispoKind))continue;let g={name:e.meterFed?'Zählerabgänge':e.circuitName,left:e.x,right:e.x+e.width*factor,top:e.y};for(let i=groups.length-1;i>=0;i--){const other=groups[i];if(other.name===g.name&&other.right>=g.left-54*factor-.01&&g.right>=other.left-54*factor-.01){g.left=Math.min(g.left,other.left);g.right=Math.max(g.right,other.right);g.top=Math.min(g.top,other.top);groups.splice(i,1);}}groups.push(g);}return groups;}
 
 // Drawing-only rail presentation: the assembly structure remains available in 3D.
 export function dispoDrawingRails(c){
