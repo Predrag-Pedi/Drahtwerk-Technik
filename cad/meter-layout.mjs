@@ -19,6 +19,11 @@ export function meterCells(meters,cols,maxRows=3){
   // A CT pair may skip a single free cell. Fill that cell with the next
   // ordinary meter rather than forcing another row and mixed apparatus bays.
   for(const d of ordered){const span=d.measurementOwner?2:1;let row,col=0;
+   // Reserve bays complete the lower row horizontally before using a row above.
+   if(span===1&&meterPriority(d)===3){
+    const free=Array.from({length:rows*cols},(_,i)=>(rows-1-Math.floor(i/cols))*cols+i%cols).find(cell=>!occupied.has(cell));
+    if(free===undefined){failed=true;break;}cells.set(d,free);occupied.add(free);continue;
+   }
    while(col<cols){
     // CT meter above its bay, preferably in the first two rows.
     const candidates=span===2?Array.from({length:rows-1},(_,i)=>i):Array.from({length:rows},(_,i)=>rows-1-i);
