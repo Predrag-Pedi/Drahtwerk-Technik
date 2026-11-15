@@ -1,13 +1,13 @@
-import {joinDinRails} from './frame-layout.mjs?v=20261115-05';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261115-05';
-import {standardFrame} from './standard-render.mjs?v=20261115-05';
-import {frameMarkup} from './frame-render.mjs?v=20261115-05';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261115-05';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261115-05';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261115-05';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261115-05';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261115-05';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261115-05';
+import {joinDinRails} from './frame-layout.mjs?v=20261115-06';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261115-06';
+import {standardFrame} from './standard-render.mjs?v=20261115-06';
+import {frameMarkup} from './frame-render.mjs?v=20261115-06';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261115-06';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261115-06';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261115-06';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261115-06';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261115-06';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261115-06';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
 const path=d=>`<path d="${d}"/>`;
@@ -26,13 +26,19 @@ export function glyph(kind){switch(kind){
  case 'reference':return path('M0 10H30')+'<path d="M30 5L40 10L30 15Z" fill="currentColor"/>';
  default:return '';
 }}
+export function cabinetDimensions(e,w,h,p){
+ const cabinets=p.elements.filter(q=>q.kind==='cabinet'),first=!cabinets.some(q=>q.x<e.x-.01);
+ const width=path(`M0 0V-25 M${w} 0V-25 M0 -20H${w} M-3 -17L3 -23 M${w-3} -17L${w+3} -23`)+text(w/2,-25,e.width,'text-anchor="middle" font-size="9"');
+ const height=first?path(`M0 0H-30 M0 ${h}H-30 M-25 0V${h} M-28 3L-22 -3 M-28 ${h+3}L-22 ${h-3}`)+text(-31,h/2,e.height,`text-anchor="middle" font-size="9" transform="rotate(-90 -31 ${h/2})"`):'';
+ return `<g class="cabinet-dimensions" stroke-width=".5">${width}${height}</g>`;
+}
 export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type==='dispo')groupSelect=true;e=meterView(e,p);const cut=continuationCut(e);const [w,h]=size(e,p),s=symbols[e.kind];let body='';
  if(frameMarkup(e,w,h)!==null){body=frameMarkup(e,w,h);}
  else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,e.textEdits||{},editor&&!groupSelect,hits,e.textOffsets||{});}
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
- else{body=`<rect width="${w}" height="${h}" fill="${e.kind==='duct'?'#f2f4f6':'white'}"/>`;if(e.kind==='cabinet')body+=`<rect x="5" y="5" width="${Math.max(1,w-10)}" height="${Math.max(1,h-10)}"/>`+text(w/2,-12,`${e.width} × ${e.height} mm`,'text-anchor="middle"');if(e.kind==='rail')body+=line(0,h/3,w,h/3)+line(0,2*h/3,w,2*h/3);if(e.kind==='module')body+=line(0,h*.3,w,h*.3);if(e.kind==='duct'){if(h>w){for(let y=6;y<h;y+=9)body+=line(0,y,w*.3,y)+line(w*.7,y,w,y);}else for(let x=6;x<w;x+=9)body+=line(x,0,x,h*.3)+line(x,h*.7,x,h);}if(e.text&&e.kind!=='cabinet')body+=text(w/2,h/2,e.text,'text-anchor="middle" font-size="10"');}
+ else{body=`<rect width="${w}" height="${h}" fill="${e.kind==='duct'?'#f2f4f6':'white'}"/>`;if(e.kind==='cabinet')body+=`<rect x="5" y="5" width="${Math.max(1,w-10)}" height="${Math.max(1,h-10)}"/>` +cabinetDimensions(e,w,h,p);if(e.kind==='rail')body+=line(0,h/3,w,h/3)+line(0,2*h/3,w,2*h/3);if(e.kind==='module')body+=line(0,h*.3,w,h*.3);if(e.kind==='duct'){if(h>w){for(let y=6;y<h;y+=9)body+=line(0,y,w*.3,y)+line(w*.7,y,w,y);}else for(let x=6;x<w;x+=9)body+=line(x,0,x,h*.3)+line(x,h*.7,x,h);}if(e.text&&e.kind!=='cabinet')body+=text(w/2,h/2,e.text,'text-anchor="middle" font-size="10"');}
  if(e.kind==='cabinet'&&p.type==='dispo'&&e.dispoStructure){const f=W/420/p.scale;body+=e.dispoStructure.filter(r=>r.plateType&&r.frameStyle?.startsWith('measurement:')).map(r=>`<rect x="${r.x*f}" y="${r.y*f}" width="${r.width*f}" height="${r.height*f}" fill="white" stroke="#182c42" stroke-width=".6"/>`).join('');body+=dispoDrawingRails(e).map(r=>`<g transform="translate(${r.x*f} ${r.y*f})" fill="none" stroke="#899198" stroke-width=".45"><rect width="${r.width*f}" height="${r.height*f}" fill="#fafafa"/>${text(3,r.height*f/2+2,r.drawingLabel||(r.profile==='AS35'?'DIN 35':r.profile==='copper'?'Cu':'Kamm'),'font-size="6" fill="#6b7278" stroke="none"')}</g>`).join('');}
  if(cut!==null){const id='meter-cut-'+e.id.replace(/[^a-zA-Z0-9_-]/g,'');body=`<defs><clipPath id="${id}"><rect x="-20" y="-20" width="${w+40}" height="${cut*h/e.template.viewHeight+20}"/></clipPath></defs><g clip-path="url(#${id})">${body}</g>`;}
  if(e.kind==='template'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
