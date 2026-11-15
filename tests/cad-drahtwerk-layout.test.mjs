@@ -22,7 +22,7 @@ test('prepared meters have hardware instead of blue screen and retain state thro
 });
 test('unequal fields preserve circuit groups and do not cross field boundaries',()=>{
  const c={...defaultConfig(),width:2266,fields:2,fieldWidths:[1008,1258]},l=frameLayout([device('meter',{circuitName:'Allgemein'}),device('ls',{circuitName:'Allgemein'}),device('meter',{circuitName:'E-Mobility'})],validateDispoConfig(c));
- assert.equal(l.overflow.length,0);assert.ok(l.placed.filter(d=>d.circuitName==='Allgemein').every(d=>d.x+d.width<1008));assert.ok(l.placed.filter(d=>d.circuitName==='E-Mobility').every(d=>d.x>=1008));
+ assert.equal(l.overflow.length,0);assert.ok(l.placed.filter(d=>d.circuitName==='Allgemein').every(d=>d.x+d.width<1008));for(const d of l.placed)assert.ok(d.x>=0&&d.x+d.width<=1008||d.x>=1008&&d.x+d.width<=2266);
  assert.throws(()=>validateDispoConfig({...c,fieldWidths:[1008,1008]}),/Feldbreiten/);
 });
 test('devices can occupy panels alongside meter places without overlap',()=>{

@@ -1,20 +1,16 @@
-import {meterCells,feederOffset} from './meter-layout.mjs?v=20261115-01';
+import {fieldLayout} from './field-layout.mjs?v=20261115-02';
+import {meterCells,feederOffset} from './meter-layout.mjs?v=20261115-02';
 // Drahtwerk assembly grid. Confirmed plate envelope: 250/500/750 x 400 mm.
 // Profile cross-sections below are simplified envelopes, not manufacturing drawings.
 export const profiles={SP09048:{name:'SP 090.48',face:17,depth:99},SP45:{name:'SP 45.0',face:17,depth:45.2},EV165:{name:'EV 165',face:35,depth:150},SP165:{name:'SP 165 DIN',face:40,depth:165},AS35:{name:'AS 35.2',face:35,depth:15},BS25:{name:'BS 25.0',face:25,depth:15},AS50:{name:'AS 50.0',face:50,depth:15},ZS39:{name:'ZS 39.0',face:39,depth:22}};
 export const plateOpenings=width=>Array.from({length:Math.floor(width/250)},(_,i)=>({x:i*250+17,width:216}));
 export function frameLayout(devices,c){
- if(c.fields>1){
-  const widths=c.fieldWidths?.length===c.fields?c.fieldWidths:Array(c.fields).fill(c.width/c.fields),parts=[],placed=[],overflow=[],groups=Array.from({length:c.fields},()=>[]),names=[...new Set(devices.map(d=>d.circuitName).filter(Boolean))];
-  for(const d of devices){const i=d.circuitName?names.indexOf(d.circuitName)%c.fields:0;groups[i].push(d);}
-  let offset=0;for(let i=0;i<c.fields;i++){const l=frameLayout(groups[i],{...c,width:widths[i],fields:1});parts.push(...l.parts.map(e=>({...e,x:e.x+offset})));placed.push(...l.placed.map(e=>({...e,x:e.x+offset})));offset+=widths[i];overflow.push(...l.overflow);}
-  return {parts,placed,overflow};
- }
+ if(c.fields>1)return fieldLayout(devices,c,frameLayout);
 
  if(c.depth<165)throw Error('SP 165 DIN benötigt mindestens 165 mm Rahmentiefe.');
  for(const d of devices.filter(d=>d.include!==false)){if(![d.width,d.height,d.depth].every(n=>Number.isFinite(n)&&n>0&&n<=4000))throw Error(`${d.tag}: Geräteabmessungen prüfen.`);if(d.kind==='fuse'&&(!['DII','DIII','NH00'].includes(d.fuseType)||!d.current||d.current>(d.fuseType==='DII'?25:d.fuseType==='DIII'?63:160)||d.conflict))throw Error(`${d.tag}: DII/DIII/NH00 und Stromstärke prüfen.`);}
  if(![250,500,750].includes(c.plateWidth))throw Error('Plattenbreite muss 250, 500 oder 750 mm sein.');
- const selected=devices.filter(d=>d.include!==false),hasFuses=selected.some(d=>d.kind==='fuse'||d.incoming||d.kind==='switch'&&d.height>110),fuseHeight=c.fuseHeight||400;
+ const selected=devices.filter(d=>d.include!==false),hasFuses=c._fuseZone||selected.some(d=>d.kind==='fuse'||d.incoming||d.kind==='switch'&&d.height>110),fuseHeight=c.fuseHeight||400;
  const parts=[],placed=[],overflow=[],cols=Math.ceil(Math.floor((c.width-8)/250)*250/c.plateWidth),left=(c.width-Math.floor((c.width-8)/250)*250)/2,plateTop=c.topHeight||300,fuseY=c.height-20-(hasFuses?fuseHeight:0);
  const add=(kind,x,y,width,height,extra={})=>parts.push({kind,x,y,width,height,...extra});
  if(cols<1||fuseY<=plateTop)throw Error('Rahmen zu klein für die gewählten Platten und Zonen.');

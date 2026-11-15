@@ -5,21 +5,22 @@
 export function meterPriority(d){
  if(/\bRSE\b|Rundsteuer|\bTRE\b/i.test(d.name||''))return 0;
  if(/\ballgemein\b/i.test(d.circuitName||''))return 1;
+ if(/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||'')))return 3;
  return 2;
 }
+export function compareMeters(a,b){return meterPriority(a)-meterPriority(b)||(a.pageNumber||0)-(b.pageNumber||0)||(a.tag&&b.tag?a.tag.localeCompare(b.tag,'de-CH',{numeric:true}):0);}
 export function meterCells(meters,cols,maxRows=3){
  if(!meters.length)return {rows:0,cells:new Map(),occupied:new Set()};
- const ordered=meters.map((d,i)=>({d,i})).sort((a,b)=>meterPriority(a.d)-meterPriority(b.d)||a.i-b.i).map(x=>x.d);
- for(let rows=Math.max(1,Math.ceil((meters.length+meters.filter(d=>d.measurementOwner).length)/cols));rows<=maxRows;rows++){
+ const ordered=meters.map((d,i)=>({d,i})).sort((a,b)=>compareMeters(a.d,b.d)||a.i-b.i).map(x=>x.d);
+ for(let rows=Math.max(meters.some(d=>d.measurementOwner)?2:1,Math.ceil((meters.length+meters.filter(d=>d.measurementOwner).length)/cols));rows<=maxRows;rows++){
   const cells=new Map(),occupied=new Set();let failed=false;
-  // Reserve tall pairs before singles, otherwise a late CT meter would
-  // unnecessarily force another row after singles filled the bottom row.
-  for(const d of [...ordered.filter(d=>d.measurementOwner),...ordered.filter(d=>!d.measurementOwner)]){let found=false;
-   for(let row=rows-(d.measurementOwner?2:1);row>=0&&!found;row--)for(const col of Array.from({length:cols},(_,i)=>i).sort((a,b)=>d.measurementOwner?Math.abs(a-Math.min(ordered.indexOf(d),cols-1))-Math.abs(b-Math.min(ordered.indexOf(d),cols-1)):a-b)){
-    const cell=row*cols+col;if(occupied.has(cell)||d.measurementOwner&&occupied.has(cell+cols))continue;
-    cells.set(d,cell);occupied.add(cell);if(d.measurementOwner)occupied.add(cell+cols);found=true;break;
-   }
-   if(!found){failed=true;break;}
+  // Reference order is bottom-to-top within a column, then the next column.
+  // A measurement module occupies the lower cell of its two-cell pair.
+  let col=0,level=0;
+  for(const d of ordered){const span=d.measurementOwner?2:1;
+   if(level+span>rows){col++;level=0;}
+   if(col>=cols){failed=true;break;}
+   const row=rows-level-span,cell=row*cols+col;cells.set(d,cell);occupied.add(cell);if(span===2)occupied.add(cell+cols);level+=span;
   }
   if(!failed)return {rows,cells:new Map(ordered.map(d=>[d,cells.get(d)])),occupied};
  }
