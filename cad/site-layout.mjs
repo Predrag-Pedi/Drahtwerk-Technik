@@ -1,4 +1,4 @@
-import {frameLayout} from './frame-layout.mjs?v=20261115-04';
+import {frameLayout} from './frame-layout.mjs?v=20261115-05';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;
@@ -8,7 +8,9 @@ export function reserveMeters(devices,count,pageId){
 // about tilting, turns or removal of components. Every frame adds its own 8 mm.
 export function siteConfig(devices,c){
  if(!c.autoSize)return c;
- if(c.maxDepth&&c.depth>c.maxDepth)throw Error('Rahmentiefe überschreitet die maximale Einbautiefe.');
+ const depth=Math.max(165,...devices.filter(d=>d.include!==false).map(d=>Number(d.depth)||0));
+ if(c.maxDepth&&depth>c.maxDepth)throw Error('Benötigte Rahmentiefe überschreitet die maximale Einbautiefe.');
+ c={...c,depth};
  if(!(c.maxWidth>=258&&c.maxHeight>=400))throw Error('Maximale Einbaubreite und Einbauhöhe eingeben.');
  const maxH=Math.min(c.maxHeight,c.passageHeight||c.maxHeight),maxW=Math.min(c.maxWidth,c.passageWidth||c.maxWidth),perField=Math.floor((maxW-8)/250);
  if(!perField)throw Error('Durchgang zu schmal: Ein 250er-Feld benötigt mindestens 258 mm Breite.');
