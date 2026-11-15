@@ -1,10 +1,11 @@
-import {findFunction} from './references.mjs?v=20261115-24';
-import {localCircuitName} from './circuit-data.mjs?v=20261115-24';
-import {meterParentFor} from './alignment.mjs?v=20261115-24';
+import {isRse} from './rse.mjs?v=20261115-25';
+import {findFunction} from './references.mjs?v=20261115-25';
+import {localCircuitName} from './circuit-data.mjs?v=20261115-25';
+import {meterParentFor} from './alignment.mjs?v=20261115-25';
 const palette=['#1556b0','#7b2cbf','#008078','#c04a00','#00823b','#b51f54','#68521a','#42556b','#9d398e','#766800','#00668c','#974237'];
 const normal=name=>String(name||'').trim().toLocaleLowerCase('de');
 const named=name=>{const k=normal(name);return k&&!/^(reserve|zählerabgänge)$/.test(k)?k:'';};
-const fixed=k=>k==='allgemein'?0:/^e[- .]?mob/.test(k)?1:/^(wärmepumpe|wp)$/.test(k)?2:/^wohnung [123]$/.test(k)?Number(k.at(-1))+2:k==='gewerbe'?6:/^gesam{1,2}tmessung$/.test(k)?7:null;
+const fixed=k=>k==='rse'?8:k==='allgemein'?0:/^e[- .]?mob/.test(k)?1:/^(wärmepumpe|wp)$/.test(k)?2:/^wohnung [123]$/.test(k)?Number(k.at(-1))+2:k==='gewerbe'?6:/^gesam{1,2}tmessung$/.test(k)?7:null;
 export function groupColor(name,names=[]){
  const key=named(name);if(!key)return null;
  const keys=[...new Set([...names,name].map(named).filter(Boolean))].sort(),used=new Set(keys.map(fixed).filter(n=>n!==null)),colors=new Map();
@@ -17,6 +18,7 @@ export function groupColor(name,names=[]){
 export function deviceGroup(doc,e){
  if(e.reserve||e.meterState==='reserve')return '';
  const source=findFunction(doc,e.dispoSource);
+ if(source&&isRse(source.element)){const meterKey=source.element.template?.labels?.find(l=>l.letter==='P')?.key,meter=meterKey?findFunction(doc,{page:source.page.id,element:source.element.id,key:meterKey}):null;return meter?.data.circuitName||meter?.data.description||localCircuitName(source.element)||'RSE';}
  let owner=findFunction(doc,e.meterSource);
  // Older saved dispositions may lack meterSource. Resolve from the original
  // branch geometry, never from the closest tag or a neighbouring apartment.
