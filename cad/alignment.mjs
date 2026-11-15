@@ -1,5 +1,5 @@
-import frames from './macro-frames.mjs?v=20261115-16';
-import {MM,BUS,DRAW,bounds} from './geometry.mjs?v=20261115-16';
+import frames from './macro-frames.mjs?v=20261115-17';
+import {MM,BUS,DRAW,bounds} from './geometry.mjs?v=20261115-17';
 export function frame(e){const t=e.template,f=frames[t?.id];return f&&t.category==='Schema'&&Math.abs(f.viewWidth-t.viewWidth)<.01&&Math.abs(f.viewHeight-t.viewHeight)<.01?f:null;}
 export function macroScale(e){const f=frame(e);return f?{x:MM*e.width/e.template.width,y:MM*e.height/e.template.height}:null;}
 export function sourcePoint(e,x,y){const f=frame(e),s=macroScale(e);return {x:e.x+(f.x/f.unit+x)*s.x,y:e.y+(f.y/f.unit-y)*s.y};}
@@ -29,4 +29,17 @@ export function alignPage(page){
  for(const e of page.elements){const f=frame(e);if(!f||e.rotation!==0||!e.autoConnect||!page.bus||page.type!=='schema')continue;const port=e.template.ports?.[0];if(!port)continue;const s=macroScale(e),next={...e,y:BUS[port.phase]-port.y/f.unit*s.y};if(fits(next)&&Math.abs(e.y-next.y)>.001){e.y=next.y;count++;}}
  for(const e of page.elements){const before=[e.x,e.y];if(alignMacro(e,page,150)&&(Math.abs(e.x-before[0])>.001||Math.abs(e.y-before[1])>.001))count++;}
  return count;
+}
+
+// Resolve a supplemental outlet only when every conductor matches one meter.
+// Small drawing offsets are tolerated; ambiguous neighbours remain unassigned.
+export function meterParentFor(e,page,tolerance=3){
+ if(e.template?.labels?.some(l=>l.letter==='P'))return e;
+ const inputs=frame(e)?.inputs||[];if(!inputs.length||e.rotation!==0)return null;
+ const matches=page.elements.filter(parent=>parent.id!==e.id&&parent.rotation===0&&parent.template?.labels?.some(l=>l.letter==='P')&&inputs.every(i=>{
+  const pt=sourcePoint(e,i.x,i.y);return frame(parent)?.lines.some(l=>{
+   const a=sourcePoint(parent,l.x1,l.y1),b=sourcePoint(parent,l.x2,l.y2);
+   return l.phase===i.phase&&Math.abs(a.x-b.x)<.01&&Math.abs(a.x-pt.x)<=tolerance&&pt.y>=Math.min(a.y,b.y)-tolerance&&pt.y<=Math.max(a.y,b.y)+tolerance;
+  });
+ }));return matches.length===1?matches[0]:null;
 }

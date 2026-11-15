@@ -1,14 +1,14 @@
-import {deviceColor,groupColor} from './dispo-colors.mjs?v=20261115-16';
-import {joinDinRails} from './frame-layout.mjs?v=20261115-16';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261115-16';
-import {standardFrame} from './standard-render.mjs?v=20261115-16';
-import {frameMarkup} from './frame-render.mjs?v=20261115-16';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261115-16';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261115-16';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261115-16';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261115-16';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261115-16';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261115-16';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261115-17';
+import {joinDinRails} from './frame-layout.mjs?v=20261115-17';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261115-17';
+import {standardFrame} from './standard-render.mjs?v=20261115-17';
+import {frameMarkup} from './frame-render.mjs?v=20261115-17';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261115-17';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261115-17';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261115-17';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261115-17';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261115-17';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261115-17';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pdfTarget=(d,id)=>d.pages.some(p=>p.id===id)?`data-pdf-page="${esc(id)}"`:"";
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
@@ -50,7 +50,7 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type===
  if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.autoPhases?.[i]||e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/>${editor?`<circle data-auto-port="${esc(e.id)}:${i}" cx="${pt.x}" cy="${y}" r="7" fill="transparent" stroke="none" pointer-events="all" style="cursor:ns-resize"/>`:""}</g>`;}}
  if(p.type==='schema'&&e.template&&!e.template.ports?.length)for(const pt of ports(e,p))connections+=`<circle cx="${pt.x}" cy="${pt.y}" r="2.4" fill="#182c42" stroke="none"/>`;
  for(const key of functionKeys(e)){const data=functionData(e,key),label=e.template?.labels?.find(l=>l.key===key),caption=data.description||(label?.letter==='P'?data.circuitName||e.circuitName:'');if(caption){const terminals=(e.template?.labels||[]).filter(l=>l.letter==='X').sort((a,b)=>b.matrix[5]-a.matrix[5]);const terminal=terminals.find(l=>!label||Math.abs(l.anchor.x-label.anchor.x)<e.template.viewWidth*.3)||terminals[0];const x=terminal?terminal.matrix[4]*w/e.template.viewWidth:label?label.matrix[4]*w/e.template.viewWidth:w/2,y=cut!==null?cut*h/e.template.viewHeight+20:terminal?Math.min(h-32,terminal.matrix[5]*h/e.template.viewHeight+52):h+18;body+=text(x,y,caption,'font-size="10" fill="#000" stroke="none"');}}
- const color=deviceColor(d,p,e);if(color)body=`<g class="dispo-colored" style="color:${color}" stroke="${color}">${body}</g>`;
+ const color=deviceColor(d,p,e);if(color)body=`<rect class="group-accent" x="-4" y="0" width="2.5" height="${h}" fill="${color}" stroke="none"/><g class="dispo-colored" style="color:${color}" stroke="${color}">${body}</g>`;
  const source=p.type==='dispo'&&e.dispoSource&&d.pages.find(q=>q.id===e.dispoSource.page)?.elements.some(q=>q.id===e.dispoSource.element)?pdfTarget(d,e.dispoSource.page):'';
  return connections+`<g ${source} data-element="${esc(e.id)}" ${editor&&e.template&&!groupSelect?'pointer-events="none"':''} transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}>${!e.template||editor&&groupSelect?`<rect x="-4" y="-4" width="${w+8}" height="${(cut!==null?cut*h/e.template.viewHeight+24:h)+8}" fill="transparent" stroke="none"/>`:''}${body}</g>`;
 }
@@ -63,7 +63,7 @@ export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=true}
  body+=p.elements.map(e=>elementMarkup(e,p,d,editor,!lineMode)).join('');
  body+=p.wires.filter(w=>w.direct).map(wireMarkup).join('');
  body+=p.elements.map(e=>referenceMarkup(d,p,e)).join('');
- if(p.type==='dispo')for(const g of dispoCaptionGroups(p))body+=text((g.left+g.right)/2,g.top-10,g.name,`font-size="7" fill="${p.dispoConfig?.groupColors===false?'#182c42':groupColor(g.name)||'#182c42'}" stroke="none" text-anchor="middle"`);
+ if(p.type==='dispo')for(const g of dispoCaptionGroups(p))body+=text((g.left+g.right)/2,g.top-10,g.name,`font-size="7" fill="${p.dispoConfig?.groupColors===false?'#182c42':pageGroupColor(d,p,g.name)||'#182c42'}" stroke="none" text-anchor="middle"`);
  if(editor)for(const w of p.wires){const pts=wirePoints(p,w);body+=`<polyline data-wire="${esc(w.id)}" points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="transparent" stroke-width="10" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`;}
  const connections=connectionCandidates(d,p);
  for(const a of connections){const pt=connectionPoint(d,a),ref=referenceText(d,a),left=a.kind==='bus'&&a.side==='left',right=a.kind==='bus'&&a.side==='right'||pt.x>950,x=pt.x+(right?-5:left?3:5),y=pt.y-3;
@@ -75,7 +75,7 @@ export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=true}
 
  const chosen=p.wires.find(w=>w.id===selected);if(chosen){const pts=wirePoints(p,chosen);for(const [index,pt] of [[0,pts[0]],[1,pts.at(-1)]])body+=`<circle data-wire-handle="${esc(chosen.id)}:${index}" cx="${pt.x}" cy="${pt.y}" r="5" fill="white" stroke="#2463eb" stroke-width="2"/>`;}
  for(const e of p.elements){for(const pt of ports(e,p))body+=`<circle class="port" data-port="${esc(e.id)}:${pt.index}" cx="${pt.x}" cy="${pt.y}" r="4" fill="#fff" stroke="#4090da"/>`;if(e.id===selected){const [w,h]=size(e,p);body+=`<rect x="${e.x-7}" y="${e.y-7}" width="${w+14}" height="${h+14}" transform="rotate(${e.rotation} ${e.x+w/2} ${e.y+h/2})" fill="none" stroke="#2463eb" stroke-width="2" stroke-dasharray="5 4" pointer-events="none"/>`;}}}
- return `<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p.title)}" style="background:white;color:#182c42;font-family:Arial,sans-serif;font-size:12px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><style>.dispo-colored path[stroke="#000000"]{stroke:currentColor}.dispo-colored path[fill="#000000"]{fill:currentColor}.dispo-colored text{fill:#000;stroke:none}.dispo-colored text[data-dispo-group]{fill:currentColor}text{stroke:none} text:not([fill]){fill:#182c42} .template-line-hit:hover{stroke:#2463eb;stroke-opacity:.6}[data-template-text]{cursor:text}[data-template-text]:hover{fill:#2487d333;stroke:#2487d3;stroke-width:1}.port{opacity:.4}.port:hover{opacity:1;stroke-width:3}</style>${body}</g></svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(p.title)}" style="background:white;color:#182c42;font-family:Arial,sans-serif;font-size:12px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><style>.dispo-colored path[stroke="#000000"]{stroke:currentColor;stroke-width:.75;vector-effect:non-scaling-stroke}.dispo-colored path[fill="#000000"]{fill:currentColor}.dispo-colored text{fill:#000;stroke:none}.dispo-colored text[data-dispo-group]{fill:currentColor}text{stroke:none} text:not([fill]){fill:#182c42} .template-line-hit:hover{stroke:#2463eb;stroke-opacity:.6}[data-template-text]{cursor:text}[data-template-text]:hover{fill:#2487d333;stroke:#2487d3;stroke-width:1}.port{opacity:.4}.port:hover{opacity:1;stroke-width:3}</style>${body}</g></svg>`;
 }
 
 function referenceMarkup(d,p,e){let out='';for(const key of functionKeys(e)){const f=functionData(e,key);if(f.role==='none')continue;const anchor=functionPoint(e,p,key),x=e.template?anchor.x+15:e.x+e.width+12,y=e.template?anchor.y:e.y+e.height+12;
