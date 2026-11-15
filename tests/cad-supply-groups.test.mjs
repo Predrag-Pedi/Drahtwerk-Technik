@@ -1,6 +1,6 @@
 import {elementMarkup} from '../cad/render.mjs';
 import {hasLsSettings} from '../cad/references.mjs';
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import{project,page,validateProject}from '../cad/model.mjs';import{placement}from '../cad/placement.mjs';import{validateTemplate}from '../cad/template.mjs';import{circuitName}from '../cad/circuit-data.mjs';import{connect,inheritBus,referenceText}from '../cad/continuations.mjs';import{buildAutomaticDispo,automaticTemplateId}from '../cad/dispo-auto.mjs';import{repairMask}from '../cad/template-masks.mjs';import{frameLayout}from '../cad/frame-layout.mjs';import{defaultConfig}from '../cad/dispo.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import{project,page,validateProject}from '../cad/model.mjs';import{placement}from '../cad/placement.mjs';import{validateTemplate}from '../cad/template.mjs';import{circuitName,protectionKind}from '../cad/circuit-data.mjs';import{connect,inheritBus,referenceText}from '../cad/continuations.mjs';import{buildAutomaticDispo,automaticTemplateId}from '../cad/dispo-auto.mjs';import{repairMask}from '../cad/template-masks.mjs';import{frameLayout}from '../cad/frame-layout.mjs';import{defaultConfig}from '../cad/dispo.mjs';
 const read=async path=>JSON.parse(await fs.readFile(new URL('../'+path,import.meta.url)));
 async function insert(p,id,x=300){const details=await read('cad/template-details.json'),t=validateTemplate({...await read('cad/templates/'+id+'.json'),details:details[id]}),e=placement(p,'template',{x,y:300},true,0,t);p.elements.push(e);return e;}
 test('compound LS masks are white without whitening BMK glyphs',async()=>{for(const id of ['tl-0531','tl-0542','tl-0530','tl-0626']){const t=await read('cad/templates/'+id+'.json');assert.equal(repairMask(t.paths[0],t).fill,'#ffffff');const glyph=t.paths.find(p=>p.fill==='#000000'&&/q/i.test(p.d));assert.equal(repairMask(glyph,t).fill,'#000000');}});
@@ -17,3 +17,15 @@ test('four meters and separate apparatus groups fit the original 758 by 1520 fra
 test('LS settings use actual function letter, not opaque template key',async()=>{const d=project(),e=await insert(d.pages[1],'tl-0021');const label=e.template.labels.find(l=>l.letter==='F');assert.ok(hasLsSettings(e,label.key));assert.ok(hasLsSettings({kind:'ls'},'$'));assert.equal(hasLsSettings({template:{labels:[{key:'containsF',letter:'P'}]}},'containsF'),false);});
 
 test('automatic bus port reassignment persists and exposes editor drag handles only',async()=>{const d=project(),p=d.pages[1],e=await insert(p,'tl-0021');p.bus=true;e.autoConnect=true;e.rotation=0;e.autoPhases={'0':'L1'};const saved=validateProject(d),copy=saved.pages[1].elements[0];assert.equal(copy.autoPhases[0],'L1');assert.match(elementMarkup(e,p,d,true),/data-auto-port=/);assert.doesNotMatch(elementMarkup(e,p,d,false),/data-auto-port=/);e.autoPhases[0]='BAD';assert.throws(()=>validateProject(d));});
+
+test('meter feeder menus and FI-LS menus classify the actual function separately',async()=>{
+ const d=project(),p=d.pages[1];
+ for(const [id,kind]of [['tl-0011','fuse'],['tl-0007','fuse'],['tl-0030','fils'],['tl-0021','ls']]){
+ const e=await insert(p,id),key=e.template.labels.find(l=>l.letter==='F').key;
+ assert.equal(protectionKind(e,key),kind);assert.equal(hasLsSettings(e,key),kind!=='fuse');
+ const meter=e.template.labels.find(l=>l.letter==='P');if(meter)assert.equal(protectionKind(e,meter.key),'');
+ e.functions={[key]:{role:'none',...(kind==='fuse'?{fuseSystem:'silas60'}:{breakerSystem:'uniway'})}};
+ const saved=validateProject(d).pages[1].elements.find(q=>q.id===e.id).functions[key];assert.equal(kind==='fuse'?saved.fuseSystem:saved.breakerSystem,kind==='fuse'?'silas60':'uniway');
+ }
+ for(const breakerSystem of ['smissline','uniway'])assert.throws(()=>automaticTemplateId({kind:'fils',tag:'12F1',breakerSystem}),/noch nicht konfiguriert/);
+});
