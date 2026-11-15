@@ -1,26 +1,26 @@
-import {reconcilePageOrder} from './page-order.mjs?v=20261115-02';
-import {addStandardPages} from './model.mjs?v=20261115-02';
-import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261115-02';
-import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261115-02';
-import {drahtwerkDemo} from './dispo.mjs?v=20261115-02';
-import {defaultConfig} from './dispo.mjs?v=20261115-02';
-import {editAutomaticDispo} from './dispo-ui.mjs?v=20261115-02';
-import {openDispo3D} from './dispo-3d.mjs?v=20261115-02';
-import {createTextClickTracker} from './text-click.mjs?v=20261115-02';
-import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261115-02';
-import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261115-02';
-import {installNavigation} from './navigation.mjs?v=20261115-02';
-import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261115-02';
-import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261115-02';
-import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261115-02';
-import {alignMacro,alignPage} from './alignment.mjs?v=20261115-02';
-import {BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261115-02';
-import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261115-02';
-import {placement,placementMarkup} from './placement.mjs?v=20261115-02';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261115-02';
-import {svgPage,glyph,esc} from './render.mjs?v=20261115-02';
-import {database} from './storage.mjs?v=20261115-02';
-import {pdf,download} from './export.mjs?v=20261115-02';
+import {reconcilePageOrder} from './page-order.mjs?v=20261115-03';
+import {addStandardPages} from './model.mjs?v=20261115-03';
+import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261115-03';
+import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261115-03';
+import {drahtwerkDemo} from './dispo.mjs?v=20261115-03';
+import {defaultConfig} from './dispo.mjs?v=20261115-03';
+import {editAutomaticDispo} from './dispo-ui.mjs?v=20261115-03';
+import {openDispo3D} from './dispo-3d.mjs?v=20261115-03';
+import {createTextClickTracker} from './text-click.mjs?v=20261115-03';
+import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261115-03';
+import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261115-03';
+import {installNavigation} from './navigation.mjs?v=20261115-03';
+import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261115-03';
+import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261115-03';
+import {filterLibrary,libraryName,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261115-03';
+import {alignMacro,alignPage} from './alignment.mjs?v=20261115-03';
+import {BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261115-03';
+import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261115-03';
+import {placement,placementMarkup} from './placement.mjs?v=20261115-03';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261115-03';
+import {svgPage,glyph,esc} from './render.mjs?v=20261115-03';
+import {database} from './storage.mjs?v=20261115-03';
+import {pdf,download} from './export.mjs?v=20261115-03';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null,connectionSelection=[];
@@ -31,7 +31,7 @@ let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
-async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261115-02').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
+async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261115-03').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=enrichedDetails(e.template.id,templateDetails[e.template.id]);}
 async function hydrateDetails(){try{await loadDetails();if(doc){doc.pages.forEach(p=>p.elements.forEach(attachDetails));render();}}catch(e){toast(e.message);}}
 function editTemplateText(e,key){
@@ -170,7 +170,7 @@ function symbolList(){
 }
 
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261115-02');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261115-03');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
  const groups=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>t.group))].sort((a,b)=>libraryName(a).localeCompare(libraryName(b),'de'));
@@ -263,7 +263,7 @@ $('view3D').onclick=()=>{try{openDispo3D(current(),id=>{selected=id;multi=[{kind
 $('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Drahtwerk-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
 
 const previewCache=new Map();
-const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261115-02`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
+const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261115-03`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
 new MutationObserver(()=>{for(const img of document.querySelectorAll('img[data-preview-id]:not([data-observed])')){img.dataset.observed='1';previewObserver.observe(img);}}).observe(document.body,{childList:true,subtree:true});
 
 const sizeButton=document.createElement('button');sizeButton.id='siteSizeSettings';sizeButton.textContent='Einbaumasse / Reserve';sizeButton.title='Maximale Einbaumasse, Durchgang und Reserve-Zählerplätze';$('autoDispo').after(sizeButton);sizeButton.onclick=()=>{if(current().type!=='dispo')return;selected=null;multi=[];connectionSelection=[];render();$('inspector').scrollTop=0;};
