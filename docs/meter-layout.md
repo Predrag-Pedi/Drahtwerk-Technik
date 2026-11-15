@@ -10,7 +10,7 @@ Referenzvergleich vom 14.11.2026:
 
 1. Vorhandenen RSE zuerst, danach Allgemein, danach übrige Zähler in stabiler Schema-Reihenfolge anordnen. Ohne RSE wird kein Platz dafür erfunden. Die erste normale Zählerposition liegt unten links, weitere Reihen darüber.
 2. Höchstens drei Zählerreihen innerhalb der vorgegebenen Rahmenhöhe. Nur der Wandlerzähler und sein darunterliegendes 250 × 400 mm Messmodul werden gemeinsam reserviert und bewegt. Freie Zellen bleiben Geräteplatten, auch neben Messmodulen.
-3. Prüfklemmen oben, drei originale kleine Stromwandler aufrecht nebeneinander in der Mitte, AP-Spannungssicherung unten. Die kleine Originalvorlage wird um 90° gedreht, nicht gestaucht; jedes Exemplar benötigt 43,7 × 121,1 mm einschliesslich seiner Zeichnungsbeschriftung.
+3. Prüfklemmen oben, drei originale kleine Stromwandler waagerecht nebeneinander in der Mitte, AP-Spannungssicherung unten. Die kleine Originalvorlage bleibt ungedreht und im ursprünglichen Massstab. Die rechts stehende BMK-Beschriftung wird über den Körper versetzt; jedes Exemplar benötigt damit rund 80 × 43,7 mm.
 4. Innerhalb einer Einspeisegruppe zuerst die kleinen LS/FI-LS-Bänke, dann die mehrpoligen Geräte. Vierpolige Geräte behalten eigene Kammschienenreihen. Hager-Phasenzuordnung und die 54-mm-Reserve zwischen LS und zweipoligen FI-LS bleiben erhalten. Die Referenzen zeigen keine allgemeingültige Pflicht, vierpolige Geräte stets zuerst zu setzen.
 5. Zwei zu einer Spalte gehörende Bezügersicherungen treffen sich weiterhin an der Spaltenmitte (unterer Zähler links, oberer rechts). Drei werden als zusammenhängende Bank um diese Mitte angeordnet. Tatsächlich zu breite Kombinationen werden weiterhin als Platzkonflikt gemeldet.
 

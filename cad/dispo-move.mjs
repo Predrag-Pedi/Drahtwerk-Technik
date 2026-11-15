@@ -1,4 +1,4 @@
-import {feederOffset} from './meter-layout.mjs?v=20261114-05';
+import {feederOffset} from './meter-layout.mjs?v=20261115-01';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
