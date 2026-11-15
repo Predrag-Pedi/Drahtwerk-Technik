@@ -1,5 +1,5 @@
-import {fieldLayout} from './field-layout.mjs?v=20261115-06';
-import {meterCells,feederOffset} from './meter-layout.mjs?v=20261115-06';
+import {fieldLayout} from './field-layout.mjs?v=20261115-07';
+import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-07';
 // Drahtwerk assembly grid. Confirmed plate envelope: 250/500/750 x 400 mm.
 // Profile cross-sections below are simplified envelopes, not manufacturing drawings.
 export const profiles={SP09048:{name:'SP 090.48',face:17,depth:99},SP45:{name:'SP 45.0',face:17,depth:45.2},EV165:{name:'EV 165',face:35,depth:150},SP165:{name:'SP 165 DIN',face:40,depth:165},AS35:{name:'AS 35.2',face:35,depth:15},BS25:{name:'BS 25.0',face:25,depth:15},AS50:{name:'AS 50.0',face:50,depth:15},ZS39:{name:'ZS 39.0',face:39,depth:22}};
@@ -89,9 +89,16 @@ export function frameLayout(devices,c){
  // Handover blocks stay at the adjoining frame edges and count towards capacity.
  const handovers=terminals.filter(d=>d.frameStyle?.startsWith('transfer-'));
  for(const d of handovers){const x=d.frameStyle==='transfer-left'?left+8:c.width-left-8-d.width;if(d.height>fuseHeight-40||!reserve(x,d.width)){overflow.push(d);continue;}put(d,x,fuseY+30,{mountZ:8-d.depth});}
- for(const [d,x] of anchors)if(!reserve(x,widthOf(d))){overflow.push(d);anchors.set(d,null);}
- for(const d of [...terminals.filter(d=>!handovers.includes(d)),...bottom]){const x=free(d.width);if(d.height>fuseHeight-40||!reserve(x,d.width)){overflow.push(d);continue;}put(d,x,fuseY+30,{mountZ:8-d.depth});}
- for(const d of fuses){const w=widthOf(d),x=anchors.has(d)?anchors.get(d):free(w);if(x===null)continue;if(fuseHeight<330||!anchors.has(d)&&!reserve(x,w)){overflow.push(d);continue;}if(d.fuseType==='NH00'){for(let pole=0;pole<3;pole++)put({...d,neutral:!!d.neutral&&pole===2,width:d.neutral&&pole===2?126:90,height:45,depth:70},x,fuseY+65+pole*110,{mountZ:3});}else put({...d,width:w,height:265,depth:70},x,fuseY+65,{mountZ:3});}
+ for(const d of [...terminals.filter(d=>!handovers.includes(d)),...bottom]){
+  const input=placed.find(e=>e.frameStyle==='incoming-terminal'),rightSide=input&&input.x+input.width/2>c.width/2,preferred=d.source?.element==='incoming-supply'?(rightSide?c.width-21-d.width:21):free(d.width);
+  const slots=packFeederBanks([{key:d,width:d.width,preferred}],left+8,c.width-left-8,occupiedBottom.map(b=>({x:b.x,width:b.w}))),x=slots?.get(d);
+  if(d.height>fuseHeight-40||x===undefined||!reserve(x,d.width)){overflow.push(d);continue;}put(d,x,fuseY+30,{mountZ:8-d.depth});
+ }
+ const banks=fuses.map((d,i)=>({key:d,width:widthOf(d),preferred:anchors.get(d)??free(widthOf(d))+i*.001})).sort((a,b)=>a.preferred-b.preferred);
+ const fitted=packFeederBanks(banks,left+8,c.width-left-8,occupiedBottom.map(b=>({x:b.x,width:b.w})));
+ if(!fitted)overflow.push(...fuses);
+ else for(const d of fuses){const w=widthOf(d),x=fitted.get(d);if(fuseHeight<330){overflow.push(d);continue;}if(d.fuseType==='NH00'){for(let pole=0;pole<3;pole++)put({...d,neutral:!!d.neutral&&pole===2,width:d.neutral&&pole===2?126:90,height:45,depth:70},x,fuseY+65+pole*110,{mountZ:3});}else put({...d,width:w,height:265,depth:70},x,fuseY+65,{mountZ:3});}
+
 
  return {parts,placed,overflow};
 }

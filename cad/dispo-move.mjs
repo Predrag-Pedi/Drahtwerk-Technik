@@ -1,4 +1,4 @@
-import {feederOffset} from './meter-layout.mjs?v=20261115-06';
+import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-07';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
@@ -78,23 +78,22 @@ export function alignMeterFuses(p){
   const width=Math.max(e.width,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(e.meterSource)).map(q=>q.width));
   positions.set(e,Math.max(cabinet?cabinet.x+12*f:-Infinity,center+feederOffset(column.map(m=>Math.max(0,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(m.dispoSource)).map(q=>q.width))),column.indexOf(meter))*f));
  }
- // Preserve independent bottom equipment whenever it still fits. When a moved
- // feeder occupies its old place, relocate the entire three-pole assembly.
+ reflowBottom(p,positions);
+}
+function reflowBottom(p,preferred=new Map(),blocks=new Map()){
+ const f=factor(p),changes=new Map(blocks);
  for(const c of p.elements.filter(e=>e.kind==='cabinet')){
-  const within=e=>e.x>=c.x-.01&&e.x+e.width*f<=c.x+c.width*f+.01&&e.y>=c.y&&e.y<c.y+c.height*f;
-  const occupied=[...positions].filter(([e])=>within(e)).map(([e,x])=>({x,w:e.width*f}));
-  const groups=new Map();for(const e of p.elements.filter(e=>within(e)&&!e.meterSource&&(e.dispoKind==='fuse'||e.incoming&&e.frameStyle!=='incoming-terminal'))){const key=JSON.stringify(e.dispoSource)||e.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(e);}
-  for(const group of groups.values()){
-   const e=group[0],w=Math.max(...group.map(part=>part.width))*f;let x=e.x;
-   if(occupied.some(b=>x<b.x+b.w-.01&&x+w>b.x+.01)){
-    x=c.x+21*f;for(const b of [...occupied].sort((a,b)=>a.x-b.x)){if(x+w<=b.x+.01)break;x=Math.max(x,b.x+b.w);}
-    if(x+w>c.x+(c.width-12)*f)throw Error('Kein Platz für die Bezügersicherungen an den neuen Zählerpositionen.');
-   }
-   occupied.push({x,w});for(const part of group)positions.set(part,x);
-  }
+  const within=e=>e.x>=c.x-.01&&e.x<c.x+c.width*f&&e.y>=c.y&&e.y<c.y+c.height*f;
+  const fuses=p.elements.filter(e=>e.dispoKind==='fuse'&&within(e));if(!fuses.length)continue;
+  const groups=new Map();for(const e of fuses){const key=JSON.stringify(e.dispoSource)||e.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(e);}
+  const top=Math.min(...fuses.map(e=>e.y)),bottom=Math.max(...fuses.map(e=>e.y+e.height*f));
+  const obstacles=p.elements.filter(e=>within(e)&&device(e)&&e.dispoKind!=='fuse'&&e.y<bottom&&e.y+e.height*f>top).map(e=>({x:blocks.get(e)??e.x,width:e.width*f}));
+  const banks=[...groups.values()].map(group=>({key:group,width:Math.max(...group.map(e=>e.width))*f,preferred:preferred.get(group[0])??group[0].x})).sort((a,b)=>a.preferred-b.preferred);
+  const fitted=packFeederBanks(banks,c.x+12*f,c.x+(c.width-12)*f,obstacles);
+  if(!fitted)throw Error('Kein Platz für Einspeisblöcke und Bezügersicherungen innerhalb der vorhandenen Feldbreite.');
+  for(const [group,x] of fitted)for(const e of group)changes.set(e,x);
  }
- for(const [e,x] of positions)e.x=x;
-
+ for(const [e,x] of changes)e.x=x;
 }
 
 export function updateIncomingRails(p){
@@ -113,16 +112,18 @@ export function incomingCompanions(p,e){
  const f=factor(p);return p.elements.filter(q=>q.dispoKind==='spd'&&(q.inputOwner?q.inputOwner===e.dispoSource?.element:Math.abs(q.x+q.width*f/2-e.x-e.width*f/2)<125*f&&q.y>e.y&&q.y<e.y+400*f));
 }
 export function updateSupplyBlocks(p){
- const f=factor(p);
+ const f=factor(p),positions=new Map();
  for(const c of p.elements.filter(e=>e.kind==='cabinet')){
-  const input=p.elements.find(e=>e.frameStyle==='incoming-terminal'&&e.x>=c.x&&e.x<c.x+c.width*f&&e.y>=c.y&&e.y<c.y+c.height*f);if(!input)continue;
-  for(const b of p.elements.filter(e=>e.dispoSource?.element==='incoming-supply'&&e.x>=c.x-.01&&e.x<c.x+c.width*f&&e.y>=c.y&&e.y<c.y+c.height*f)){
-   const x=c.x+(input.x+input.width*f/2<c.x+c.width*f/2?21:c.width-21-b.width)*f;
-   const a={x,right:x+b.width*f,y:b.y,bottom:b.y+b.height*f};
-   if(p.elements.some(e=>e.id!==b.id&&device(e)&&e.x<a.right-.01&&e.x+e.width*f>a.x+.01&&e.y<a.bottom-.01&&e.y+e.height*f>a.y+.01))throw Error('Am Rand ist kein Platz für den Einspeisblock. Die unteren Geräte bleiben unverändert.');
-   b.x=x;
+  const within=e=>e.x>=c.x-.01&&e.x<c.x+c.width*f&&e.y>=c.y&&e.y<c.y+c.height*f;
+  const input=p.elements.find(e=>e.frameStyle==='incoming-terminal'&&within(e));if(!input)continue;
+  for(const b of p.elements.filter(e=>e.dispoSource?.element==='incoming-supply'&&within(e))){
+   const preferred=c.x+(input.x+input.width*f/2<c.x+c.width*f/2?21:c.width-21-b.width)*f;
+   const obstacles=p.elements.filter(e=>e!==b&&within(e)&&device(e)&&e.dispoKind!=='fuse'&&e.y<b.y+b.height*f&&e.y+e.height*f>b.y).map(e=>({x:positions.get(e)??e.x,width:e.width*f}));
+   const fitted=packFeederBanks([{key:b,width:b.width*f,preferred}],c.x+12*f,c.x+(c.width-12)*f,obstacles);
+   if(!fitted)throw Error('Kein Platz für Einspeisblöcke innerhalb der vorhandenen Feldbreite.');positions.set(b,fitted.get(b));
   }
  }
+ reflowBottom(p,new Map(),positions);
 }
 export function shiftIncomingBay(p,before,id){
  const old=before.elements.find(e=>e.id===id),moved=p.elements.find(e=>e.id===id),f=factor(p);
