@@ -1,5 +1,6 @@
-import {BUS} from './geometry.mjs?v=20261115-19';
-import {ports,wirePoints} from './model.mjs?v=20261115-19';
+import {fuseLimits} from './fuse-systems.mjs?v=20261115-20';
+import {BUS} from './geometry.mjs?v=20261115-20';
+import {ports,wirePoints} from './model.mjs?v=20261115-20';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -7,12 +8,15 @@ export function deviceText(e,key='$'){
  return (e.template.details?.texts||[]).filter(t=>{const r=t.runs?.[0];if(!r)return false;const x=r.matrix[4],y=r.matrix[5];return labels.reduce((best,l)=>Math.hypot(x-l.matrix[4],y-l.matrix[5])<Math.hypot(x-best.matrix[4],y-best.matrix[5])?l:best,labels[0]).key===key;}).map(t=>e.textEdits?.[t.key]??t.text).join(' ');
 }
 export function disconnectBlade(text){return /\bTrennmesser\b/i.test(text)&&/\b(?:NH|DIN)\s*0\s*0\b/i.test(text);}
-export function fuseRating(text,ratedCurrent){
- if(disconnectBlade(text)){const current=Number(String(ratedCurrent||'').match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',','.'))||null;return {current,fuseType:'NH00',ratingInferred:true,conflict:false,neutral:true};}
+export function fuseRating(text,ratedCurrent,system='conventional',override='auto'){
+ if(disconnectBlade(text)){const current=Number(String(ratedCurrent||'').match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',','.'))||null;const fuseType=override==='auto'?'NH00':override;return {current,fuseType,ratingInferred:override==='auto',conflict:!fuseLimits[fuseType]||current>fuseLimits[fuseType],neutral:true};}
  const amps=[...String(text).matchAll(/(?:^|[^\w.])(\d+(?:[.,]\d+)?)\s*A(?![a-z])/gi)].map(m=>Number(m[1].replace(',','.'))).filter(n=>n>0),unique=[...new Set(amps)];
- const explicit=/\b(?:NH|DIN)\s*00\b/i.test(text)?'NH00':/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';const current=unique.length===1?unique[0]:null;
- const inferred=current!==null&&current<=25?'DII':current!==null&&current<=63?'DIII':current!==null&&current<=160?'NH00':'';
- return {current,fuseType:explicit||inferred,ratingInferred:!explicit,conflict:unique.length>1||explicit==='DII'&&current>25||explicit==='DIII'&&current>63||explicit==='NH00'&&current>160};
+ const raw=String(text).match(/\b(?:NH|DIN)\s*(000|00|[123])\b/i)?.[1];
+ const explicit=raw?'NH'+raw:/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';
+ const current=unique.length===1?unique[0]:null;
+ const inferred=current!==null?Object.keys(fuseLimits).find(k=>current<=fuseLimits[k]&&(k!=='NH000'||system==='silas60')&&(!['DII','DIII'].includes(k)||system!=='vertigroup185'))||'':'';
+ let fuseType=override!=='auto'?override:explicit||inferred;if(system==='vertigroup185'&&fuseType==='NH000')fuseType='NH00';
+ return {current,fuseType,ratingInferred:!explicit&&override==='auto',conflict:unique.length>1||!fuseLimits[fuseType]||current>fuseLimits[fuseType]};
 }
 export function localCircuitName(e){if(e.circuitName?.trim())return e.circuitName.trim();const names=[...new Set(Object.values(e.functions||{}).map(f=>f.circuitName?.trim()).filter(Boolean))];if(names.length===1)return names[0];if(names.length>1)return '';const meterKeys=new Set((e.template?.labels||[]).filter(l=>l.letter==='P').map(l=>l.key));const descriptions=[...new Set(Object.entries(e.functions||{}).filter(([key])=>e.kind==='meter'||meterKeys.has(key)).map(([,f])=>f.description?.trim()).filter(Boolean))];if(descriptions.length===1)return descriptions[0];if(e.template&&!/stromwandler/i.test(e.template.name)){const named=(e.template.details?.texts||[]).map(t=>e.textEdits?.[t.key]??t.text).filter(t=>/^(Allgemein|E[- .]?Mob(?:ility|ilität|\.)?|Wohnung\b.*|Whg\.?\s*.*|Wärmepumpe|WP|Gewerbe|Hauswart)$/i.test(t.trim()));if(new Set(named).size===1)return named[0].trim();}if(e.kind==='meter'&&e.text?.trim())return e.text.trim();if(e.template&&(e.template.labels||[]).some(l=>l.letter==='P')&&e.text?.trim())return e.text.trim();return '';}
 export function circuitNames(doc,start){
