@@ -1,10 +1,10 @@
-import {measurementGroups} from './metering.mjs?v=20261115-12';
-import {DRAW} from './geometry.mjs?v=20261115-12';
-import {frame,sourcePoint} from './alignment.mjs?v=20261115-12';
-import {frameLayout} from './frame-layout.mjs?v=20261115-12';
-import {deviceText,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261115-12';
-import {createElement,W} from './model.mjs?v=20261115-12';
-import {allFunctions,functionBmk} from './references.mjs?v=20261115-12';
+import {measurementGroups} from './metering.mjs?v=20261115-13';
+import {DRAW} from './geometry.mjs?v=20261115-13';
+import {frame,sourcePoint} from './alignment.mjs?v=20261115-13';
+import {frameLayout} from './frame-layout.mjs?v=20261115-13';
+import {deviceText,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261115-13';
+import {createElement,W} from './model.mjs?v=20261115-13';
+import {allFunctions,functionBmk} from './references.mjs?v=20261115-13';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],spd:[72,134.8,75],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -40,9 +40,12 @@ export function schemaDevices(doc){
   if(circuitNames(doc,{page:page.id,element:e.id}).length>1)throw Error(`${tag}: mehrere Einspeisegruppen verbunden. Verbindungen im Schema trennen.`);
   const inputs=frame(e)?.inputs||[];const meterParent=e.template?.labels?.some(l=>l.letter==='P')?e:inputs.length?page.elements.find(parent=>parent.id!==e.id&&parent.template?.labels?.some(l=>l.letter==='P')&&inputs.every(i=>{const pt=sourcePoint(e,i.x,i.y);return frame(parent)?.lines.some(l=>{const a=sourcePoint(parent,l.x1,l.y1),b=sourcePoint(parent,l.x2,l.y2);return l.phase===i.phase&&Math.abs(a.x-b.x)<.01&&Math.abs(a.x-pt.x)<.1&&pt.y>=Math.min(a.y,b.y)-.1&&pt.y<=Math.max(a.y,b.y)+.1;});})):null;
   const phases=[...new Set((e.template?.ports?.length?e.template.ports:inputs).map((pt,i)=>e.autoPhases?.[i]||pt.phase).filter(v=>/^L[123]$/.test(v)))];
+  // The library explicitly identifies direct meter outlets. Their classification
+  // must not depend on sub-pixel overlap of separately placed macro lines.
+  const meterFed=['ls','fils'].includes(kind)&&(!!meterParent||['tl-0008','tl-0009','tl-0010'].includes(e.template?.id)||/Zusatzabgang[_ -]L[123]\b/i.test(e.template?.name||''));
   const meterKey=meterParent?.template?.labels?.find(l=>l.letter==='P')?.key;
   const meterSource=['fuse','ls','fils'].includes(kind)&&meterKey?{page:page.id,element:meterParent.id,key:meterKey}:undefined;
-  devices.push({meterSource,meterFed:['ls','fils'].includes(kind)&&!!meterParent,phase:phases.length===1?phases[0]:'',supplyKey:meterParent?meterParent.id:'bus:'+page.id,manufacturer:data.manufacturer||'auto',lsMode:data.lsMode||'allpole',poles,neutral:/\bN\b/.test(content)||kind==='fuse'&&(e.template?.ports?.length?e.template.ports:inputs).some(pt=>pt.phase==='N'),schemaTemplateName:e.template?.name||'',...rating,incoming,meterState:'prepared',circuitName:data.circuitName||circuitName(doc,{page:page.id,element:e.id}),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
+  devices.push({meterSource,meterFed,phase:phases.length===1?phases[0]:'',supplyKey:meterParent?meterParent.id:meterFed?'meter-outlet:'+e.id:'bus:'+page.id,manufacturer:data.manufacturer||'auto',lsMode:data.lsMode||'allpole',poles,neutral:/\bN\b/.test(content)||kind==='fuse'&&(e.template?.ports?.length?e.template.ports:inputs).some(pt=>pt.phase==='N'),schemaTemplateName:e.template?.name||'',...rating,incoming,meterState:'prepared',circuitName:data.circuitName||(meterFed&&!meterParent?'':circuitName(doc,{page:page.id,element:e.id})),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
  }
  for(const p of doc.pages.filter(p=>p.type==='schema'))for(const e of p.elements)if(e.template&&!e.template.labels?.length)warnings.push(`Blatt ${p.number}: «${e.template.name}» ohne auswertbare Gerätekennzeichen.`);
  measurementGroups(doc,devices,warnings);return {devices,warnings};
