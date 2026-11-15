@@ -16,8 +16,9 @@ export function meterCells(meters,cols,maxRows=3){
   const cells=new Map(),occupied=new Set();let failed=false;
   // Reference order is bottom-to-top within a column, then the next column.
   // A measurement module occupies the lower cell of its two-cell pair.
-  let col=0;
-  for(const d of ordered){const span=d.measurementOwner?2:1;let row;
+  // A CT pair may skip a single free cell. Fill that cell with the next
+  // ordinary meter rather than forcing another row and mixed apparatus bays.
+  for(const d of ordered){const span=d.measurementOwner?2:1;let row,col=0;
    while(col<cols){
     // CT meter above its bay, preferably in the first two rows.
     const candidates=span===2?Array.from({length:rows-1},(_,i)=>i):Array.from({length:rows},(_,i)=>rows-1-i);

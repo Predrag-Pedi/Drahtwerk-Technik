@@ -1,11 +1,11 @@
-import {frame,sourcePoint} from './alignment.mjs?v=20261115-07';
-import {validateDispoMetadata,validateDispoConfig} from './dispo.mjs?v=20261115-07';
-import {validateConnections} from './continuations.mjs?v=20261115-07';
-import {validateTextEdits,validateTextOffsets} from './template-text.mjs?v=20261115-07';
-import {functionKeys,validateFunctions} from './references.mjs?v=20261115-07';
-import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261115-07';
+import {frame,sourcePoint} from './alignment.mjs?v=20261115-08';
+import {validateDispoMetadata,validateDispoConfig} from './dispo.mjs?v=20261115-08';
+import {validateConnections} from './continuations.mjs?v=20261115-08';
+import {validateTextEdits,validateTextOffsets} from './template-text.mjs?v=20261115-08';
+import {functionKeys,validateFunctions} from './references.mjs?v=20261115-08';
+import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261115-08';
 export {W,H};
-import {validateTemplate,templateSize} from './template.mjs?v=20261115-07';
+import {validateTemplate,templateSize} from './template.mjs?v=20261115-08';
 export const uid=()=>crypto.randomUUID();
 export const clone=v=>structuredClone(v);
 export const GRID=10;
