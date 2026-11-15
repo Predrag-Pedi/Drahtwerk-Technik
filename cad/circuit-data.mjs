@@ -1,6 +1,6 @@
-import {fuseLimits} from './fuse-systems.mjs?v=20261115-21';
-import {BUS} from './geometry.mjs?v=20261115-21';
-import {ports,wirePoints} from './model.mjs?v=20261115-21';
+import {fuseLimits} from './fuse-systems.mjs?v=20261115-22';
+import {BUS} from './geometry.mjs?v=20261115-22';
+import {ports,wirePoints} from './model.mjs?v=20261115-22';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -31,3 +31,16 @@ export function circuitNames(doc,start){
  return [...names];
 }
 export function circuitName(doc,start){const names=circuitNames(doc,start);return names.length===1?names[0]:'';}
+
+// Classify the selected function, not the enclosing mixed meter macro.
+export function protectionKind(e,key='$'){
+ const label=e.template?.labels?.find(l=>l.key===key);
+ if(e.template?label?.letter!=='F':!['fuse','ls','fils'].includes(e.kind))return '';
+ const text=deviceText(e,key),name=e.template?.name||'';
+ if(/SPD|Überspannungsableiter|Typ CT[12]|Surge/i.test(text+' '+name))return 'spd';
+ if(['ls','fils'].includes(e.kind))return e.kind;
+ const single=(e.template?.labels||[]).filter(l=>l.letter==='F').length===1;
+ if(/\b\d+(?:[.,]\d+)?\s*mA\b|FI.?LS/i.test(text)||single&&/FI.?LS/i.test(name))return 'fils';
+ if(/\b[BCD]\s*\d+|\d+\s*A\s*[/ ]*\s*[BCD]\b/i.test(text)||single&&/(?:^|_)LS(?:_|$)/i.test(name))return 'ls';
+ return 'fuse';
+}
