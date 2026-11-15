@@ -1,10 +1,28 @@
-import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261115-10';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261115-10';
-// The page properties hold frame dimensions. Generating a disposition needs no dialog.
-export async function editAutomaticDispo(doc,p,apply){
- const generated=await buildAutomaticDispo(doc,p);
- apply(generated);
- return generated;
+import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261115-11';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261115-11';
+// Only a proven capacity failure may offer a reduction; never change the
+// saved page or reserve until the complete alternative has been approved.
+export async function editAutomaticDispo(doc,p,apply,confirmReduction=()=>false,build=null){
+ if(!build){const cache=new Map(),fetcher=url=>{if(!cache.has(url))cache.set(url,fetch(url).then(async response=>{const data=response.ok?await response.json():null;return {ok:response.ok,json:async()=>structuredClone(data)};}));return cache.get(url);};build=(d,q)=>buildAutomaticDispo(d,q,fetcher);}
+ let generated;
+ try{generated=await build(doc,p);}catch(error){
+  const reserve=p.dispoConfig?.reserve??defaultConfig().reserve;
+  if(error.code!=='DISPO_CAPACITY'||reserve<=0)throw error;
+  for(let next=Math.ceil(reserve)-1;next>=0;next--){
+   const candidate={...p,dispoConfig:{...p.dispoConfig,reserve:next}};
+   try{generated=await build(doc,candidate);}catch(other){if(other.code!=='DISPO_CAPACITY')throw other;continue;}
+   const yes=await confirmReduction(`Mit ${reserve} % Geräte-Platzreserve passt die Disposition nicht in die angegebenen Masse.
+
+Darf die Platzreserve auf ${generated.config.reserve} % reduziert werden? Dann passen alle Geräte innerhalb der vorgegebenen Masse. Die Reserve-Zählerplätze bleiben erhalten.
+
+Ja: reduzierte Reserve übernehmen und Dispo erzeugen.
+Nein: bisherige Dispo und Einstellungen beibehalten.`);
+   if(!yes)return null;
+   break;
+  }
+  if(!generated)throw error;
+ }
+ apply(generated);return generated;
 }
 
 export function editSiteSettings(p,showForm,apply){

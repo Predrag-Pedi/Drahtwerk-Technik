@@ -1,4 +1,4 @@
-import {frameLayout} from './frame-layout.mjs?v=20261115-10';
+import {frameLayout} from './frame-layout.mjs?v=20261115-11';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;
@@ -28,5 +28,5 @@ export function siteConfig(devices,c){
    }
   }
  }
- throw Error('Kein passender Aufbau innerhalb der Einbau- und Durchgangsmasse. Masse, Reserveplätze oder Geräteaufteilung prüfen; die Grenzen wurden nicht überschritten.');
+ throw Object.assign(Error('Kein passender Aufbau innerhalb der Einbau- und Durchgangsmasse. Masse, Reserveplätze oder Geräteaufteilung prüfen; die Grenzen wurden nicht überschritten.'),{code:'DISPO_CAPACITY'});
 }
