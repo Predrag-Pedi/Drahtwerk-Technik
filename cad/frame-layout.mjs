@@ -1,5 +1,6 @@
-import {fieldLayout} from './field-layout.mjs?v=20261115-19';
-import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-19';
+import {fuseLimits,copperFuse,fuseZoneHeight,placeCopperBanks} from './fuse-systems.mjs?v=20261115-20';
+import {fieldLayout} from './field-layout.mjs?v=20261115-20';
+import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-20';
 // Drahtwerk assembly grid. Confirmed plate envelope: 250/500/750 x 400 mm.
 // Profile cross-sections below are simplified envelopes, not manufacturing drawings.
 export const profiles={SP09048:{name:'SP 090.48',face:17,depth:99},SP45:{name:'SP 45.0',face:17,depth:45.2},EV165:{name:'EV 165',face:35,depth:150},SP165:{name:'SP 165 DIN',face:40,depth:165},AS35:{name:'AS 35.2',face:35,depth:15},BS25:{name:'BS 25.0',face:25,depth:15},AS50:{name:'AS 50.0',face:50,depth:15},ZS39:{name:'ZS 39.0',face:39,depth:22}};
@@ -24,6 +25,7 @@ function bestLayout(variants){
  return results.sort((a,b)=>{const x=layoutScore(a),y=layoutScore(b);for(let i=0;i<x.length;i++)if(x[i]!==y[i])return x[i]-y[i];return 0;})[0];
 }
 export function frameLayout(devices,c){
+ const requiredFuseHeight=fuseZoneHeight(devices,c.fuseHeight||400);if(requiredFuseHeight>(c.fuseHeight||400))c={...c,fuseHeight:requiredFuseHeight};
  if(c.fields>1)return fieldLayout(devices,c,frameLayout);
  if(!c._bridgeResolved){const modes=c.bridgeMode==='keep'?[false]:c.bridgeMode==='remove'?[true]:[false,true];return bestLayout(modes.map(cut=>()=>frameLayout(devices,{...c,_bridgeResolved:true,cutCenterBridge:cut})));}
  if(c._stackMeterSingles===undefined&&devices.some(d=>d.meterFed)){try{const stacked=frameLayout(devices,{...c,_stackMeterSingles:true});if(!stacked.overflow.length)return stacked;}catch{}return frameLayout(devices,{...c,_stackMeterSingles:false});}
@@ -31,7 +33,7 @@ export function frameLayout(devices,c){
  if(c._upperDevices===undefined){try{const top=frameLayout(devices,{...c,_upperDevices:true});if(!top.overflow.length)return top;}catch{}return frameLayout(devices,{...c,_upperDevices:false});}
 
  if(c.depth<165)throw Error('SP 165 DIN benötigt mindestens 165 mm Rahmentiefe.');
- for(const d of devices.filter(d=>d.include!==false)){if(![d.width,d.height,d.depth].every(n=>Number.isFinite(n)&&n>0&&n<=4000))throw Error(`${d.tag}: Geräteabmessungen prüfen.`);if(d.kind==='fuse'&&(!['DII','DIII','NH00'].includes(d.fuseType)||!d.current||d.current>(d.fuseType==='DII'?25:d.fuseType==='DIII'?63:160)||d.conflict))throw Error(`${d.tag}: DII/DIII/NH00 und Stromstärke prüfen.`);}
+ for(const d of devices.filter(d=>d.include!==false)){if(![d.width,d.height,d.depth].every(n=>Number.isFinite(n)&&n>0&&n<=4000))throw Error(`${d.tag}: Geräteabmessungen prüfen.`);if(d.kind==='fuse'&&(!Object.hasOwn(fuseLimits,d.fuseType)||!d.current||d.current>fuseLimits[d.fuseType]||d.conflict))throw Error(`${d.tag}: Sicherungsbaugrösse und Stromstärke prüfen.`);}
  if(![250,500,750].includes(c.plateWidth))throw Error('Plattenbreite muss 250, 500 oder 750 mm sein.');
  const selected=devices.filter(d=>d.include!==false),hasFuses=c._fuseZone||selected.some(d=>d.kind==='fuse'||d.incoming||d.kind==='switch'&&d.height>110),fuseHeight=c.fuseHeight||400;
  const parts=[],placed=[],overflow=[],cols=Math.ceil(Math.floor((c.width-8)/250)*250/c.plateWidth),left=(c.width-Math.floor((c.width-8)/250)*250)/2,plateTop=c.topHeight||300,fuseY=c.height-20-(hasFuses?fuseHeight:0);
@@ -111,7 +113,7 @@ export function frameLayout(devices,c){
  for(const q of group){const index=ct.indexOf(q),top=q.kind==='test-terminal'?20:q.kind==='voltage-fuse'?289:155,dx=index<0?(250-q.width)/2:(250-ctWidth)/2+ct.slice(0,index).reduce((n,e)=>n+e.width,0);if(dx<0||top+q.height>400){overflow.push(q);continue;}put(q,x+dx,my+top,{mountZ:3,frameStyle:style});}}}
  for(let r=0;r<meterRows;r++)bar('ZS39',meterTop+r*400-22);
  if(hasFuses)for(let col=0;col<cols;col++)add('plate',left+col*c.plateWidth,fuseY,Math.min(c.plateWidth,c.width-left-(left+col*c.plateWidth)),fuseHeight,{plateType:'fuse',depth:3,mountZ:0});
- if(hasFuses)for(let pole=0;pole<3;pole++)add('rail',40,fuseY+80+pole*110,c.width-80,15,{profile:'copper',depth:5,mountZ:-70});
+ if(hasFuses&&!fuses.some(copperFuse))for(let pole=0;pole<3;pole++)add('rail',40,fuseY+80+pole*110,c.width-80,15,{profile:'copper',depth:5,mountZ:-70});
  // Place associated feeders at the common centre of their meter column.
  const occupiedBottom=[],widthOf=d=>d.fuseType==='NH00'?(d.neutral?126:90):d.fuseType==='DIII'?62:49;
  const meterOf=d=>d.meterSource&&placed.find(m=>m.kind==='meter'&&JSON.stringify(m.source)===JSON.stringify(d.meterSource));
@@ -126,11 +128,13 @@ export function frameLayout(devices,c){
   const slots=packFeederBanks([{key:d,width:d.width,preferred}],left+8,c.width-left-8,occupiedBottom.map(b=>({x:b.x,width:b.w}))),x=slots?.get(d);
   if(d.height>fuseHeight-40||x===undefined||!reserve(x,d.width)){overflow.push(d);continue;}put(d,x,fuseY+30,{mountZ:8-d.depth});
  }
+ if(fuses.some(copperFuse)){placeCopperBanks(fuses,{left:left+8,right:c.width-left-8,y:fuseY,height:fuseHeight,spacing:c.supportSpacing185,obstacles:occupiedBottom.map(b=>({x:b.x,width:b.w})),put,add,overflow});}
+ else {
  const banks=fuses.map((d,i)=>({key:d,width:widthOf(d),preferred:anchors.get(d)??free(widthOf(d))+i*.001})).sort((a,b)=>a.preferred-b.preferred);
  const fitted=packFeederBanks(banks,left+8,c.width-left-8,occupiedBottom.map(b=>({x:b.x,width:b.w})));
  if(!fitted)overflow.push(...fuses);
  else for(const d of fuses){const w=widthOf(d),x=fitted.get(d);if(fuseHeight<330){overflow.push(d);continue;}if(d.fuseType==='NH00'){for(let pole=0;pole<3;pole++)put({...d,neutral:!!d.neutral&&pole===2,width:d.neutral&&pole===2?126:90,height:45,depth:70},x,fuseY+65+pole*110,{mountZ:3});}else put({...d,width:w,height:265,depth:70},x,fuseY+65,{mountZ:3});}
-
+ }
 
  return {parts,placed,overflow};
 }

@@ -1,10 +1,12 @@
-import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-19';
+import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-20';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
+const fusePart=e=>['fuse','neutral-disconnector'].includes(e.dispoKind);
+const fuseCompanions=(p,e)=>e.fuseSystem&&e.fuseSystem!=='conventional'&&fusePart(e)?p.elements.filter(q=>fusePart(q)&&JSON.stringify(q.dispoSource)===JSON.stringify(e.dispoSource)):[];
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
-export function dispoGroup(p,id){const e=p.elements.find(e=>e.id===id);if(e?.measurementOwner){const meter=p.elements.find(q=>q.dispoKind==='meter'&&q.measurementOwner===e.measurementOwner);return meter?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):[e];}if(e?.frameStyle==='incoming-terminal')return [e,...incomingCompanions(p,e)];if(!device(e||{})||e.dispoKind==='meter')return e?[e]:[];return p.elements.filter(q=>device(q)&&q.dispoKind!=='meter'&&q.frameStyle===e.frameStyle&&Math.abs(q.y-e.y)<.1&&(e.circuitName?q.circuitName===e.circuitName:q.dispoSource.element===e.dispoSource.element&&q.dispoSource.page===e.dispoSource.page));}
+export function dispoGroup(p,id){const e=p.elements.find(e=>e.id===id);if(e&&fuseCompanions(p,e).length)return fuseCompanions(p,e);if(e?.measurementOwner){const meter=p.elements.find(q=>q.dispoKind==='meter'&&q.measurementOwner===e.measurementOwner);return meter?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):[e];}if(e?.frameStyle==='incoming-terminal')return [e,...incomingCompanions(p,e)];if(!device(e||{})||e.dispoKind==='meter')return e?[e]:[];return p.elements.filter(q=>device(q)&&q.dispoKind!=='meter'&&q.frameStyle===e.frameStyle&&Math.abs(q.y-e.y)<.1&&(e.circuitName?q.circuitName===e.circuitName:q.dispoSource.element===e.dispoSource.element&&q.dispoSource.page===e.dispoSource.page));}
 export function moveDispoElements(p,ids,dx,dy){
- const linked=new Set(ids);for(const e of p.elements.filter(e=>ids.has(e.id)))for(const q of e.measurementOwner?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):incomingCompanions(p,e))linked.add(q.id);const moving=p.elements.filter(e=>linked.has(e.id)),before=moving.some(e=>e.dispoKind==='meter'||e.frameStyle==='incoming-terminal')?structuredClone(p.elements):null;
+ const linked=new Set(ids);for(const e of p.elements.filter(e=>ids.has(e.id)))for(const q of e.measurementOwner?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):incomingCompanions(p,e))linked.add(q.id);for(const e of p.elements.filter(e=>linked.has(e.id)))for(const q of fuseCompanions(p,e))linked.add(q.id);const moving=p.elements.filter(e=>linked.has(e.id)),before=moving.some(e=>e.dispoKind==='meter'||e.frameStyle==='incoming-terminal')?structuredClone(p.elements):null;
  if(p.type==='dispo'){const mm=1/factor(p),meters=moving.filter(e=>e.dispoKind==='meter'&&e.width===250&&e.height===400);for(const c of p.elements.filter(q=>q.dispoStructure))for(const part of c.dispoStructure)if((part.frameStyle?.startsWith('measurement:')&&meters.some(e=>part.frameStyle==='measurement:'+e.measurementOwner))||(part.plateType==='meter'&&meters.some(e=>Math.abs(c.x+part.x/mm-e.x)<.01&&Math.abs(c.y+part.y/mm-e.y)<.01))){part.x+=dx*mm;part.y+=dy*mm;}}
  for(const e of moving){e.x+=dx;e.y+=dy;}
  if(before)try{if(moving.some(e=>e.dispoKind==='meter'))alignMeterFuses(p);updateIncomingRails(p);updateSupplyBlocks(p);}catch(error){p.elements=before;throw error;}
@@ -84,14 +86,19 @@ function reflowBottom(p,preferred=new Map(),blocks=new Map()){
  const f=factor(p),changes=new Map(blocks);
  for(const c of p.elements.filter(e=>e.kind==='cabinet')){
   const within=e=>e.x>=c.x-.01&&e.x<c.x+c.width*f&&e.y>=c.y&&e.y<c.y+c.height*f;
-  const fuses=p.elements.filter(e=>e.dispoKind==='fuse'&&within(e));if(!fuses.length)continue;
+  const fuses=p.elements.filter(e=>fusePart(e)&&within(e));if(!fuses.length)continue;
   const groups=new Map();for(const e of fuses){const key=JSON.stringify(e.dispoSource)||e.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(e);}
   const top=Math.min(...fuses.map(e=>e.y)),bottom=Math.max(...fuses.map(e=>e.y+e.height*f));
-  const obstacles=p.elements.filter(e=>within(e)&&device(e)&&e.dispoKind!=='fuse'&&e.y<bottom&&e.y+e.height*f>top).map(e=>({x:blocks.get(e)??e.x,width:e.width*f}));
-  const banks=[...groups.values()].map(group=>({key:group,width:Math.max(...group.map(e=>e.width))*f,preferred:preferred.get(group[0])??group[0].x})).sort((a,b)=>a.preferred-b.preferred);
-  const fitted=packFeederBanks(banks,c.x+12*f,c.x+(c.width-12)*f,obstacles);
-  if(!fitted)throw Error('Kein Platz für Einspeisblöcke und Bezügersicherungen innerhalb der vorhandenen Feldbreite.');
-  for(const [group,x] of fitted)for(const e of group)changes.set(e,x);
+  const obstacles=p.elements.filter(e=>within(e)&&device(e)&&!fusePart(e)&&e.y<bottom&&e.y+e.height*f>top).map(e=>({x:blocks.get(e)??e.x,width:e.width*f}));
+  const partitions=new Map();for(const group of groups.values()){const system=group[0].fuseSystem||'conventional';if(!partitions.has(system))partitions.set(system,[]);partitions.get(system).push(group);}
+  for(const [system,sets] of partitions){
+   const rails=(c.dispoStructure||[]).filter(r=>r.frameStyle==='fuse-system:'+system&&r.profile==='copper');
+   const left=rails.length?c.x+Math.min(...rails.map(r=>r.x))*f:c.x+12*f,right=rails.length?c.x+Math.max(...rails.map(r=>r.x+r.width))*f:c.x+(c.width-12)*f;
+   const banks=sets.map(group=>{const start=Math.min(...group.map(e=>e.x));return {key:group,width:Math.max(...group.map(e=>e.x+e.width*f))-start,preferred:(preferred.get(group[0])??group[0].x)-(group[0].x-start)};}).sort((a,b)=>a.preferred-b.preferred);
+   const fitted=packFeederBanks(banks,left,right,obstacles);
+   if(!fitted)throw Error('Kein Platz für Einspeisblöcke und Bezügersicherungen innerhalb des vorhandenen Schienenbereichs.');
+   for(const [group,x] of fitted){const start=Math.min(...group.map(e=>e.x));for(const e of group)changes.set(e,x+e.x-start);}
+  }
  }
  for(const [e,x] of changes)e.x=x;
 }
