@@ -1,13 +1,33 @@
-import {fieldLayout} from './field-layout.mjs?v=20261115-14';
-import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-14';
+import {fieldLayout} from './field-layout.mjs?v=20261115-15';
+import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-15';
 // Drahtwerk assembly grid. Confirmed plate envelope: 250/500/750 x 400 mm.
 // Profile cross-sections below are simplified envelopes, not manufacturing drawings.
 export const profiles={SP09048:{name:'SP 090.48',face:17,depth:99},SP45:{name:'SP 45.0',face:17,depth:45.2},EV165:{name:'EV 165',face:35,depth:150},SP165:{name:'SP 165 DIN',face:40,depth:165},AS35:{name:'AS 35.2',face:35,depth:15},BS25:{name:'BS 25.0',face:25,depth:15},AS50:{name:'AS 50.0',face:50,depth:15},ZS39:{name:'ZS 39.0',face:39,depth:22}};
 export const plateOpenings=(width,cut=false)=>width===500?(cut?[{x:24,width:452}]:[{x:24,width:216},{x:260,width:216}]):Array.from({length:Math.floor(width/250)},(_,i)=>({x:i*250+17,width:216}));
+// Compare complete valid layouts before selecting a construction variant.
+// Fewer occupied rows per supply leave whole rails free; then prefer a
+// narrower group footprint, preserving separated pole rows on an exact tie.
+function layoutScore(layout){
+ const groups=new Map(),poleRows=new Map();
+ for(const d of layout.placed.filter(d=>['ls','fils'].includes(d.kind)&&!d.meterFed)){
+  const key=d.circuitName||d.supplyKey||JSON.stringify(d.source)||'unknown';
+  if(!groups.has(key))groups.set(key,{rows:new Set(),left:Infinity,right:-Infinity});
+  const poleKey=key+'|'+((d.poles||1)>=3?'large':'small');if(!poleRows.has(poleKey))poleRows.set(poleKey,new Set());poleRows.get(poleKey).add(Math.round(d.y+d.height/2));
+  const g=groups.get(key);g.rows.add(Math.round(d.y+d.height/2));g.left=Math.min(g.left,d.x);g.right=Math.max(g.right,d.x+d.width);
+ }
+ return [layout.overflow.length,[...groups.values()].reduce((n,g)=>n+g.rows.size,0),[...poleRows.values()].reduce((n,rows)=>n+rows.size,0),[...groups.values()].reduce((n,g)=>n+g.right-g.left,0)];
+}
+function bestLayout(variants){
+ const results=[];let error;
+ for(const build of variants){try{results.push(build());}catch(e){error=e;}}
+ if(!results.length)throw error;
+ return results.sort((a,b)=>{const x=layoutScore(a),y=layoutScore(b);for(let i=0;i<x.length;i++)if(x[i]!==y[i])return x[i]-y[i];return 0;})[0];
+}
 export function frameLayout(devices,c){
  if(c.fields>1)return fieldLayout(devices,c,frameLayout);
+ if(!c._bridgeResolved){const modes=c.bridgeMode==='keep'?[false]:c.bridgeMode==='remove'?[true]:[false,true];return bestLayout(modes.map(cut=>()=>frameLayout(devices,{...c,_bridgeResolved:true,cutCenterBridge:cut})));}
  if(c._stackMeterSingles===undefined&&devices.some(d=>d.meterFed)){try{const stacked=frameLayout(devices,{...c,_stackMeterSingles:true});if(!stacked.overflow.length)return stacked;}catch{}return frameLayout(devices,{...c,_stackMeterSingles:false});}
- if(c._schneiderRows===undefined&&devices.some(d=>d.manufacturer==='schneider')){try{const separated=frameLayout(devices,{...c,_schneiderRows:true});if(!separated.overflow.length)return separated;}catch{}return frameLayout(devices,{...c,_schneiderRows:false});}
+ if(c._schneiderRows===undefined&&devices.some(d=>d.manufacturer==='schneider'))return bestLayout([true,false].map(separate=>()=>frameLayout(devices,{...c,_schneiderRows:separate})));
  if(c._upperDevices===undefined){try{const top=frameLayout(devices,{...c,_upperDevices:true});if(!top.overflow.length)return top;}catch{}return frameLayout(devices,{...c,_upperDevices:false});}
 
  if(c.depth<165)throw Error('SP 165 DIN benötigt mindestens 165 mm Rahmentiefe.');
