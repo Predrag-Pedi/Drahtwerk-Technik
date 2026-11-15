@@ -1,9 +1,9 @@
-import auditedEnds from './template-ends.mjs?v=20261115-20';
+import auditedEnds from './template-ends.mjs?v=20261115-21';
 export function enrichedDetails(id,details){const out=details||{texts:[],ends:[]},extra=auditedEnds[id]||[];return {...out,ends:[...out.ends,...extra.filter(a=>!out.ends.some(b=>b.key===a.key))]};}
-import {repairPaths} from './template-masks.mjs?v=20261115-20';
-import {pathHash,validateDetails} from './template-text.mjs?v=20261115-20';
-import {frame,macroScale} from './alignment.mjs?v=20261115-20';
-import {MM,pathAt,localPoint} from './geometry.mjs?v=20261115-20';
+import {repairPaths} from './template-masks.mjs?v=20261115-21';
+import {pathHash,validateDetails} from './template-text.mjs?v=20261115-21';
+import {frame,macroScale} from './alignment.mjs?v=20261115-21';
+import {MM,pathAt,localPoint} from './geometry.mjs?v=20261115-21';
 const safePath=/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/;
 export function validateTemplate(raw){
  const fail=()=>{throw Error('Ungültige Vorlage');};
