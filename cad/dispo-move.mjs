@@ -1,5 +1,5 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261115-23';
-import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-23';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261115-24';
+import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-24';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 const fusePart=e=>['fuse','neutral-disconnector'].includes(e.dispoKind);

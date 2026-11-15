@@ -12,3 +12,10 @@ export function groupRseFuses(devices){
   d.measurementOwner=candidates[0].measurementOwner;d.meterSource=candidates[0].source;
  }
 }
+
+// AP 125's library envelope includes an external BMK above the case.
+// Align its actual case and fuse centre, not that text-inclusive envelope.
+export function apGeometry(d){
+ if(d.dispoTemplateId==='tl-0608'||d.template?.id==='tl-0608')return {left:d.width*198/4549,width:d.width*3898/4549,centerY:d.height*6012/10000};
+ return {left:0,width:d.width,centerY:d.height/2};
+}
