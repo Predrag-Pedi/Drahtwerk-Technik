@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261115-20';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261115-20';
+import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261115-21';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261115-21';
 // Only a proven capacity failure may offer a reduction; never change the
 // saved page or reserve until the complete alternative has been approved.
 export async function editAutomaticDispo(doc,p,apply,confirmReduction=()=>false,build=null){
@@ -29,7 +29,7 @@ export function editSiteSettings(p,showForm,apply){
  const c={...defaultConfig(),...p.dispoConfig};
  showForm('Einbaumasse / Reserve',[
   {key:'distributionType',label:'Verteilungsart',value:c.distributionType,options:Object.entries(distributionTypes).map(([key,label])=>[key,key==='sbr'?label:label+' – noch nicht konfiguriert'])},
-  {key:'supportSpacing185',label:'Max. Trägerabstand Vertigroup 185 mm (0 = noch offen)',value:c.supportSpacing185,type:'number',min:0,max:5000},
+  {key:'supportSpacing185',label:'Max. Trägerabstand Vertigroup 185 mm (max. 1000 mm)',value:c.supportSpacing185,type:'number',min:56,max:1000},
   ...[['maxWidth','Max. Einbaubreite gesamt (mm)',c.maxWidth||c.width,10000],['maxHeight','Max. Einbauhöhe (mm)',c.maxHeight||c.height,4000],['maxDepth','Max. Einbautiefe (mm, 0 = offen)',c.maxDepth||0,1500],['passageWidth','Durchgangsbreite, aufrecht (mm, 0 = offen)',c.passageWidth||0,10000],['passageHeight','Durchgangshöhe, aufrecht (mm, 0 = offen)',c.passageHeight||0,4000],['reserveMeters','Reserve-Zählerplätze gesamt (inkl. Schema)',c.reserveMeters||0,120]].map(([key,label,value,max])=>({key,label,value,type:'number',min:0,max}))
  ],data=>{
   const next=validateDispoConfig({...c,distributionType:data.distributionType??c.distributionType,supportSpacing185:Number(data.supportSpacing185??c.supportSpacing185),autoSize:true,...Object.fromEntries(['maxWidth','maxHeight','maxDepth','passageWidth','passageHeight','reserveMeters'].map(k=>[k,Number(data[k])]))});

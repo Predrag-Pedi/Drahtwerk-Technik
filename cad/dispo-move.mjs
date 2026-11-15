@@ -1,8 +1,9 @@
-import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-20';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261115-21';
+import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261115-21';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 const fusePart=e=>['fuse','neutral-disconnector'].includes(e.dispoKind);
-const fuseCompanions=(p,e)=>e.fuseSystem&&e.fuseSystem!=='conventional'&&fusePart(e)?p.elements.filter(q=>fusePart(q)&&JSON.stringify(q.dispoSource)===JSON.stringify(e.dispoSource)):[];
+const fuseCompanions=(p,e)=>fullBodyFuse(e)&&fusePart(e)?p.elements.filter(q=>fusePart(q)&&JSON.stringify(q.dispoSource)===JSON.stringify(e.dispoSource)):[];
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
 export function dispoGroup(p,id){const e=p.elements.find(e=>e.id===id);if(e&&fuseCompanions(p,e).length)return fuseCompanions(p,e);if(e?.measurementOwner){const meter=p.elements.find(q=>q.dispoKind==='meter'&&q.measurementOwner===e.measurementOwner);return meter?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):[e];}if(e?.frameStyle==='incoming-terminal')return [e,...incomingCompanions(p,e)];if(!device(e||{})||e.dispoKind==='meter')return e?[e]:[];return p.elements.filter(q=>device(q)&&q.dispoKind!=='meter'&&q.frameStyle===e.frameStyle&&Math.abs(q.y-e.y)<.1&&(e.circuitName?q.circuitName===e.circuitName:q.dispoSource.element===e.dispoSource.element&&q.dispoSource.page===e.dispoSource.page));}
 export function moveDispoElements(p,ids,dx,dy){
@@ -90,7 +91,7 @@ function reflowBottom(p,preferred=new Map(),blocks=new Map()){
   const groups=new Map();for(const e of fuses){const key=JSON.stringify(e.dispoSource)||e.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(e);}
   const top=Math.min(...fuses.map(e=>e.y)),bottom=Math.max(...fuses.map(e=>e.y+e.height*f));
   const obstacles=p.elements.filter(e=>within(e)&&device(e)&&!fusePart(e)&&e.y<bottom&&e.y+e.height*f>top).map(e=>({x:blocks.get(e)??e.x,width:e.width*f}));
-  const partitions=new Map();for(const group of groups.values()){const system=group[0].fuseSystem||'conventional';if(!partitions.has(system))partitions.set(system,[]);partitions.get(system).push(group);}
+  const partitions=new Map();for(const group of groups.values()){const system=group[0].frameStyle?.startsWith('fuse-system:')?group[0].frameStyle.slice(12):group[0].fuseSystem||'conventional';if(!partitions.has(system))partitions.set(system,[]);partitions.get(system).push(group);}
   for(const [system,sets] of partitions){
    const rails=(c.dispoStructure||[]).filter(r=>r.frameStyle==='fuse-system:'+system&&r.profile==='copper');
    const left=rails.length?c.x+Math.min(...rails.map(r=>r.x))*f:c.x+12*f,right=rails.length?c.x+Math.max(...rails.map(r=>r.x+r.width))*f:c.x+(c.width-12)*f;

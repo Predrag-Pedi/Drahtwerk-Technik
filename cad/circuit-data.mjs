@@ -1,6 +1,6 @@
-import {fuseLimits} from './fuse-systems.mjs?v=20261115-20';
-import {BUS} from './geometry.mjs?v=20261115-20';
-import {ports,wirePoints} from './model.mjs?v=20261115-20';
+import {fuseLimits} from './fuse-systems.mjs?v=20261115-21';
+import {BUS} from './geometry.mjs?v=20261115-21';
+import {ports,wirePoints} from './model.mjs?v=20261115-21';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -14,7 +14,7 @@ export function fuseRating(text,ratedCurrent,system='conventional',override='aut
  const raw=String(text).match(/\b(?:NH|DIN)\s*(000|00|[123])\b/i)?.[1];
  const explicit=raw?'NH'+raw:/\bD\s*III\b/i.test(text)?'DIII':/\bD\s*II\b/i.test(text)?'DII':'';
  const current=unique.length===1?unique[0]:null;
- const inferred=current!==null?Object.keys(fuseLimits).find(k=>current<=fuseLimits[k]&&(k!=='NH000'||system==='silas60')&&(!['DII','DIII'].includes(k)||system!=='vertigroup185'))||'':'';
+ const inferred=current!==null?Object.keys(fuseLimits).find(k=>current<=fuseLimits[k]&&(k!=='NH000'||system!=='vertigroup185')&&(!['DII','DIII'].includes(k)||system!=='vertigroup185'))||'':'';
  let fuseType=override!=='auto'?override:explicit||inferred;if(system==='vertigroup185'&&fuseType==='NH000')fuseType='NH00';
  return {current,fuseType,ratingInferred:!explicit&&override==='auto',conflict:unique.length>1||!fuseLimits[fuseType]||current>fuseLimits[fuseType]};
 }
