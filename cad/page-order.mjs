@@ -1,4 +1,5 @@
-import {functionBmk} from './references.mjs?v=20261116-14';
+import {normalizePageTitle} from './page-titles.mjs?v=20261116-15';
+import {functionBmk} from './references.mjs?v=20261116-15';
 
 // Page IDs remain stable: links and device ownership survive reordering.
 export function reconcilePageOrder(doc,before,{repair=false}={}){
@@ -14,6 +15,7 @@ export function reconcilePageOrder(doc,before,{repair=false}={}){
   if(numbers[doc.pages.length-1]>9999)throw Error('Maximale Blattnummer 9999 erreicht.');
   doc.pages.forEach((p,i)=>p.number=numbers[i]);
  }
+ for(const p of doc.pages)normalizePageTitle(p);
  const oldPages=new Map(before.pages.map(p=>[p.id,p]));
  for(const p of doc.pages){
   const oldNumber=oldPages.get(p.id)?.number??originalNumbers.get(p.id);if(oldNumber===p.number||p.type!=='schema')continue;
