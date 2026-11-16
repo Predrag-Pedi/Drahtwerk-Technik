@@ -1,5 +1,5 @@
-import {fieldLayout} from './field-layout.mjs?v=20261116-8';
-import {systemLayout} from './system-layout.mjs?v=20261116-8';
+import {fieldLayout} from './field-layout.mjs?v=20261116-9';
+import {systemLayout} from './system-layout.mjs?v=20261116-9';
 // Public Almatec configurator, checked 2026-11-16. Custom reference cabinets
 // are not silently promoted to catalogue sizes. All dimensions are outer mm.
 export const anWidths=[400,500,600,700,750,800,850,900,1000,1100,1150,1200,1300,1400,1500,1550,1600,1700,1800,1900,2000];

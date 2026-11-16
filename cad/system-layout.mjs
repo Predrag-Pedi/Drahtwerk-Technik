@@ -1,6 +1,6 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-8';
-import {frameLayout} from './frame-layout.mjs?v=20261116-8';
-import {fieldLayout} from './field-layout.mjs?v=20261116-8';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-9';
+import {frameLayout} from './frame-layout.mjs?v=20261116-9';
+import {fieldLayout} from './field-layout.mjs?v=20261116-9';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.
@@ -13,8 +13,9 @@ export function systemLayout(devices,c){
  if(!devices.some(d=>d.include!==false&&onSmissline(d)))return frameLayout(devices,c);
  if(c.fields>1)return fieldLayout(devices,c,systemLayout);
  const active=devices.filter(d=>d.include!==false),smiss=active.filter(onSmissline),other=active.filter(d=>!onSmissline(d));
+ const top=other.length?c.topHeight:20;
  const groups=new Map();for(const d of smiss){const key=JSON.stringify([d.circuitName||d.supplyKey||JSON.stringify(d.source),d.feedFrom,d.feedCurrent]);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(d);}
- const availableHeight=c.height-c.topHeight-20-(other.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0),railOptions=smisslineRails.filter(r=>r.length<=availableHeight);
+ const availableHeight=c.height-top-20-(other.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0),railOptions=smisslineRails.filter(r=>r.length<=availableHeight);
  if(!railOptions.length)return {parts:[],placed:[],overflow:smiss};
  const max=railOptions.at(-1),lanes=[];
  // Feeders and half-PE pairs are included in the same capacity calculation.
@@ -41,11 +42,11 @@ export function systemLayout(devices,c){
  if(base.overflow.length)return base;
  const perimeter=p=>['SP165','SP45','SP09048','EV165'].includes(p.profile);
  const fullFrame=frameLayout([],{...c,fields:1,fieldWidths:undefined});
- const parts=[...base.parts.filter(p=>!perimeter(p)),...fullFrame.parts.filter(p=>perimeter(p)||!other.length&&['AS50','AS35'].includes(p.profile)&&p.y<c.topHeight)],placed=[...base.placed];
+ const parts=[...base.parts.filter(p=>!perimeter(p)),...fullFrame.parts.filter(p=>perimeter(p))],placed=[...base.placed];
  const start=other.length?remaining:4;
- for(let i=0;i<columns.length;i+=2){const x=start+(i+1)*columnWidth+(i/2)*ductWidth,height=Math.max(columns[i].height,columns[i+1]?.height||0);parts.push({kind:'duct',profile:'wire-basket',x,y:c.topHeight,width:ductWidth,height,depth:60,mountZ:-100,drawingLabel:`Gitterbahn ${ductWidth}`});}
+ for(let i=0;i<columns.length;i+=2){const x=start+(i+1)*columnWidth+(i/2)*ductWidth,height=Math.max(columns[i].height,columns[i+1]?.height||0);parts.push({kind:'duct',profile:'wire-basket',x,y:top,width:ductWidth,height,depth:60,mountZ:-100,drawingLabel:`Gitterbahn ${ductWidth}`});}
  for(let i=0;i<columns.length;i++)for(const lane of columns[i].lanes){
-  const r=lane.rail,x=start+i*columnWidth+Math.ceil(i/2)*ductWidth,y=c.topHeight+lane.offset;
+  const r=lane.rail,x=start+i*columnWidth+Math.ceil(i/2)*ductWidth,y=top+lane.offset;
   parts.push({kind:'rail',profile:'smissline',dispoTemplateId:r.id,x:x+15,y,width:r.width,height:r.length,depth:30,mountZ:-100,drawingLabel:`${r.me} PE · belegt ${lane.capacity.occupied} · frei ${r.me-lane.capacity.occupied}`,smisslinePE:r.me,occupiedPE:lane.capacity.occupied,requiredReservePE:lane.capacity.spare});
   let offset=20;
   for(const d of lane.feed){placed.push({...d,x:x+20,y:y+offset});offset+=d.height;}
