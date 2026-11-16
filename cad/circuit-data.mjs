@@ -1,7 +1,7 @@
-import {isRse} from './rse.mjs?v=20261116-11';
-import {fuseLimits} from './fuse-systems.mjs?v=20261116-11';
-import {BUS} from './geometry.mjs?v=20261116-11';
-import {ports,wirePoints} from './model.mjs?v=20261116-11';
+import {isRse} from './rse.mjs?v=20261116-12';
+import {fuseLimits} from './fuse-systems.mjs?v=20261116-12';
+import {BUS} from './geometry.mjs?v=20261116-12';
+import {ports,wirePoints} from './model.mjs?v=20261116-12';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');

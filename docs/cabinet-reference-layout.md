@@ -103,3 +103,11 @@ Erneut visuell geprüft wurden AU-00698 Blatt 2, die unter AU-00368 abgelegte UV
 - Ohne Zusatzgeräte/Klemmen bleibt der direkte kompakte Smissline-Aufbau unverändert. Für Zähler- oder separate Sicherungssysteme gilt weiterhin deren eigener Montageaufbau.
 
 Validierung: Reihenfolge links/rechts, gedrehte Geräte, Anschlussfreiraum, Reserve, Sichtbarkeit der DIN-Schienen in 2D und vertikale Kanalgeometrie in 3D getestet. Die gerasterte 125-A-Disposition wurde visuell geprüft.
+
+## Montageabzüge unter der Smissline-Bahn
+
+Neue ausdrückliche Werkstattvorgabe: je Ende 20 mm Eckwinkel + 25 mm Wandbefestigungswinkel. Die tragende senkrechte DIN-Schiene unter der Smissline beginnt daher 45 mm unter der Oberkante und endet 45 mm über der Unterkante; Länge = Rahmenhöhe minus 90 mm. Unter jeder Smissline-Bahn kommt ein 25-mm-Stützwinkel hinzu. Ohne weitere Einbauten beträgt die maximal verfügbare Bahnlänge damit Rahmenhöhe minus 115 mm. Der zusätzliche Platz für Einspeiseklemmen wird weiterhin abgezogen. Bei Schränken wird diese Regel auf den nutzbaren Innenrahmen angewendet, nicht nochmals auf den bereits abgezogenen Schrankkorpus.
+
+Tragende DIN-Schienen und Stützwinkel gehören zur 2D-/3D-Struktur. Der Winkel wird als vereinfachte L-Geometrie dargestellt; Eck- und Wandbefestigungswinkel werden über die bestätigten Montageabstände berücksichtigt, ohne einen unbestätigten Detailartikel zu erfinden. Bei gestapelten Bahnen erhält jede Bahn einen eigenen Stützwinkel; der Zwischenraum bleibt mindestens 50 mm.
+
+Diese Montageabzüge ersetzen die frühere pauschale 20-mm-Randannahme für die Smissline-Bahn. Sie zählen nicht als Geräte- oder PE-Reserve. Das Beispiel mit 76-PE-Bahn und 1410 mm Originalbahnlänge benötigt nun 1525 mm Rahmenhöhe statt 1450 mm. Grenztest: 20-PE-Bahn mit 401 mm Gesamtlänge passt ab 516 mm Rahmenhöhe; bei 515 mm bleibt die volle 20-%-Reserve unerfüllbar. Eine Reserveverkleinerung benötigt weiterhin Zustimmung.
