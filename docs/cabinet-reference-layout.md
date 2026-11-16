@@ -65,3 +65,14 @@ Die folgenden Angaben ersetzen die entsprechenden offenen Punkte oben:
 - Regression: vier kurze getrennte Einspeisegruppen passen mit gemeinsamer Gitterbahn in 758 × 1520 mm, statt vier ganze Spalten zu verlangen. Gruppen werden elektrisch nicht verbunden.
 - Eine getestete echte Kapazitätsgrenze (16 belegte PE, 508 × 700 mm) bietet eine Reduktion von 20 auf 12 % erst nach Zustimmung an. Ablehnen verändert weder Dispo noch Reserve.
 - 2D-SVG gerastert und visuell geprüft; Gitter und PE-Metadaten sowie offene 3D-Geometrie über Speichern/Laden getestet. Der Screenshot des Benutzers enthält keine Geräte-/Projektdatei; genau dieses konkrete Projekt konnte daher nicht reproduziert werden.
+
+
+## Nachbildung des gemeldeten Smissline-Projekts
+
+Die nachgereichte Raster-PDF «Smissline - Schema und Dispo.pdf» enthält auf Blatt 10 einen 63-A-Hauptschalter, Eingangsklemmen und SPD; Blatt 11–16 jeweils drei FI/LS, Blatt 17/18 jeweils drei LS, Blatt 19/20 je einen LS. Im Screenshot: SBR, max. 1008 × 2000 mm, Durchgang 2000 × 2000 mm, keine Zählerreserve, Smissline, Gitterbahn 200. Die Test-Fixture bildet diese Geräte mit Originalmakros und dem 63-A-Schalter nach; sie ersetzt keine aus dem Editor exportierte Projektdatei und enthält keine aus der PDF nicht ersichtlichen Einstellungen.
+
+Ursache: Unbenannte Abgänge erhielten bisher `bus:<page>` als Einspeisegruppe, also eine zusätzliche Bahn/Einspeisung je Schemaseite. Beim globalen Smissline-Aufbau mit genau einem Eingang und genau einem Hauptschalter auf derselben Seite, ohne Zähler- oder Sicherungsabgangsgruppen, wird nun eine gemeinsame Eingangsgruppe verwendet. Seitenkopien erzeugen damit keine künstlichen elektrischen Gruppen. Explizite Quellsicherungen, benannte Gruppen, mehrere Eingänge/Hauptschalter und Zähler-/Sicherungsgruppen werden nicht zusammengefasst. Das Schema selbst wird nicht umverdrahtet.
+
+Ist der Hauptschalter mit auf der Smissline-Bahn, wird deren Einspeisung mit der Eingangsklemme bezeichnet; sonst mit dem vorgeschalteten Hauptschalter. Der eindeutig erkannte Hauptschalterstrom steht auch ohne ausgefüllten Projekt-Bemessungsstrom zur Verfügung.
+
+Die Nachbildung passt mit unveränderten 20 % Reserve in ein Feld 1008 × 1520 mm: zwei Originalbahnen mit je 42 PE (34 belegt, 8 frei), zwei Einspeiseblöcke und eine Gitterbahn 200 mm. Der Regressionstest prüft sämtliche 29 Hauptgeräte (18 FI/LS, 8 LS, Hauptschalter, SPD, Eingang), Speichern sowie das Ausbleiben einer Reserve-Reduktionsfrage. Vier zusätzliche Tests decken die Abgrenzung zu getrennten Einspeisungen ab. Die erzeugte Dispo wurde gerastert und visuell geprüft.
