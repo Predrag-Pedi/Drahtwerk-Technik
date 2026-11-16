@@ -30,13 +30,13 @@ Kundenspezifische Breiten/Höhen wie 825/1125 mm oder 1800/2200 mm Korpus sind k
 
 ## Smissline und Grenzen
 
-- LS 1–4-polig aus Originalvorlagen tl-0629 bis tl-0632. Originale `Schiene ..ME` werden um 90° gedreht, nicht auf eine erfundene Länge skaliert.
+- LS/FILS mit den bestätigten LS-Automaten-I-Grafikkörpern, Zubehör und Einspeisung gemäss Werkstattregeln unten. Originale `Schiene ..ME` werden um 90° gedreht, nicht auf eine erfundene Länge skaliert.
 - Gesamtmass aus ABB-Tabelle; bei Differenzen bis 2 mm wird das grössere ABB-Mass für die Platzprüfung reserviert. 48/50-ME-Vorlagen sind wegen grösserer Abweichung ausgeschlossen. 110 ME ist nicht in der bereitgestellten Tabelle enthalten und wird nicht automatisch gewählt.
-- Pro Bahn 250 mm Planungsbreite mit seitlichem 50-mm-Verdrahtungskanal. 72 mm Einspeiseplatz werden freigehalten; die konkrete Smissline-Einspeisebaugruppe und ihre Strombemessung sind noch nicht zugeordnet/gezeichnet. Dies ist eine Platzreservierung, kein elektrischer Nachweis.
+- Jede Bahn erhält ihre Länge aus belegten ganzen PE einschliesslich Einspeisung und Zubehör plus aufgerundeter Geräte-Platzreserve. Es wird die kleinste passende Originalbahn gewählt. Kurze, separat eingespeiste Bahnen dürfen mit 50 mm Planungsabstand untereinander liegen. Pro Spalte sind 200 mm für die Bahn vorgesehen; je zwei Spalten teilen sich eine Gitterbahn (200 mm, alternativ 300 mm in Einbaumasse / Reserve). Das gesamte Paket bleibt auf dem 250-mm-Rahmenraster. Gittergeometrie: offenes Planungsmodell mit 60 mm Tiefe und 25/50-mm-Zeichenraster, keine herstellerspezifische Fertigungszeichnung.
 - Die gewünschte Geräte-Platzreserve wird mitgerechnet. Die bestehende Rückfrage vor Reduktion bleibt bestehen. Reserve-Zählerplätze werden nicht reduziert.
 - Explizite Geräte-Systeme im Schema haben Vorrang vor der globalen Vorgabe. Damit bleiben gemischte konventionelle, Silas-, Vertigroup- und Smissline-LS-Aufbauten möglich.
-- **Smissline-FILS sind noch gesperrt:** Die ausdrücklich als Smissline bezeichnete Vorlage tl-0628 ist ein FI, kein FILS. Eine passende FILS-Vorlage/Artikelzuordnung ist noch zu bestätigen. Keine automatische Substitution eines FI für einen FILS.
-- Bestehende Einspeisblock-Automatik ist weiterhin auf die eindeutig zugeordneten 100-/160-A-Vorlagen begrenzt. Für grössere Bemessungsströme fehlt eine bestätigte Einspeisebaugruppe.
+- FILS verwenden die vom Benutzer bestätigten LS-Automaten-I-Grafikkörper; die Gerätesemantik bleibt FILS. Die FI-Vorlage tl-0628 wird nicht dafür verwendet.
+- Konventionelle Einspeisblöcke bleiben auf die eindeutig zugeordneten 100-/160-A-Vorlagen begrenzt. Smissline verwendet die unten bestätigten 4-PE- bzw. 2-PE-je-Phase-Baugruppen.
 - Feldverteiler und Uniway bleiben gesperrt. Sondergehäuse, horizontale Smissline und vollständige Hersteller-Innenausbausätze sind nicht enthalten.
 
 ## Prüfung
@@ -55,3 +55,13 @@ Die folgenden Angaben ersetzen die entsprechenden offenen Punkte oben:
 - Smissline-Einspeiseblock bis einschliesslich 160 A: 4 PE, Vorlage «LS 4P Smissline-S vertikal». Darüber: je 2 PE für L1/L2/L3/N, viermal «LS 2P Smissline-S vertikal». Die Zuordnung dieser grafischen Ersatzkörper wurde ausdrücklich vom Benutzer vorgegeben. Quellsicherung wird beschriftet; bei uneindeutiger Herkunft kann ihre BMK und der Einspeisestrom im Schema angegeben werden. Keine Stromsummierung der Abgänge.
 - SPD wird bei globalem Smissline-Aufbau aus der normalen SPD-Vorlage auf der Bahn angeordnet. Hauptschalter bis 63 A nutzt den vorgegebenen 4-poligen Grafikkörper, bleibt semantisch ein Schalter. Oberhalb 63 A wird die passende konventionelle Lasttrenner-Vorlage gewählt; dieselbe Zuordnung gilt für konventionelle Hauptschalter.
 - Die Regel ist eine Umsetzung der genannten Drahtwerk-Aufbauvorgaben; keine neue pauschale Herstellerfreigabe beliebiger Artikelkombinationen.
+
+
+## Ergänzung 16.11.2026: PE-Reserve und Gitterbahn
+
+- Referenz AU-00698/S-00698, Blatt 2: senkrechte Bahnen, mehrere Bahnen untereinander und zentrale Gitterbahn 300. Weitere Vorlagen enthalten Gitterbahn 200. Die Auswahl 200/300 zählt vollständig zur benötigten Einbaubreite.
+- Beispiel: 6 Geräte à 2 PE + Einspeisung 4 PE = 16 belegte PE. 20 % ergeben aufgerundet 4 Reserve-PE; gewählt wird eine 20-PE-Bahn (401 mm inklusive Endstücke).
+- Die Beschriftung zeigt Gesamt-PE, belegte PE und tatsächlich freie PE. Bibliotheksstufen können mehr freie PE ergeben als verlangt.
+- Regression: vier kurze getrennte Einspeisegruppen passen mit gemeinsamer Gitterbahn in 758 × 1520 mm, statt vier ganze Spalten zu verlangen. Gruppen werden elektrisch nicht verbunden.
+- Eine getestete echte Kapazitätsgrenze (16 belegte PE, 508 × 700 mm) bietet eine Reduktion von 20 auf 12 % erst nach Zustimmung an. Ablehnen verändert weder Dispo noch Reserve.
+- 2D-SVG gerastert und visuell geprüft; Gitter und PE-Metadaten sowie offene 3D-Geometrie über Speichern/Laden getestet. Der Screenshot des Benutzers enthält keine Geräte-/Projektdatei; genau dieses konkrete Projekt konnte daher nicht reproduziert werden.
