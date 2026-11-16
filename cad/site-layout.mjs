@@ -1,4 +1,5 @@
-import {frameLayout} from './frame-layout.mjs?v=20261116-1';
+import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261116-3';
+import {systemLayout} from './system-layout.mjs?v=20261116-3';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;
@@ -7,6 +8,7 @@ export function reserveMeters(devices,count,pageId){
 // Dimensions are clear usable limits. Upright transport only; no assumption
 // about tilting, turns or removal of components. Every frame adds its own 8 mm.
 export function siteConfig(devices,c){
+ if(isCabinet(c))return cabinetSiteConfig(devices,c);
  if(!c.autoSize)return c;
  const depth=Math.max(165,...devices.filter(d=>d.include!==false).map(d=>Number(d.depth)||0));
  if(c.maxDepth&&depth>c.maxDepth)throw Error('Benötigte Rahmentiefe überschreitet die maximale Einbautiefe.');
@@ -25,7 +27,7 @@ export function siteConfig(devices,c){
    // Balanced first, with a wider leading field when needed for incoming gear.
    const options=[balanced,[...balanced].reverse()];let remaining=cols;const wide=[];for(let i=0;i<fields;i++){const n=Math.min(perField,remaining-(fields-i-1));wide.push(n);remaining-=n;}options.push(wide,[...wide].reverse());
    for(const height of heights)for(const cells of options){if(devices.filter(d=>d.kind==='meter').length>cols*Math.min(3,Math.floor((height-c.topHeight-20)/400)))continue;if(Math.max(...cells)>perField)continue;const fieldWidths=cells.map(n=>n*250+8),candidate={...c,_preferLocal:local,_upperDevices:upper,construction:'drahtwerk',width:fieldWidths.reduce((a,b)=>a+b,0),height,fields,fieldWidths};
-    try{if(!frameLayout(devices,candidate).overflow.length)return candidate;}catch{}
+    try{if(!systemLayout(devices,candidate).overflow.length)return candidate;}catch{}
    }
   }
  }

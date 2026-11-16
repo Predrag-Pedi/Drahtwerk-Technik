@@ -1,7 +1,9 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-1';
-import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261116-1';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-3';
+import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261116-3';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
+// Apparatus belongs to the mounting frame, not the outer enclosure wall.
+const innerEdge=c=>c.frameStyle?.startsWith('almatec-')?(c.width-(Math.floor((c.width-128)/250)*250+8))/2:0;
 const fusePart=e=>['fuse','neutral-disconnector'].includes(e.dispoKind);
 const fuseCompanions=(p,e)=>fullBodyFuse(e)&&fusePart(e)?p.elements.filter(q=>fusePart(q)&&JSON.stringify(q.dispoSource)===JSON.stringify(e.dispoSource)):[];
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
@@ -79,7 +81,7 @@ export function alignMeterFuses(p){
   const center=meter.x+meter.width*f/2,cabinet=p.elements.find(c=>c.kind==='cabinet'&&center>=c.x&&center<c.x+c.width*f&&meter.y>=c.y&&meter.y<c.y+c.height*f);
   const column=meters.filter(m=>Math.abs(m.x+m.width*f/2-center)<.1&&(!cabinet||m.y>=cabinet.y&&m.y<cabinet.y+cabinet.height*f)).sort((a,b)=>b.y-a.y);
   const width=Math.max(e.width,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(e.meterSource)).map(q=>q.width));
-  positions.set(e,Math.max(cabinet?cabinet.x+12*f:-Infinity,center+feederOffset(column.map(m=>Math.max(0,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(m.dispoSource)).map(q=>q.width))),column.indexOf(meter))*f));
+  positions.set(e,Math.max(cabinet?cabinet.x+(innerEdge(cabinet)+12)*f:-Infinity,center+feederOffset(column.map(m=>Math.max(0,...p.elements.filter(q=>q.dispoKind==='fuse'&&JSON.stringify(q.meterSource)===JSON.stringify(m.dispoSource)).map(q=>q.width))),column.indexOf(meter))*f));
  }
  reflowBottom(p,positions);
 }
@@ -94,7 +96,7 @@ function reflowBottom(p,preferred=new Map(),blocks=new Map()){
   const partitions=new Map();for(const group of groups.values()){const system=group[0].frameStyle?.startsWith('fuse-system:')?group[0].frameStyle.slice(12):group[0].fuseSystem||'conventional';if(!partitions.has(system))partitions.set(system,[]);partitions.get(system).push(group);}
   for(const [system,sets] of partitions){
    const rails=(c.dispoStructure||[]).filter(r=>r.frameStyle==='fuse-system:'+system&&r.profile==='copper');
-   const left=rails.length?c.x+Math.min(...rails.map(r=>r.x))*f:c.x+12*f,right=rails.length?c.x+Math.max(...rails.map(r=>r.x+r.width))*f:c.x+(c.width-12)*f;
+   const left=rails.length?c.x+Math.min(...rails.map(r=>r.x))*f:c.x+(innerEdge(c)+12)*f,right=rails.length?c.x+Math.max(...rails.map(r=>r.x+r.width))*f:c.x+(c.width-innerEdge(c)-12)*f;
    const banks=sets.map(group=>{const start=Math.min(...group.map(e=>e.x));return {key:group,width:Math.max(...group.map(e=>e.x+e.width*f))-start,preferred:(preferred.get(group[0])??group[0].x)-(group[0].x-start)};}).sort((a,b)=>a.preferred-b.preferred);
    const fitted=packFeederBanks(banks,left,right,obstacles);
    if(!fitted)throw Error('Kein Platz für Einspeisblöcke und Bezügersicherungen innerhalb des vorhandenen Schienenbereichs.');
@@ -109,7 +111,7 @@ export function updateIncomingRails(p){
  for(const c of p.elements.filter(e=>e.dispoStructure))for(const r of c.dispoStructure){
   if(!r.frameStyle?.startsWith('incoming:'))continue;
   const owner=p.elements.find(e=>e.frameStyle==='incoming-terminal'&&e.dispoSource?.element===r.frameStyle.slice(9));if(!owner)continue;
-  const center=(owner.x-c.x)/f+owner.width/2,edge=center<c.width/2?c.width-40:40;
+  const center=(owner.x-c.x)/f+owner.width/2,edge=center<c.width/2?c.width-innerEdge(c)-40:innerEdge(c)+40;
   r.x=Math.min(center,edge);r.width=Math.max(1,Math.abs(center-edge));r.y=(owner.y-c.y)/f+owner.height*.55;
  }
 }
@@ -125,9 +127,9 @@ export function updateSupplyBlocks(p){
   const within=e=>e.x>=c.x-.01&&e.x<c.x+c.width*f&&e.y>=c.y&&e.y<c.y+c.height*f;
   const input=p.elements.find(e=>e.frameStyle==='incoming-terminal'&&within(e));if(!input)continue;
   for(const b of p.elements.filter(e=>e.dispoSource?.element==='incoming-supply'&&within(e))){
-   const preferred=c.x+(input.x+input.width*f/2<c.x+c.width*f/2?21:c.width-21-b.width)*f;
+   const preferred=c.x+(input.x+input.width*f/2<c.x+c.width*f/2?innerEdge(c)+21:c.width-innerEdge(c)-21-b.width)*f;
    const obstacles=p.elements.filter(e=>e!==b&&within(e)&&device(e)&&e.dispoKind!=='fuse'&&e.y<b.y+b.height*f&&e.y+e.height*f>b.y).map(e=>({x:positions.get(e)??e.x,width:e.width*f}));
-   const fitted=packFeederBanks([{key:b,width:b.width*f,preferred}],c.x+12*f,c.x+(c.width-12)*f,obstacles);
+   const fitted=packFeederBanks([{key:b,width:b.width*f,preferred}],c.x+(innerEdge(c)+12)*f,c.x+(c.width-innerEdge(c)-12)*f,obstacles);
    if(!fitted)throw Error('Kein Platz für Einspeisblöcke innerhalb der vorhandenen Feldbreite.');positions.set(b,fitted.get(b));
   }
  }
