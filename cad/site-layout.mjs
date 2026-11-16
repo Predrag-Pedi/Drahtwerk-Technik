@@ -1,4 +1,4 @@
-import {frameLayout} from './frame-layout.mjs?v=20261115-25';
+import {frameLayout} from './frame-layout.mjs?v=20261116-1';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;
@@ -10,6 +10,7 @@ export function siteConfig(devices,c){
  if(!c.autoSize)return c;
  const depth=Math.max(165,...devices.filter(d=>d.include!==false).map(d=>Number(d.depth)||0));
  if(c.maxDepth&&depth>c.maxDepth)throw Error('Benötigte Rahmentiefe überschreitet die maximale Einbautiefe.');
+ if(c.passageDepth&&depth>c.passageDepth)throw Error('Benötigte Tiefe überschreitet die maximale Transporttiefe.');
  c={...c,depth};
  if(!(c.maxWidth>=258&&c.maxHeight>=400))throw Error('Maximale Einbaubreite und Einbauhöhe eingeben.');
  const maxH=Math.min(c.maxHeight,c.passageHeight||c.maxHeight),maxW=Math.min(c.maxWidth,c.passageWidth||c.maxWidth),perField=Math.floor((maxW-8)/250);

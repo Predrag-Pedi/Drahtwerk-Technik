@@ -45,3 +45,6 @@ test('conventional larger sizes reuse the confirmed originals with real dimensio
  Object.assign(p,{elements:g.elements,scale:g.scale,dispoConfig:g.config});const n=p.elements.find(e=>e.dispoKind==='neutral-disconnector'),a=nh[0],dy=n.y-a.y,dx=n.x-a.x;
  const {moveDispoElements}=await import('../cad/dispo-move.mjs');moveDispoElements(p,new Set([a.id]),3,0);assert.equal(n.y-a.y,dy);assert.ok(Math.abs(n.x-a.x-dx)<1e-6);
 });
+test('global 60/185 mm selection controls fuse originals while standard preserves per-device choices',async()=>{
+ for(const [buildSystem,expected]of [['standard','tl-0580'],['silas60','tl-0669'],['vertigroup185','tl-0680']]){const {d,p}=fixture('conventional',['DIN00 160A'],{buildSystem});const g=await buildAutomaticDispo(d,p,fetcher);assert.equal(g.elements.find(e=>e.dispoKind==='fuse').template.id,expected);}
+});
