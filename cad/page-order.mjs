@@ -1,4 +1,4 @@
-import {functionBmk} from './references.mjs?v=20261116-7';
+import {functionBmk} from './references.mjs?v=20261116-8';
 
 // Page IDs remain stable: links and device ownership survive reordering.
 export function reconcilePageOrder(doc,before,{repair=false}={}){

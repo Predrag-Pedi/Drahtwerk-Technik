@@ -1,6 +1,6 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-7';
-import {frameLayout} from './frame-layout.mjs?v=20261116-7';
-import {fieldLayout} from './field-layout.mjs?v=20261116-7';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-8';
+import {frameLayout} from './frame-layout.mjs?v=20261116-8';
+import {fieldLayout} from './field-layout.mjs?v=20261116-8';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.
@@ -20,8 +20,9 @@ export function systemLayout(devices,c){
  // Feeders and half-PE pairs are included in the same capacity calculation.
  for(const ds of groups.values()){
   const feed=smisslineFeed(ds[0]),feedLength=feed.reduce((n,d)=>n+d.height,0);
-  let lane={blocks:[],feed,used:feedLength/18};
-  for(const block of smisslineBlocks(ds)){const units=block.length/18;if(smisslineCapacity(lane.used+units,c.reserve).required>max.me){if(lane.blocks.length)lanes.push(lane);lane={blocks:[],feed,used:feedLength/18};}lane.blocks.push(block);lane.used+=units;}
+  const direct=ds.find(d=>d.directSmisslineInput),ordered=direct?[direct,...ds.filter(d=>d!==direct)]:ds;
+  let lane={blocks:[],feed:direct?[]:feed,used:direct?0:feedLength/18};
+  for(const block of smisslineBlocks(ordered)){const units=block.length/18;if(smisslineCapacity(lane.used+units,c.reserve).required>max.me){if(lane.blocks.length)lanes.push(lane);lane={blocks:[],feed,used:feedLength/18};}lane.blocks.push(block);lane.used+=units;}
   if(lane.blocks.length)lanes.push(lane);
  }
  // Size each independent rail from occupied whole PE plus the requested
