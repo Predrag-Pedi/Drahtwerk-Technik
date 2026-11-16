@@ -1,7 +1,7 @@
-import {isRse} from './rse.mjs?v=20261116-4';
-import {fuseLimits} from './fuse-systems.mjs?v=20261116-4';
-import {BUS} from './geometry.mjs?v=20261116-4';
-import {ports,wirePoints} from './model.mjs?v=20261116-4';
+import {isRse} from './rse.mjs?v=20261116-5';
+import {fuseLimits} from './fuse-systems.mjs?v=20261116-5';
+import {BUS} from './geometry.mjs?v=20261116-5';
+import {ports,wirePoints} from './model.mjs?v=20261116-5';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -33,12 +33,24 @@ export function circuitNames(doc,start){
 }
 export function circuitName(doc,start){const names=circuitNames(doc,start);return names.length===1?names[0]:'';}
 
+// Audited original SPD symbols, including CT circuits and spark gaps.
+// Stable identities survive renamed library entries and edited amp placeholders.
+const spdTemplates=new Set(['tl-0004','tl-0005','tl-0006','tl-0109','tl-0186','tl-0187','tl-0188','tl-0189','tl-0190','tl-0191']);
+export function spdFunction(e,key){
+ if(spdTemplates.has(e.template?.id))return true;
+ // This macro contains both the arrester and its separate NH00 upstream fuse.
+ if(e.template?.id==='tl-0108')return key==='120F1';
+ return null;
+}
 // Classify the selected function, not the enclosing mixed meter macro.
 export function protectionKind(e,key='$'){
  const label=e.template?.labels?.find(l=>l.key===key);
  if(e.template?label?.letter!=='F':!['fuse','ls','fils'].includes(e.kind))return '';
  const text=deviceText(e,key),name=e.template?.name||'';
- if(/SPD|Überspannungsableiter|Typ CT[12]|Surge/i.test(text+' '+name))return 'spd';
+ const knownSpd=spdFunction(e,key);
+ if(knownSpd===true)return 'spd';
+ const singleFunction=new Set((e.template?.labels||[]).filter(l=>l.letter==='F').map(l=>l.key)).size===1;
+ if(knownSpd!==false&&(/\bSPD\b|Überspannungs[-\s]*(?:ableiter|schutz)|Typ\s*CT[12]|Surge|Funkenstrecke/i.test(text)||singleFunction&&/\bSPD\b|Überspannung|Typ\s*CT[12]|Surge|Funkenstrecke/i.test(name+' '+(e.template?.group||''))))return 'spd';
  if(['ls','fils'].includes(e.kind))return e.kind;
  const single=(e.template?.labels||[]).filter(l=>l.letter==='F').length===1;
  if(/\b\d+(?:[.,]\d+)?\s*mA\b|FI.?LS/i.test(text)||single&&/FI.?LS/i.test(name))return 'fils';
