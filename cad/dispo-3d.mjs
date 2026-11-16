@@ -1,7 +1,7 @@
-import {joinDinRails} from './frame-layout.mjs?v=20261116-10';
-import {createGpuRenderer} from './dispo-gpu.mjs?v=20261116-10';
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261116-10';
-import {frameBoxes} from './frame-render.mjs?v=20261116-10';
+import {joinDinRails} from './frame-layout.mjs?v=20261116-11';
+import {createGpuRenderer} from './dispo-gpu.mjs?v=20261116-11';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261116-11';
+import {frameBoxes} from './frame-render.mjs?v=20261116-11';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];

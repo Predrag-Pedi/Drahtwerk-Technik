@@ -1,5 +1,5 @@
-import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261116-10';
-import {systemLayout,zoneFreeSmissline,smisslineRails} from './system-layout.mjs?v=20261116-10';
+import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261116-11';
+import {systemLayout,zoneFreeSmissline,smisslineRails,smisslineInputSpace} from './system-layout.mjs?v=20261116-11';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;
@@ -19,7 +19,7 @@ export function siteConfig(devices,c){
  const maxH=Math.min(c.maxHeight,c.passageHeight||c.maxHeight),maxW=Math.min(c.maxWidth,c.passageWidth||c.maxWidth),perField=Math.floor((maxW-8)/250);
  if(!perField)throw Error('Durchgang zu schmal: Ein 250er-Feld benötigt mindestens 258 mm Breite.');
  if(maxH<400)throw Error('Einbau- oder Durchgangshöhe zu klein.');
- const heights=[...new Set([1,2,3,4,5,6,7,8].map(n=>(compact?20:c.topHeight)+(!compact&&devices.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0)+20+n*400).filter(h=>h<=maxH).concat(maxH,compact?smisslineRails.map(r=>r.length+40).filter(h=>h<=maxH&&h>=400):[]))].sort((a,b)=>a-b);
+ const heights=[...new Set([1,2,3,4,5,6,7,8].map(n=>(compact?20:c.topHeight)+(!compact&&devices.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0)+20+n*400).filter(h=>h<=maxH).concat(maxH,compact?smisslineRails.map(r=>r.length+40+smisslineInputSpace(active)).filter(h=>h<=maxH&&h>=400):[]))].sort((a,b)=>a-b);
  // Prefer a slightly larger local circuit arrangement over cross-field wiring.
  for(const [local,upper] of [[true,true],[true,false],[false,true],[false,false]])for(let fields=1;fields<=Math.min(12,Math.floor(c.maxWidth/258));fields++){
   const maxCols=Math.min(fields*perField,Math.floor((c.maxWidth-fields*8)/250));

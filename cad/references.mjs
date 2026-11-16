@@ -1,6 +1,6 @@
-import {protectionKind} from './circuit-data.mjs?v=20261116-10';
-import {pathAt,localPoint} from './geometry.mjs?v=20261116-10';
-import {templateLabels,templateSize} from './template.mjs?v=20261116-10';
+import {protectionKind} from './circuit-data.mjs?v=20261116-11';
+import {pathAt,localPoint} from './geometry.mjs?v=20261116-11';
+import {templateLabels,templateSize} from './template.mjs?v=20261116-11';
 export function functionKeys(e){return e.template?[...new Set((e.template.labels||[]).map(l=>l.key))]:['$'];}
 export function functionData(e,key='$'){
  const stored=e.functions?.[key]||{};
