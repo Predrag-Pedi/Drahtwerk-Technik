@@ -1,4 +1,4 @@
-import {tariffInputs,tariffOutputs,tariffDevices,tariffName,tariffOutputName,tariffTargets,tariffSource,assignTariff} from './tariffs.mjs?v=20261116-8';
+import {tariffInputs,tariffOutputs,tariffDevices,tariffName,tariffOutputName,tariffTargets,tariffSource,assignTariff} from './tariffs.mjs?v=20261116-9';
 export function tariffInspector(root,doc,p,e,{field,button,change,navigate}){
  if(p.type!=='schema'||!tariffInputs(e).length&&!tariffOutputs(e).length)return;
  const box=document.createElement('section');box.className='reference-settings';root.append(box);const heading=document.createElement('h3');heading.textContent='Tarifdrähte / RSE-Verweise';box.append(heading);
