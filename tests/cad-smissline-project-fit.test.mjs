@@ -41,9 +41,9 @@ test('a higher stated incoming current prevents removal of the incoming terminal
 });
 
 test('pure Smissline uses rail length plus frame clearance, without Galip or 400 mm height steps',async()=>{
- const {d,p}=projectFitFixture(),g=await buildAutomaticDispo(d,p,fetcher);assert.equal(g.config.width,508);assert.equal(g.config.height,1450);assert.equal(g.config.topHeight,300);assert.equal(g.config.reserve,20);
- const parts=g.elements.flatMap(e=>e.dispoStructure||[]);assert.ok(!parts.some(p=>['AS50','AS35'].includes(p.profile)));
- const basket=parts.find(p=>p.profile==='wire-basket');assert.ok(Math.abs(basket.y-20)<1e-6);assert.ok(Math.abs(g.config.height-basket.y-basket.height-20)<1e-6);
+ const {d,p}=projectFitFixture(),g=await buildAutomaticDispo(d,p,fetcher);assert.equal(g.config.width,508);assert.equal(g.config.height,1525);assert.equal(g.config.topHeight,300);assert.equal(g.config.reserve,20);
+ const parts=g.elements.flatMap(e=>e.dispoStructure||[]);assert.ok(!parts.some(p=>p.profile==='AS50'||p.profile==='AS35'&&p.frameStyle!=='smissline-carrier'));const carrier=parts.find(p=>p.frameStyle==='smissline-carrier');assert.ok(Math.abs(carrier.y-45)<1e-6);assert.ok(Math.abs(carrier.height-(g.config.height-90))<1e-6);
+ const basket=parts.find(p=>p.profile==='wire-basket');assert.ok(Math.abs(basket.y-20)<1e-6);assert.ok(Math.abs(g.config.height-basket.y-basket.height-70)<1e-6);
  const rail=g.elements.find(e=>e.profile==='smissline');assert.equal(rail.occupiedPE,60);assert.equal(rail.requiredReservePE,12);assert.equal(rail.smisslinePE,76);
 });
 

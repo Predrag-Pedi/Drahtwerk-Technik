@@ -1,9 +1,10 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-11';
-import {plateStrips} from './frame-layout.mjs?v=20261116-11';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-12';
+import {plateStrips} from './frame-layout.mjs?v=20261116-12';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  if(e.kind==='template')return null;
  const sx=w/e.width,sy=h/e.height,rect=(x,y,a,b,fill='white')=>`<rect x="${x*sx}" y="${y*sy}" width="${a*sx}" height="${b*sy}" fill="${fill}"/>`,line=(x,y,a,b)=>`<path d="M${x*sx} ${y*sy}L${a*sx} ${b*sy}"/>`;
+ if(e.profile==='smissline-stop')return rect(0,0,e.width,e.height,'#bfc6cd')+line(0,e.height-3,e.width,e.height-3);
  if(e.profile==='wiring-duct'){let out=rect(0,0,e.width,e.height,'#f1f3f5');for(let y=7;y<e.height-7;y+=14){out+=line(0,y,7,y)+line(e.width-7,y,e.width,y);}return out+`<text transform="translate(${w/2} ${h/2}) rotate(-90)" text-anchor="middle" font-size="7" fill="#364354">${esc(e.drawingLabel||'Kanal')}</text>`;}
  if(e.profile==='wire-basket'){let out=rect(0,0,e.width,e.height,'#fff');for(let x=15;x<e.width;x+=25)out+=line(x,0,x,e.height);for(let y=15;y<e.height;y+=25)out+=line(0,y,e.width,y);return out+`<text transform="translate(${w/2} ${h/2}) rotate(-90)" text-anchor="middle" font-size="7" fill="#364354" stroke="#fff" stroke-width="3" paint-order="stroke">${esc(e.drawingLabel||'Gitterbahn')}</text>`;}
  if(e.kind==='plate')return plateStrips(e.width,e.height,e.plateType,e.cutCenterBridge).map(r=>rect(...r)).join('')+[[15,15],[e.width-15,15],[15,e.height-15],[e.width-15,e.height-15]].map(([x,y])=>`<circle cx="${x*sx}" cy="${y*sy}" r="${2*sx}" fill="#777"/>`).join('');
@@ -23,6 +24,7 @@ export function frameBoxes(e,x,y,add){
  if(e.profile==='smissline'){add(e,x,y,z,w,h,20,'#e2e1d8');for(const yy of [10,h-18])add(e,x,y+yy,z+20,w,8,6,'#aaa99d');return true;}
  if(e.profile==='comb'){add(e,x,y,z,w,h,6,'#ece7d8');for(let xx=4;xx<w-3;xx+=18)add(e,x+xx,y-10,z,3,10,3,'#b67848');return true;}
  if(e.profile==='copper'){add(e,x,y,z,w,h,d,'#b67848');return true;}
+ if(e.profile==='smissline-stop'){add(e,x,y,z,w,h,3,al);add(e,x,y+h-3,z,w,3,d,al);return true;}
  if(e.profile==='wiring-duct'){add(e,x,y,z,w,h,3,'#bfc1bb');for(const xx of [0,w-3]){add(e,x+xx,y,z,3,h,3,'#d8d9d3');for(let yy=0;yy<h;yy+=14)add(e,x+xx,y+yy,z+3,3,7,d-3,'#d8d9d3');}return true;}
  if(e.kind==='duct'){add(e,x,y,z,w,h,3,'#bfc1bb');add(e,x,y,z,w,3,d,'#d8d9d3');add(e,x,y+h-3,z,w,3,d,'#d8d9d3');for(let xx=0;xx<w;xx+=14){add(e,x+xx,y,z+3,7,6,d-3,'#d8d9d3');add(e,x+xx,y+h-6,z+3,7,6,d-3,'#d8d9d3');}return true;}
 

@@ -1,12 +1,15 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-11';
-import {frameLayout} from './frame-layout.mjs?v=20261116-11';
-import {fieldLayout} from './field-layout.mjs?v=20261116-11';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-12';
+import {frameLayout} from './frame-layout.mjs?v=20261116-12';
+import {fieldLayout} from './field-layout.mjs?v=20261116-12';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.
 export const smisslineRails=[
  [18,364,'tl-0635',162],[20,401,'tl-0636'],[22,437,'tl-0637'],[24,473,'tl-0638'],[26,509,'tl-0639'],[28,545,'tl-0640'],[30,581,'tl-0642'],[32,617,'tl-0644'],[34,653,'tl-0646'],[36,689,'tl-0648'],[38,725,'tl-0649'],[42,797,'tl-0651'],[44,833,'tl-0652'],[46,869,'tl-0654'],[52,977,'tl-0657'],[56,1049,'tl-0659'],[58,1085,'tl-0660'],[60,1122,'tl-0661',162],[64,1194,'tl-0662'],[70,1302,'tl-0664',162],[76,1410,'tl-0665',162],[80,1482,'tl-0666',162],[86,1590,'tl-0667',162],[100,1843,'tl-0633',162]
 ].map(([me,length,id,width=132.6])=>({me,length,id,width}));
+// Workshop mounting allowance: 20 mm corner + 25 mm wall bracket at each
+// end of the DIN carrier, plus a 25 mm support angle below each bus section.
+export const smisslineMount={edge:45,stop:25};
 export const onSmissline=d=>['ls','fils','spd','switch'].includes(d.kind)&&d.breakerSystem==='smissline'&&(d.kind!=='switch'||d.current>0&&d.current<=63);
 // Separate incoming terminals and conventional mains need their own physical
 // mounting space, but do not reintroduce the conventional top/fuse zones.
@@ -36,9 +39,9 @@ export function systemLayout(devices,c){
  if(!devices.some(d=>d.include!==false&&onSmissline(d)))return frameLayout(devices,c);
  if(c.fields>1)return fieldLayout(devices,c,systemLayout);
  const active=devices.filter(d=>d.include!==false),smiss=active.filter(onSmissline),other=active.filter(d=>!onSmissline(d));
- const free=zoneFreeSmissline(active),top=free?20+smisslineInputSpace(active):c.topHeight;
+ const free=zoneFreeSmissline(active),top=free?smisslineMount.edge+smisslineInputSpace(active):Math.max(smisslineMount.edge,c.topHeight);
  const groups=new Map();for(const d of smiss){const key=JSON.stringify([d.circuitName||d.supplyKey||JSON.stringify(d.source),d.feedFrom,d.feedCurrent]);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(d);}
- const availableHeight=c.height-top-20-(!free&&other.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0),railOptions=smisslineRails.filter(r=>r.length<=availableHeight);
+ const availableHeight=c.height-top-smisslineMount.edge-smisslineMount.stop-(!free&&other.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0),railOptions=smisslineRails.filter(r=>r.length<=availableHeight);
  if(!railOptions.length)return {parts:[],placed:[],overflow:smiss};
  const max=railOptions.at(-1),lanes=[];
  // Feeders and half-PE pairs are included in the same capacity calculation.
@@ -68,9 +71,11 @@ export function systemLayout(devices,c){
  const parts=[...base.parts.filter(p=>!perimeter(p)),...fullFrame.parts.filter(p=>perimeter(p))],placed=[...base.placed];
  const start=other.length?remaining:4;
  for(let i=0;i<columns.length;i+=2){const x=start+(i+1)*columnWidth+(i/2)*ductWidth,height=Math.max(columns[i].height,columns[i+1]?.height||0);parts.push({kind:'duct',profile:'wire-basket',x,y:free?20:top,width:ductWidth,height:height+(free?top-20:0),depth:60,mountZ:-100,drawingLabel:`Gitterbahn ${ductWidth}`});}
+ for(let i=0;i<columns.length;i++){const x=start+i*columnWidth+Math.ceil(i/2)*ductWidth;parts.push({kind:'rail',profile:'AS35',frameStyle:'smissline-carrier',x:x+82.5,y:smisslineMount.edge,width:35,height:c.height-2*smisslineMount.edge,depth:15,mountZ:-115});}
  for(let i=0;i<columns.length;i++)for(const lane of columns[i].lanes){
   const r=lane.rail,x=start+i*columnWidth+Math.ceil(i/2)*ductWidth,y=top+lane.offset;
   parts.push({kind:'rail',profile:'smissline',dispoTemplateId:r.id,x:x+15,y,width:r.width,height:r.length,depth:30,mountZ:-100,drawingLabel:`${r.me} PE · belegt ${lane.capacity.occupied} · frei ${r.me-lane.capacity.occupied}`,smisslinePE:r.me,occupiedPE:lane.capacity.occupied,requiredReservePE:lane.capacity.spare});
+  parts.push({kind:'rail',profile:'smissline-stop',x:x+82.5,y:y+r.length,width:35,height:smisslineMount.stop,depth:25,mountZ:-110,drawingLabel:'Stützwinkel 25'});
   let offset=20;
   for(const d of lane.feed){placed.push({...d,x:x+20,y:y+offset});offset+=d.height;}
   for(const block of lane.blocks){for(const piece of block.pieces){const d=piece.device,body=piece.role==='body';placed.push({...d,kind:body?d.kind:'smissline-accessory',tag:body?d.tag:piece.role,dispoTemplateId:piece.id,x:x+20,y:y+offset+piece.offset,width:body?d.width:90,height:piece.length,templateRotation:piece.rotate?90:0,frameStyle:body?'smissline':'smissline-accessory',mountZ:-70});}offset+=block.length;}
