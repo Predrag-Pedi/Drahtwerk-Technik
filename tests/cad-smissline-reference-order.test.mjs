@@ -15,8 +15,8 @@ test('reference order is vertical DIN, cable duct, shortened Smissline, basket',
  assert.ok(din.x+din.width<duct.x);assert.ok(duct.x+duct.width<rail.x);assert.ok(rail.x+rail.width<basket.x);
  for(const tag of ['10S0','20K1']){const d=l.placed.find(d=>d.tag===tag);assert.equal(d.templateRotation,90);assert.ok(d.x<=din.x&&d.x+d.width>=din.x+din.width);assert.ok(d.x+d.width<duct.x);}
  const input=l.placed.find(d=>d.incoming);assert.ok(input.x>duct.x+duct.width);assert.ok(input.y+input.height+40<=rail.y);assert.ok(input.x+input.width<basket.x);
- assert.equal(rail.y,185);assert.equal(basket.y,20);assert.ok(rail.y+rail.height<=config.height-20);assert.ok(rail.smisslinePE>=rail.occupiedPE+Math.ceil(rail.occupiedPE*.2));
- assert.ok(!l.parts.some(p=>p.profile==='AS50'||p.profile==='copper'));const drawing=dispoDrawingRails({dispoStructure:l.parts});assert.ok(drawing.some(r=>r.frameStyle==='smissline-auxiliary'&&r.height>r.width));assert.ok(drawing.some(r=>r.frameStyle==='smissline-input'));
+ assert.equal(rail.y,155);assert.equal(basket.y,20);assert.ok(rail.y+rail.height<=config.height-20);assert.ok(rail.smisslinePE>=rail.occupiedPE+Math.ceil(rail.occupiedPE*.2));
+ assert.ok(!l.parts.some(p=>p.profile==='AS50'||p.profile==='copper'));const drawing=dispoDrawingRails({dispoStructure:l.parts});assert.ok(drawing.some(r=>r.frameStyle==='smissline-auxiliary'&&r.height>r.width));assert.ok(!drawing.some(r=>r.frameStyle==='smissline-input'));assert.equal(input.templateRotation,90);assert.equal(input.width,100);assert.equal(input.height,70);const carrier=l.parts.find(p=>p.frameStyle==='smissline-carrier');assert.equal(input.x+input.width/2,carrier.x+carrier.width/2);assert.equal(input.y,45);
 });
 test('pure Smissline keeps the direct compact arrangement without auxiliary duct',()=>{
  const ds=devices().filter(d=>d.breakerSystem==='smissline'),l=systemLayout(ds,{...config,width:508});assert.equal(l.overflow.length,0);assert.ok(!l.parts.some(p=>p.profile==='wiring-duct'));assert.equal(l.parts.find(p=>p.profile==='smissline').y,45);

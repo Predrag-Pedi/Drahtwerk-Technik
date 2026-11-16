@@ -1,5 +1,5 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-12';
-import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261116-12';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-13';
+import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261116-13';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 // Apparatus belongs to the mounting frame, not the outer enclosure wall.

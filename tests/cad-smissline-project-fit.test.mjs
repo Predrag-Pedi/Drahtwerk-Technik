@@ -25,7 +25,7 @@ test('direct 63 A main removes only disposition input, starts its rail and leave
 });
 for(const current of [64,125])test(`incoming ${current} A retains terminals and conventional main`,async()=>{
  const {d,p}=projectFitFixture();d.ratedCurrent=current+'A';d.pages.flatMap(p=>p.elements).find(e=>e.tag==='10S0').value=current+'A';
- const g=await buildAutomaticDispo(d,p,fetcher);assert.ok(g.elements.some(e=>e.dispoKind==='terminal'));const main=g.elements.find(e=>e.dispoKind==='switch');assert.equal(main.dispoTemplateId,'tl-0787');assert.ok(g.elements.some(e=>e.dispoKind==='smissline-feed'&&e.tag==='Einspeisung 10S0'));
+ const g=await buildAutomaticDispo(d,p,fetcher);assert.equal(g.elements.find(e=>e.dispoKind==='terminal').rotation,90);const main=g.elements.find(e=>e.dispoKind==='switch');assert.equal(main.dispoTemplateId,'tl-0787');assert.ok(g.elements.some(e=>e.dispoKind==='smissline-feed'&&e.tag==='Einspeisung 10S0'));
 });
 test('explicit conventional main below 63 A retains input terminals',async()=>{
  const {d,p}=projectFitFixture(),main=d.pages.flatMap(p=>p.elements).find(e=>e.tag==='10S0');main.functions={'$':{role:'none',breakerSystem:'conventional'}};
