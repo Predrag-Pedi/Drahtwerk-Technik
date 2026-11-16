@@ -1,7 +1,8 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-1';
-import {plateStrips} from './frame-layout.mjs?v=20261116-1';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-2';
+import {plateStrips} from './frame-layout.mjs?v=20261116-2';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
+ if(e.kind==='template')return null;
  const sx=w/e.width,sy=h/e.height,rect=(x,y,a,b,fill='white')=>`<rect x="${x*sx}" y="${y*sy}" width="${a*sx}" height="${b*sy}" fill="${fill}"/>`,line=(x,y,a,b)=>`<path d="M${x*sx} ${y*sy}L${a*sx} ${b*sy}"/>`;
  if(e.kind==='plate')return plateStrips(e.width,e.height,e.plateType,e.cutCenterBridge).map(r=>rect(...r)).join('')+[[15,15],[e.width-15,15],[15,e.height-15],[e.width-15,e.height-15]].map(([x,y])=>`<circle cx="${x*sx}" cy="${y*sy}" r="${2*sx}" fill="#777"/>`).join('');
  if(e.profile==='EV165')return rect(0,0,e.width,8,'#bfc6cd')+rect(0,0,8,e.height,'#bfc6cd')+`<circle cx="${w*.65}" cy="${h*.12}" r="${2*sx}" fill="#666"/>`;
@@ -16,6 +17,7 @@ export function frameMarkup(e,w,h){
 export function frameBoxes(e,x,y,add){
  const w=e.width,h=e.height,z=e.mountZ??0,d=e.depth||3,al='#bfc6cd';
  if(e.kind==='plate'){for(const [a,b,c,f] of plateStrips(w,h,e.plateType,e.cutCenterBridge))add(e,x+a,y+b,z,c,f,d,'#e3e5e7');for(const a of [15,w-15])for(const b of [15,h-15])add(e,x+a-2,y+b-2,z+d,4,4,2,'#6e7780');return true;}
+ if(e.profile==='smissline'){add(e,x,y,z,w,h,20,'#e2e1d8');for(const yy of [10,h-18])add(e,x,y+yy,z+20,w,8,6,'#aaa99d');return true;}
  if(e.profile==='comb'){add(e,x,y,z,w,h,6,'#ece7d8');for(let xx=4;xx<w-3;xx+=18)add(e,x+xx,y-10,z,3,10,3,'#b67848');return true;}
  if(e.profile==='copper'){add(e,x,y,z,w,h,d,'#b67848');return true;}
  if(e.kind==='duct'){add(e,x,y,z,w,h,3,'#bfc1bb');add(e,x,y,z,w,3,d,'#d8d9d3');add(e,x,y+h-3,z,w,3,d,'#d8d9d3');for(let xx=0;xx<w;xx+=14){add(e,x+xx,y,z+3,7,6,d-3,'#d8d9d3');add(e,x+xx,y+h-6,z+3,7,6,d-3,'#d8d9d3');}return true;}

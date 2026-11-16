@@ -1,14 +1,14 @@
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261116-1';
-import {joinDinRails} from './frame-layout.mjs?v=20261116-1';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261116-1';
-import {standardFrame} from './standard-render.mjs?v=20261116-1';
-import {frameMarkup} from './frame-render.mjs?v=20261116-1';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261116-1';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261116-1';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261116-1';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261116-1';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261116-1';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261116-1';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261116-2';
+import {joinDinRails} from './frame-layout.mjs?v=20261116-2';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261116-2';
+import {standardFrame} from './standard-render.mjs?v=20261116-2';
+import {frameMarkup} from './frame-render.mjs?v=20261116-2';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261116-2';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261116-2';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261116-2';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261116-2';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261116-2';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261116-2';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pdfTarget=(d,id)=>d.pages.some(p=>p.id===id)?`data-pdf-page="${esc(id)}"`:"";
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
@@ -41,6 +41,7 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type===
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
  else{body=`<rect width="${w}" height="${h}" fill="${e.kind==='duct'?'#f2f4f6':'white'}"/>`;if(e.kind==='cabinet')body+=`<rect x="5" y="5" width="${Math.max(1,w-10)}" height="${Math.max(1,h-10)}"/>` +cabinetDimensions(e,w,h,p);if(e.kind==='rail')body+=line(0,h/3,w,h/3)+line(0,2*h/3,w,2*h/3);if(e.kind==='module')body+=line(0,h*.3,w,h*.3);if(e.kind==='duct'){if(h>w){for(let y=6;y<h;y+=9)body+=line(0,y,w*.3,y)+line(w*.7,y,w,y);}else for(let x=6;x<w;x+=9)body+=line(x,0,x,h*.3)+line(x,h*.7,x,h);}if(e.text&&e.kind!=='cabinet')body+=text(w/2,h/2,e.text,'text-anchor="middle" font-size="10"');}
+ if(e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-')){const base=(e.plinthHeight||0)*W/420/p.scale;if(base)body+=line(0,h-base,w,h-base);}
  if(e.kind==='cabinet'&&p.type==='dispo'&&e.dispoStructure){const f=W/420/p.scale;body+=e.dispoStructure.filter(r=>r.plateType&&r.frameStyle?.startsWith('measurement:')).map(r=>`<rect x="${r.x*f}" y="${r.y*f}" width="${r.width*f}" height="${r.height*f}" fill="white" stroke="#182c42" stroke-width=".6"/>`).join('');body+=dispoDrawingRails(e).map(r=>`<g transform="translate(${r.x*f} ${r.y*f})" fill="none" stroke="#899198" stroke-width=".45"><rect width="${r.width*f}" height="${r.height*f}" fill="#fafafa"/>${text(3,r.height*f/2+2,r.drawingLabel||(r.profile==='AS35'?'DIN 35':r.profile==='copper'?'Cu':'Kamm'),'font-size="6" fill="#6b7278" stroke="none"')}</g>`).join('');}
  if(cut!==null){const id='meter-cut-'+e.id.replace(/[^a-zA-Z0-9_-]/g,'');body=`<defs><clipPath id="${id}"><rect x="-20" y="-20" width="${w+40}" height="${cut*h/e.template.viewHeight+20}"/></clipPath></defs><g clip-path="url(#${id})">${body}</g>`;}
  if(e.kind==='template'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
