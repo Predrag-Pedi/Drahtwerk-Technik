@@ -1,5 +1,5 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-12';
-import {plateStrips} from './frame-layout.mjs?v=20261116-12';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-13';
+import {plateStrips} from './frame-layout.mjs?v=20261116-13';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  if(e.kind==='template')return null;

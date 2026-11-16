@@ -1,6 +1,6 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-12';
-import {frameLayout} from './frame-layout.mjs?v=20261116-12';
-import {fieldLayout} from './field-layout.mjs?v=20261116-12';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-13';
+import {frameLayout} from './frame-layout.mjs?v=20261116-13';
+import {fieldLayout} from './field-layout.mjs?v=20261116-13';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.
@@ -14,7 +14,7 @@ export const onSmissline=d=>['ls','fils','spd','switch'].includes(d.kind)&&d.bre
 // Separate incoming terminals and conventional mains need their own physical
 // mounting space, but do not reintroduce the conventional top/fuse zones.
 export const zoneFreeSmissline=devices=>{const ds=devices.filter(d=>d.include!==false);return ds.some(onSmissline)&&ds.every(d=>!d.measurementOwner&&(onSmissline(d)||['switch','coil','ls','fils','spd'].includes(d.kind)||d.kind==='terminal'&&d.incoming));};
-export const smisslineInputSpace=devices=>zoneFreeSmissline(devices)?devices.filter(d=>d.include!==false&&d.kind==='terminal'&&d.incoming).reduce((n,d)=>n+d.height+40,0):0;
+export const smisslineInputSpace=devices=>zoneFreeSmissline(devices)?devices.filter(d=>d.include!==false&&d.kind==='terminal'&&d.incoming).reduce((n,d)=>n+d.width+40,0):0;
 function incomingLayout(devices,c,start){
  const parts=[],placed=[],overflow=[],aux=devices.filter(d=>!d.incoming),inputs=devices.filter(d=>d.incoming);
  const ductWidth=60,ductX=c.width-ductWidth-20,center=(20+ductX-20)/2;
@@ -26,11 +26,13 @@ function incomingLayout(devices,c,start){
  }
  if(aux.length)parts.push({kind:'rail',profile:'AS35',frameStyle:'smissline-auxiliary',x:center-17.5,y:20,width:35,height:c.height-40,depth:15,mountZ:-110,drawingLabel:'DIN 35'});
  parts.push({kind:'duct',profile:'wiring-duct',x:ductX,y:20,width:ductWidth,height:c.height-40,depth:40,mountZ:-100,drawingLabel:'Kanal 60 × 40'});
- y=20;
+ y=smisslineMount.edge;
  for(const d of inputs){
-  if(d.width>180||y+d.height+20>c.height||d.depth>c.depth){overflow.push(d);continue;}
-  placed.push({...d,x:start+(200-d.width)/2,y,mountZ:-70});
-  parts.push({kind:'rail',profile:'AS35',frameStyle:'smissline-input',x:start+10,y:y+d.height/2-17.5,width:180,height:35,depth:15,mountZ:-110});y+=d.height+40;
+  const width=d.height,height=d.width;
+  if(width>180||y+height+smisslineMount.edge>c.height||d.depth>c.depth){overflow.push(d);continue;}
+  // The terminals clip onto the same vertical carrier as the bus below.
+  placed.push({...d,x:start+(200-width)/2,y,width,height,templateRotation:90,mountZ:-100});
+  y+=height+40;
  }
  return {parts,placed,overflow};
 }
