@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261116-2';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261116-2';
+import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261116-3';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261116-3';
 // Only a proven capacity failure may offer a reduction; never change the
 // saved page or reserve until the complete alternative has been approved.
 export async function editAutomaticDispo(doc,p,apply,confirmReduction=()=>false,build=null){
@@ -28,7 +28,7 @@ Nein: bisherige Dispo und Einstellungen beibehalten.`);
 export function editSiteSettings(p,showForm,apply){
  const c={...defaultConfig(),...p.dispoConfig};
  showForm('Einbaumasse / Reserve',[
-  {key:'distributionType',label:'Verteilungsart',value:c.distributionType,options:Object.entries(distributionTypes).map(([key,label])=>[key,key!=='field'?label:label+' – noch nicht konfiguriert'])},
+  {key:'distributionType',label:'Verteilungsart',value:c.distributionType,options:Object.entries(distributionTypes).map(([key,label])=>[key,key==='wall'?label+' – Vermessung ausstehend':key!=='field'?label:label+' – noch nicht konfiguriert'])},
   ...[['maxWidth','Max. Einbaubreite gesamt (mm)',c.maxWidth||c.width,10000],['maxHeight','Max. Einbauhöhe (mm)',c.maxHeight||c.height,4000],['maxDepth','Max. Einbautiefe (mm, 0 = offen)',c.maxDepth||0,1500],['passageWidth','Durchgangsbreite, aufrecht (mm, 0 = offen)',c.passageWidth||0,10000],['passageHeight','Durchgangshöhe, aufrecht (mm, 0 = offen)',c.passageHeight||0,4000],['passageDepth','Max. Transporttiefe (mm, 0 = offen)',c.passageDepth||0,1500]].map(([key,label,value,max])=>({key,label,value,type:'number',min:0,max,layout:'site-dimension'})),
   {key:'reserveMeters',label:'Reserve-Zählerplätze gesamt (inkl. Schema)',value:c.reserveMeters||0,type:'number',min:0,max:120,layout:'site-wide'},
   {key:'buildSystem',label:'Aufbausystem',value:c.buildSystem||'standard',options:[['standard','Standard'],['smissline','Smissline'],['silas60','60 mm · Silas'],['vertigroup185','185 mm · Vertigroup']],layout:'site-wide'},

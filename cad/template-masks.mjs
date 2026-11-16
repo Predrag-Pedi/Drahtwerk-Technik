@@ -11,6 +11,8 @@ export function repairMask(p,t){
 }
 
 export function repairPaths(p,t){
+ // Original Smissline rail edge strips are wipeout solids, not a black bus body.
+ if(p===t.paths?.[0]&&/^Schiene \d+ME/.test(t.name||'')&&t.group==='58Smissline-S vertikal'&&p.fill==='#000000')return [{...p,fill:'#ffffff',stroke:'#000000',sw:Math.max(1,p.sw)}];
  if(p.fill!=='#000000'||p.stroke!=='none')return [repairMask(p,t)];
  const contours=p.d.match(/[Mm][^Mm]*[Zz]/g)||[];
  if(contours.length<2||contours.join('').replace(/\s/g,'')!==p.d.replace(/\s/g,''))return [repairMask(p,t)];

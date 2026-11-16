@@ -11,7 +11,7 @@ test('distribution type selection persists across project reload and unconfigure
   editSiteSettings(p,(_,fields,cb)=>{assert.deepEqual(fields[0].options.map(o=>o[0]),['sbr','standing','wall','field']);assert.equal(fields[0].value,'sbr');submit=cb;},c=>p.dispoConfig=c);
   submit({distributionType:type,maxWidth:2000,maxHeight:2000,maxDepth:165,passageWidth:1000,passageHeight:0,reserveMeters:2});
   const restored=validateProject(JSON.parse(JSON.stringify(d))),q=restored.pages[2];assert.equal(q.dispoConfig.distributionType,type);
-  if(type==='field'){const before=structuredClone(q);await assert.rejects(buildAutomaticDispo(restored,q,()=>assert.fail('No template fetch for unconfigured type')),e=>e.code==='DISPO_TYPE_NOT_CONFIGURED');assert.deepEqual(q,before);}
+  if(['field','wall'].includes(type)){const before=structuredClone(q);await assert.rejects(buildAutomaticDispo(restored,q,()=>assert.fail('No template fetch for unconfigured type')),e=>e.code==='DISPO_TYPE_NOT_CONFIGURED');assert.deepEqual(q,before);}
  }
 });
 

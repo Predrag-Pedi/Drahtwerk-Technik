@@ -1,5 +1,5 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-2';
-import {plateStrips} from './frame-layout.mjs?v=20261116-2';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261116-3';
+import {plateStrips} from './frame-layout.mjs?v=20261116-3';
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function frameMarkup(e,w,h){
  if(e.kind==='template')return null;
@@ -22,6 +22,8 @@ export function frameBoxes(e,x,y,add){
  if(e.profile==='copper'){add(e,x,y,z,w,h,d,'#b67848');return true;}
  if(e.kind==='duct'){add(e,x,y,z,w,h,3,'#bfc1bb');add(e,x,y,z,w,3,d,'#d8d9d3');add(e,x,y+h-3,z,w,3,d,'#d8d9d3');for(let xx=0;xx<w;xx+=14){add(e,x+xx,y,z+3,7,6,d-3,'#d8d9d3');add(e,x+xx,y+h-6,z+3,7,6,d-3,'#d8d9d3');}return true;}
 
+ if(e.kind==='module'&&e.dispoKind==='smissline-accessory'){add(e,x,y,z,w,h,d,'#e3e4dd');return true;}
+ if(e.kind==='module'&&e.dispoKind==='smissline-feed'){add(e,x,y,z,w,h,d,'#e3e4dd');for(let yy=9;yy<h;yy+=18)add({...e,tag:'',shape:'cylinder'},x+w-22,y+yy-4,z+d,8,8,2,'#555e60');return true;}
  if(e.kind==='module'&&e.dispoKind==='transformer'){add(e,x,y,z,w,h,35,'#e1e1d9');add({...e,tag:''},x+w*.25,y+h*.2,z+35,w*.5,h*.6,10,'#464d50');add({...e,tag:''},x+w*.35,y+h*.35,z+45,w*.3,h*.3,1,'#92978e');return true;}
  if(e.kind==='module'&&e.dispoKind==='test-terminal'){add(e,x,y,z,w,h,35,'#333a3b');for(let i=0;i<10;i++){add({...e,tag:''},x+8+i*(w-16)/10,y+15,z+35,12,h-30,8,'#b2b9b3');}return true;}
  if(e.kind==='module'&&e.dispoKind==='voltage-fuse'){add(e,x,y,z,w,h,30,'#e3e4dd');for(let i=0;i<3;i++)add({...e,tag:'',shape:'cylinder'},x+10+i*43,y+25,z+30,32,32,20,'#f1f1e7');return true;}

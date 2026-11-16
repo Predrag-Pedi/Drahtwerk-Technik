@@ -1,5 +1,5 @@
-import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261116-2';
-import {systemLayout} from './system-layout.mjs?v=20261116-2';
+import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261116-3';
+import {systemLayout} from './system-layout.mjs?v=20261116-3';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;

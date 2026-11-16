@@ -27,5 +27,5 @@ test('meter feeder menus and FI-LS menus classify the actual function separately
  e.functions={[key]:{role:'none',...(kind==='fuse'?{fuseSystem:'silas60'}:{breakerSystem:'uniway'})}};
  const saved=validateProject(d).pages[1].elements.find(q=>q.id===e.id).functions[key];assert.equal(kind==='fuse'?saved.fuseSystem:saved.breakerSystem,kind==='fuse'?'silas60':'uniway');
  }
- for(const breakerSystem of ['smissline','uniway'])assert.throws(()=>automaticTemplateId({kind:'fils',tag:'12F1',breakerSystem}),/Originalvorlage|noch nicht konfiguriert/);
+ for(const breakerSystem of ['uniway'])assert.throws(()=>automaticTemplateId({kind:'fils',tag:'12F1',breakerSystem}),/Originalvorlage|noch nicht konfiguriert/);
 });

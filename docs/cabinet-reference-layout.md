@@ -42,3 +42,16 @@ Kundenspezifische Breiten/Höhen wie 825/1125 mm oder 1800/2200 mm Korpus sind k
 ## Prüfung
 
 Automatisierte Fälle prüfen Katalogmasse, Einbau-/Transportgrenzen, Sockelhöhe, Mehrfeldaufteilung, nutzbaren Innenraum, gemischte Systeme, Originalvorlagen, Reserven, Speichern/Wiederladen, SVG-Ausgabe und 3D-Körper. 2D-Testzeichnung und projizierte 3D-Testgeometrie visuell kontrolliert. Ein interaktiver Browserlauf war in dieser Umgebung wegen der Chromium-Socketbeschränkung nicht möglich.
+
+## Aktualisierung anhand Werkstattangaben vom 16.11.2026
+
+Die folgenden Angaben ersetzen die entsprechenden offenen Punkte oben:
+
+- Sieben Fotos eines 400 mm tiefen Standschranks erhalten. Die oberen/unteren Messungen zeigen ungefähr 75–80 mm; für die Höhenplanung sind nun je 80 mm vorgesehen. Seitlich bleibt der bisherige 60-mm-Planungsabzug bestehen, da die fotografischen Bezugskanten keinen präzisen universellen Fertigungsabzug belegen.
+- Verbindliche Benutzervorgabe: Tür bis Vorderseite der Zählerplatte mindestens 190 mm. Automatische Tiefenwahl berücksichtigt dazu den 165-mm-Innenrahmen und 20 mm Rückraum. Daraus ergibt sich bei den Katalogtiefen mindestens 400 mm für Schränke mit Zählerplatten. Auch das 3D-Modell hält die Plattenvorderseite 190 mm hinter der Tür-Ebene.
+- Wandschränke sind bis zur Vermessung wieder gesperrt, vorhandene Auswahlwerte bleiben gespeichert.
+- LS und FILS verwenden auf ausdrückliche Vorgabe die einfachen Körper aus «21LS-Automaten I»; die elektrische Geräteart bleibt dabei erhalten. FILS 1-phasig verwenden einen 2-PE-Körper, 3-phasig einen 4-PE-Körper. Externe N-Trenner werden für LS separat dargestellt; HK links mit 9 mm, N rechts mit 9/18 mm, aus «Füllstück 9mm». Der 18-mm-N-Körper wird aus diesem Füllstück auf 18 mm Breite dargestellt.
+- Ein N9 + direkt folgender HK9 teilt eine PE. Zusammengehörige Halb-PE-Paare werden beim Aufteilen auf Bahnen nie getrennt. Ohne passenden Nachbarn wird N18 bzw. HK9 + Füllstück9 verwendet. Die Gerätekörper starten auf ganzen PE; jede fertige Bahn hat eine ganzzahlige PE-Belegung.
+- Smissline-Einspeiseblock bis einschliesslich 160 A: 4 PE, Vorlage «LS 4P Smissline-S vertikal». Darüber: je 2 PE für L1/L2/L3/N, viermal «LS 2P Smissline-S vertikal». Die Zuordnung dieser grafischen Ersatzkörper wurde ausdrücklich vom Benutzer vorgegeben. Quellsicherung wird beschriftet; bei uneindeutiger Herkunft kann ihre BMK und der Einspeisestrom im Schema angegeben werden. Keine Stromsummierung der Abgänge.
+- SPD wird bei globalem Smissline-Aufbau aus der normalen SPD-Vorlage auf der Bahn angeordnet. Hauptschalter bis 63 A nutzt den vorgegebenen 4-poligen Grafikkörper, bleibt semantisch ein Schalter. Oberhalb 63 A wird die passende konventionelle Lasttrenner-Vorlage gewählt; dieselbe Zuordnung gilt für konventionelle Hauptschalter.
+- Die Regel ist eine Umsetzung der genannten Drahtwerk-Aufbauvorgaben; keine neue pauschale Herstellerfreigabe beliebiger Artikelkombinationen.
