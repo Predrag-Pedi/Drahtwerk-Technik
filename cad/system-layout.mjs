@@ -1,6 +1,6 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-15';
-import {frameLayout} from './frame-layout.mjs?v=20261116-15';
-import {fieldLayout} from './field-layout.mjs?v=20261116-15';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-16';
+import {frameLayout} from './frame-layout.mjs?v=20261116-16';
+import {fieldLayout} from './field-layout.mjs?v=20261116-16';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.
@@ -63,24 +63,36 @@ export function systemLayout(devices,c){
   if(!column){column={height:0,lanes:[]};columns.push(column);}
   lane.offset=column.height+(column.lanes.length?gap:0);column.lanes.push(lane);column.height=lane.offset+lane.rail.length;
  }
+ // Equalise matching rows around a basket using original catalogue rails.
+ // Check the complete paired stacks before extending: reserve may grow, but
+ // mounting clearances and the available installation height must not shrink.
+ for(let i=0;i+1<columns.length;i+=2){
+  const left=columns[i],right=columns[i+1];
+  if(left.lanes.length!==right.lanes.length)continue;
+  const rails=left.lanes.map((lane,j)=>lane.rail.length>=right.lanes[j].rail.length?lane.rail:right.lanes[j].rail);
+  const height=rails.reduce((n,r)=>n+r.length,0)+gap*(rails.length-1);
+  if(height>availableHeight)continue;
+  for(const column of [left,right]){let offset=0;column.lanes.forEach((lane,j)=>{lane.rail=rails[j];lane.offset=offset;offset+=rails[j].length+gap;});column.height=height;}
+ }
  const ductWidth=c.smisslineDuctWidth||200,columnWidth=200;
  const smissWidth=Math.ceil((columns.length*columnWidth+Math.ceil(columns.length/2)*ductWidth)/250)*250,remaining=c.width-smissWidth;
  if(remaining<8||other.length&&remaining<258)return {parts:[],placed:[],overflow:smiss};
- const base=other.length?(free?incomingLayout:frameLayout)(other,{...c,width:remaining,fieldWidths:undefined,fields:1},remaining):{parts:[],placed:[],overflow:[]};
+ const usedWidth=columns.length*columnWidth+Math.ceil(columns.length/2)*ductWidth;
+ const start=other.length?remaining+(smissWidth-usedWidth)/2: (c.width-usedWidth)/2;
+ const base=other.length?(free?incomingLayout:frameLayout)(other,{...c,width:remaining,fieldWidths:undefined,fields:1},start):{parts:[],placed:[],overflow:[]};
  if(base.overflow.length)return base;
  const perimeter=p=>['SP165','SP45','SP09048','EV165'].includes(p.profile);
  const fullFrame=frameLayout([],{...c,topHeight:free?20:c.topHeight,fields:1,fieldWidths:undefined});
  const parts=[...base.parts.filter(p=>!perimeter(p)),...fullFrame.parts.filter(p=>perimeter(p))],placed=[...base.placed];
- const start=other.length?remaining:4;
  for(let i=0;i<columns.length;i+=2){const x=start+(i+1)*columnWidth+(i/2)*ductWidth,height=Math.max(columns[i].height,columns[i+1]?.height||0);parts.push({kind:'duct',profile:'wire-basket',x,y:free?20:top,width:ductWidth,height:height+(free?top-20:0),depth:60,mountZ:-100,drawingLabel:`Gitterbahn ${ductWidth}`});}
  for(let i=0;i<columns.length;i++){const x=start+i*columnWidth+Math.ceil(i/2)*ductWidth;parts.push({kind:'rail',profile:'AS35',frameStyle:'smissline-carrier',x:x+82.5,y:smisslineMount.edge,width:35,height:c.height-2*smisslineMount.edge,depth:15,mountZ:-115});}
  for(let i=0;i<columns.length;i++)for(const lane of columns[i].lanes){
   const r=lane.rail,x=start+i*columnWidth+Math.ceil(i/2)*ductWidth,y=top+lane.offset;
-  parts.push({kind:'rail',profile:'smissline',dispoTemplateId:r.id,x:x+15,y,width:r.width,height:r.length,depth:30,mountZ:-100,drawingLabel:`${r.me} PE · belegt ${lane.capacity.occupied} · frei ${r.me-lane.capacity.occupied}`,smisslinePE:r.me,occupiedPE:lane.capacity.occupied,requiredReservePE:lane.capacity.spare});
+  parts.push({kind:'rail',profile:'smissline',dispoTemplateId:r.id,x:x+(columnWidth-r.width)/2,y,width:r.width,height:r.length,depth:30,mountZ:-100,drawingLabel:`${r.me} PE · belegt ${lane.capacity.occupied} · frei ${r.me-lane.capacity.occupied}`,smisslinePE:r.me,occupiedPE:lane.capacity.occupied,requiredReservePE:lane.capacity.spare});
   parts.push({kind:'rail',profile:'smissline-stop',x:x+82.5,y:y+r.length,width:35,height:smisslineMount.stop,depth:25,mountZ:-110,drawingLabel:'Stützwinkel 25'});
   let offset=20;
-  for(const d of lane.feed){placed.push({...d,x:x+20,y:y+offset});offset+=d.height;}
-  for(const block of lane.blocks){for(const piece of block.pieces){const d=piece.device,body=piece.role==='body';placed.push({...d,kind:body?d.kind:'smissline-accessory',tag:body?d.tag:piece.role,dispoTemplateId:piece.id,x:x+20,y:y+offset+piece.offset,width:body?d.width:90,height:piece.length,templateRotation:piece.rotate?90:0,frameStyle:body?'smissline':'smissline-accessory',mountZ:-70});}offset+=block.length;}
+  for(const d of lane.feed){placed.push({...d,x:x+(columnWidth-d.width)/2,y:y+offset});offset+=d.height;}
+  for(const block of lane.blocks){for(const piece of block.pieces){const d=piece.device,body=piece.role==='body';placed.push({...d,kind:body?d.kind:'smissline-accessory',tag:body?d.tag:piece.role,dispoTemplateId:piece.id,x:x+(columnWidth-(body?d.width:90))/2,y:y+offset+piece.offset,width:body?d.width:90,height:piece.length,templateRotation:piece.rotate?90:0,frameStyle:body?'smissline':'smissline-accessory',mountZ:-70});}offset+=block.length;}
 
  }
  return {parts,placed,overflow:[]};

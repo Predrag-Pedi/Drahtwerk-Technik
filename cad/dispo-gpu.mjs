@@ -1,4 +1,4 @@
-import {boxMesh} from './dispo-mesh.mjs?v=20261116-15';
+import {boxMesh} from './dispo-mesh.mjs?v=20261116-16';
 // Static geometry is uploaded once; orbit/zoom only update camera uniforms.
 export function prepareGeometry(boxes,center){
  const triangles=[],edges=[],labels=[];
