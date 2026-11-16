@@ -24,3 +24,22 @@ test('SPD and Phoenix input occupy an isolated 250 mm bay with SPD below and lab
  moveDispoElements(p,new Set([input.id]),(c.width-250)*f,0);assert.equal(rail.x,40);assert.ok(rail.width>0);assert.ok(Math.abs(rail.x+rail.width-((input.x-c.x)/f+input.width/2))<1e-8);assert.ok(leftLength>0);
  const restored=validateProject({...d,pages:d.pages.map(x=>x.id===p.id?p:x)}).pages.find(x=>x.id===p.id);assert.ok(restored.elements.find(e=>e.kind==='cabinet').dispoStructure.some(s=>s.frameStyle?.startsWith('incoming:')&&s.x===40));
 });
+
+test('original CT and arrester symbols remain SPD after renaming or editing their A placeholder',async()=>{
+ const {protectionKind}=await import('../cad/circuit-data.mjs');
+ for(const id of ['tl-0004','tl-0005','tl-0006','tl-0109','tl-0186','tl-0187','tl-0188','tl-0189','tl-0190','tl-0191']){
+  const d=project(),e=insert(d,id,300);assert.ok(e,id);e.template.name='Eigene Bezeichnung';e.template.group='Eigene Bibliothek';e.textEdits=Object.fromEntries((e.template.details?.texts||[]).map(t=>[t.key,'125A']));
+  const keys=[...new Set(e.template.labels.filter(l=>l.letter==='F').map(l=>l.key))];for(const key of keys)assert.equal(protectionKind(e,key),'spd',id+' '+key);
+  const result=schemaDevices(d);assert.equal(result.devices.filter(d=>d.kind==='spd').length,keys.length,id);assert.equal(result.devices.filter(d=>d.kind==='fuse').length,0,id);
+ }
+});
+test('SPD macro retains its separate NH00 upstream fuse; ordinary meter fuses are not SPD',async()=>{
+ const {protectionKind}=await import('../cad/circuit-data.mjs'),d=project(),e=insert(d,'tl-0108',300);
+ assert.equal(protectionKind(e,'120F1'),'spd');assert.equal(protectionKind(e,'120F1.1'),'fuse');
+ const devices=schemaDevices(d).devices;assert.equal(devices.filter(d=>d.kind==='spd').length,1);assert.equal(devices.find(d=>d.kind==='fuse').fuseType,'NH00');
+ const other=project(),meter=insert(other,'tl-0011',300);assert.equal(protectionKind(meter,'2F7'),'fuse');
+});
+test('the pictured four-to-earth CT1 macro generates the original SPD disposition symbol',async()=>{
+ const d=project();insert(d,'tl-0004',400);const q=d.pages[2];q.dispoConfig={...defaultConfig(),height:1520};const g=await buildAutomaticDispo(d,q,fetcher),devices=g.elements.filter(e=>e.dispoSource);
+ assert.equal(devices.filter(e=>e.dispoKind==='spd').length,1);assert.equal(devices.find(e=>e.dispoKind==='spd').template.id,'tl-0735');assert.equal(devices.filter(e=>e.dispoKind==='fuse').length,0);
+});
