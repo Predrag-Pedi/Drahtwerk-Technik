@@ -46,3 +46,10 @@ test('pure Smissline uses rail length plus frame clearance, without Galip or 400
  const basket=parts.find(p=>p.profile==='wire-basket');assert.ok(Math.abs(basket.y-20)<1e-6);assert.ok(Math.abs(g.config.height-basket.y-basket.height-20)<1e-6);
  const rail=g.elements.find(e=>e.profile==='smissline');assert.equal(rail.occupiedPE,60);assert.equal(rail.requiredReservePE,12);assert.equal(rail.smisslinePE,76);
 });
+
+test('Smissline with a conventional 125 A main ignores legacy top and fuse zones',async()=>{
+ const run=async(topHeight,fuseHeight)=>{const {d,p}=projectFitFixture();d.ratedCurrent='125A';d.pages.flatMap(p=>p.elements).find(e=>e.tag==='10S0').value='125A';Object.assign(p.dispoConfig,{topHeight,fuseHeight});return buildAutomaticDispo(d,p,fetcher);};
+ const a=await run(200,200),b=await run(500,1600);
+ assert.equal(a.config.width,b.config.width);assert.equal(a.config.height,b.config.height);
+ for(const g of [a,b]){assert.ok(g.elements.some(e=>e.dispoKind==='terminal'));assert.equal(g.elements.find(e=>e.dispoKind==='switch').dispoTemplateId,'tl-0787');const parts=g.elements.flatMap(e=>e.dispoStructure||[]);assert.ok(!parts.some(p=>p.profile==='AS50'));const basket=parts.find(p=>p.profile==='wire-basket');assert.ok(Math.abs(basket.y-20)<1e-6);assert.ok(g.config.height<1920);}
+});
