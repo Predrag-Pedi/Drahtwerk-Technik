@@ -92,3 +92,14 @@ Die Nachbildung benötigt dadurch 508 × 1450 mm statt 508 × 1920 mm. 60 belegt
 Auch separate Eingangsklemmen und konventionelle Hauptschalter aktivieren keine pauschalen Kopf-/Sicherungszonen mehr. Ihre Originalgeräte werden in einem seitlichen Bereich nach tatsächlichen Abmessungen mit 40 mm Abstand und örtlichen Montageschienen angeordnet. Die Smissline-Bahnen beginnen weiterhin bei 20 mm und nutzen die volle nutzbare Höhe. Die automatische SBR-Höhe berücksichtigt sowohl Bahnenden als auch die separaten Geräte. Zähler-/Sicherungsplatten werden weiterhin mit ihrem eigenen Montageaufbau behandelt, nicht als beliebig entfernbare Bauteile.
 
 Regression: dieselbe 125-A-Verteilung ergibt bei Kopf-/Sicherungszone 200/200 und 500/1600 identische 758 × 1450 mm. Klemmen, konventioneller Hauptschalter und Bahneinspeisung bleiben erhalten; Galip entfällt. Gerasterte 2D-Zeichnung visuell geprüft.
+
+## Präzisierte Reihenfolge nach Smissline-Referenzen
+
+Erneut visuell geprüft wurden AU-00698 Blatt 2, die unter AU-00368 abgelegte UV-2-Disposition (S-00318 Blatt 9) und die unter AU-00595 abgelegte UV-A-Disposition (S-00925 Blatt 2). Sie zeigen die zusätzliche senkrechte Montageschiene links, einen schmalen Kabelkanal, die Smissline-Bahnen und die breite Gitterbahn. S-00318 bezeichnet den schmalen Kanal als 60 × 40; dort liegt der Anschlussbereich oberhalb der Bahn. Die folgenden Regeln ersetzen die seitlichen kurzen waagrechten Geräteschienen des vorigen Stands.
+
+- Hauptschalter und unterstützte Zusatzgeräte ausserhalb Smissline (Schütze, konventionelle LS/FI/LS/SPD) werden mit ihren Originalgrafiken um 90 Grad gedreht auf einer senkrechten DIN-Schiene angeordnet.
+- Rechts davon steht ein durchgehender Kabelkanal 60 × 40, anschliessend Smissline, danach die Gitterbahn. Kanal und Gitterbahn bleiben unterschiedliche Bauteile. 2D zeigt auch die senkrechte DIN-Schiene; 3D bildet die Seiten des schmalen Kanals entlang seiner Längsrichtung ab.
+- Erforderliche Eingangsklemmen liegen oberhalb der ersten Smissline-Spalte. Ihr tatsächlicher Platzbedarf plus Abstand wird vor der Bahnauswahl von der nutzbaren Höhe abgezogen. Es werden passende Originalbahnen gewählt, keine gestreckten oder erfundenen gekürzten Gerätevorlagen. Reserve und Einspeiseblöcke werden weiterhin vollständig in PE gerechnet.
+- Ohne Zusatzgeräte/Klemmen bleibt der direkte kompakte Smissline-Aufbau unverändert. Für Zähler- oder separate Sicherungssysteme gilt weiterhin deren eigener Montageaufbau.
+
+Validierung: Reihenfolge links/rechts, gedrehte Geräte, Anschlussfreiraum, Reserve, Sichtbarkeit der DIN-Schienen in 2D und vertikale Kanalgeometrie in 3D getestet. Die gerasterte 125-A-Disposition wurde visuell geprüft.
