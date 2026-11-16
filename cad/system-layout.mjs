@@ -1,6 +1,6 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-9';
-import {frameLayout} from './frame-layout.mjs?v=20261116-9';
-import {fieldLayout} from './field-layout.mjs?v=20261116-9';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-10';
+import {frameLayout} from './frame-layout.mjs?v=20261116-10';
+import {fieldLayout} from './field-layout.mjs?v=20261116-10';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.
@@ -8,14 +8,27 @@ export const smisslineRails=[
  [18,364,'tl-0635',162],[20,401,'tl-0636'],[22,437,'tl-0637'],[24,473,'tl-0638'],[26,509,'tl-0639'],[28,545,'tl-0640'],[30,581,'tl-0642'],[32,617,'tl-0644'],[34,653,'tl-0646'],[36,689,'tl-0648'],[38,725,'tl-0649'],[42,797,'tl-0651'],[44,833,'tl-0652'],[46,869,'tl-0654'],[52,977,'tl-0657'],[56,1049,'tl-0659'],[58,1085,'tl-0660'],[60,1122,'tl-0661',162],[64,1194,'tl-0662'],[70,1302,'tl-0664',162],[76,1410,'tl-0665',162],[80,1482,'tl-0666',162],[86,1590,'tl-0667',162],[100,1843,'tl-0633',162]
 ].map(([me,length,id,width=132.6])=>({me,length,id,width}));
 export const onSmissline=d=>['ls','fils','spd','switch'].includes(d.kind)&&d.breakerSystem==='smissline'&&(d.kind!=='switch'||d.current>0&&d.current<=63);
+// Separate incoming terminals and conventional mains need their own physical
+// mounting space, but do not reintroduce the conventional top/fuse zones.
+export const zoneFreeSmissline=devices=>{const ds=devices.filter(d=>d.include!==false);return ds.some(onSmissline)&&ds.every(d=>onSmissline(d)||d.kind==='switch'||d.kind==='terminal'&&d.incoming);};
+function incomingLayout(devices,c){
+ const parts=[],placed=[],overflow=[];let y=20;
+ for(const d of [...devices].sort((a,b)=>Number(!!b.incoming)-Number(!!a.incoming))){
+  if(d.width>c.width-40||y+d.height+20>c.height||d.depth>c.depth){overflow.push(d);continue;}
+  const x=(c.width-d.width)/2;placed.push({...d,x,y,mountZ:-70});
+  parts.push({kind:'rail',profile:'AS35',x:20,y:y+d.height/2-17.5,width:c.width-40,height:35,depth:15,mountZ:-110});
+  y+=d.height+40;
+ }
+ return {parts,placed,overflow};
+}
 export const smisslineCapacity=(used,reserve)=>{const occupied=Math.ceil(used-1e-9),spare=Math.ceil(occupied*reserve/100-1e-9);return {occupied,spare,required:occupied+spare};};
 export function systemLayout(devices,c){
  if(!devices.some(d=>d.include!==false&&onSmissline(d)))return frameLayout(devices,c);
  if(c.fields>1)return fieldLayout(devices,c,systemLayout);
  const active=devices.filter(d=>d.include!==false),smiss=active.filter(onSmissline),other=active.filter(d=>!onSmissline(d));
- const top=other.length?c.topHeight:20;
+ const free=zoneFreeSmissline(active),top=free?20:c.topHeight;
  const groups=new Map();for(const d of smiss){const key=JSON.stringify([d.circuitName||d.supplyKey||JSON.stringify(d.source),d.feedFrom,d.feedCurrent]);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(d);}
- const availableHeight=c.height-top-20-(other.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0),railOptions=smisslineRails.filter(r=>r.length<=availableHeight);
+ const availableHeight=c.height-top-20-(!free&&other.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0),railOptions=smisslineRails.filter(r=>r.length<=availableHeight);
  if(!railOptions.length)return {parts:[],placed:[],overflow:smiss};
  const max=railOptions.at(-1),lanes=[];
  // Feeders and half-PE pairs are included in the same capacity calculation.
@@ -38,10 +51,10 @@ export function systemLayout(devices,c){
  const ductWidth=c.smisslineDuctWidth||200,columnWidth=200;
  const smissWidth=Math.ceil((columns.length*columnWidth+Math.ceil(columns.length/2)*ductWidth)/250)*250,remaining=c.width-smissWidth;
  if(remaining<8||other.length&&remaining<258)return {parts:[],placed:[],overflow:smiss};
- const base=other.length?frameLayout(other,{...c,width:remaining,fieldWidths:undefined,fields:1}):{parts:[],placed:[],overflow:[]};
+ const base=other.length?(free?incomingLayout:frameLayout)(other,{...c,width:remaining,fieldWidths:undefined,fields:1}):{parts:[],placed:[],overflow:[]};
  if(base.overflow.length)return base;
  const perimeter=p=>['SP165','SP45','SP09048','EV165'].includes(p.profile);
- const fullFrame=frameLayout([],{...c,fields:1,fieldWidths:undefined});
+ const fullFrame=frameLayout([],{...c,topHeight:free?20:c.topHeight,fields:1,fieldWidths:undefined});
  const parts=[...base.parts.filter(p=>!perimeter(p)),...fullFrame.parts.filter(p=>perimeter(p))],placed=[...base.placed];
  const start=other.length?remaining:4;
  for(let i=0;i<columns.length;i+=2){const x=start+(i+1)*columnWidth+(i/2)*ductWidth,height=Math.max(columns[i].height,columns[i+1]?.height||0);parts.push({kind:'duct',profile:'wire-basket',x,y:top,width:ductWidth,height,depth:60,mountZ:-100,drawingLabel:`Gitterbahn ${ductWidth}`});}
