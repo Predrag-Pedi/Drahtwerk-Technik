@@ -1,14 +1,15 @@
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261116-3';
-import {joinDinRails} from './frame-layout.mjs?v=20261116-3';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261116-3';
-import {standardFrame} from './standard-render.mjs?v=20261116-3';
-import {frameMarkup} from './frame-render.mjs?v=20261116-3';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261116-3';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261116-3';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261116-3';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261116-3';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261116-3';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261116-3';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261116-4';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261116-4';
+import {joinDinRails} from './frame-layout.mjs?v=20261116-4';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261116-4';
+import {standardFrame} from './standard-render.mjs?v=20261116-4';
+import {frameMarkup} from './frame-render.mjs?v=20261116-4';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261116-4';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261116-4';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261116-4';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261116-4';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261116-4';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261116-4';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pdfTarget=(d,id)=>d.pages.some(p=>p.id===id)?`data-pdf-page="${esc(id)}"`:"";
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
@@ -36,7 +37,7 @@ export function cabinetDimensions(e,w,h,p){
 }
 export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type==='dispo')groupSelect=true;e=meterView(e,p);const cut=continuationCut(e);const [w,h]=size(e,p),s=symbols[e.kind];let body='';
  if(frameMarkup(e,w,h)!==null){body=frameMarkup(e,w,h);}
- else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,e.textEdits||{},editor&&!groupSelect,hits,e.textOffsets||{});}
+ else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,p.type==='schema'?tariffTextEdits(d,e):(e.textEdits||{}),editor&&!groupSelect,hits,e.textOffsets||{});}
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*p.scale*420/W)} mm`,'text-anchor="middle"');
@@ -64,7 +65,7 @@ export function svgPage(d,p,{editor=false,selected=null,grid=true,lineMode=true}
  body+=p.wires.filter(w=>!w.direct).map(wireMarkup).join('');
  body+=p.elements.map(e=>elementMarkup(e,p,d,editor,!lineMode)).join('');
  body+=p.wires.filter(w=>w.direct).map(wireMarkup).join('');
- body+=p.elements.map(e=>referenceMarkup(d,p,e)).join('');
+ body+=p.elements.map(e=>referenceMarkup(d,p,e)+tariffMarkup(d,p,e)).join('');
  if(p.type==='dispo')for(const g of dispoCaptionGroups(p))body+=text((g.left+g.right)/2,g.top-10,g.name,`font-size="7" fill="${p.dispoConfig?.groupColors===false?'#182c42':pageGroupColor(d,p,g.name)||'#182c42'}" stroke="none" text-anchor="middle"`);
  if(editor)for(const w of p.wires){const pts=wirePoints(p,w);body+=`<polyline data-wire="${esc(w.id)}" points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="transparent" stroke-width="10" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`;}
  const connections=connectionCandidates(d,p);
