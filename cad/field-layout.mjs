@@ -1,4 +1,4 @@
-import {compareMeters} from './meter-layout.mjs?v=20261116-15';
+import {compareMeters} from './meter-layout.mjs?v=20261116-16';
 const key=d=>JSON.stringify(d.source);
 // Contiguous meter sequences replace the former round-robin circuit allocation.
 // Each CT bay and each meter feeder travels with its source meter.
