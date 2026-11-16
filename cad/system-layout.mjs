@@ -1,6 +1,6 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-13';
-import {frameLayout} from './frame-layout.mjs?v=20261116-13';
-import {fieldLayout} from './field-layout.mjs?v=20261116-13';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261116-14';
+import {frameLayout} from './frame-layout.mjs?v=20261116-14';
+import {fieldLayout} from './field-layout.mjs?v=20261116-14';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.

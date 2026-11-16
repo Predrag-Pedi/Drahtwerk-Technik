@@ -33,11 +33,10 @@ export function smisslineFeed(d){
  return phases.map(phase=>({kind:'smissline-feed',tag:`Einspeisung ${d.feedFrom||''}`,circuitName:d.circuitName,source:d.feedSource||d.source,dispoTemplateId:large?'tl-0630':'tl-0632',width:90,height:large?36:72,depth:80,phase:large?phase:'',frameStyle:'smissline-feed',mountZ:-70}));
 }
 
-// A globally selected Smissline distribution with one incoming terminal and
+// A distribution with one incoming terminal and
 // one main switch is one supply, not a new supply for every copied schema sheet.
 // Multiple incomers, meter banks or separate fuse feeders remain explicit.
-export function smisslineProjectSupply(devices,config){
- if(config.buildSystem!=='smissline')return null;
+export function commonProjectSupply(devices){
  const incoming=devices.filter(d=>d.include!==false&&d.incoming),switches=devices.filter(d=>d.include!==false&&d.kind==='switch');
  if(incoming.length!==1||switches.length!==1||incoming[0].source?.page!==switches[0].source?.page||devices.some(d=>d.include!==false&&['meter','fuse','rse-fuse'].includes(d.kind)))return null;
  const input=incoming[0],main=switches[0],current=main.current||input.current;
@@ -47,3 +46,5 @@ export function smisslineProjectSupply(devices,config){
  const direct=main.breakerSystem==='smissline'&&main.current>0&&current<=63&&!(input.current>63)&&!(main.smisslineFeedCurrent>63)&&!main.circuitName&&!main.meterFed&&!main.smisslineFeedFrom;
  return {key:'incoming:'+JSON.stringify(input.source),current,from:main.tag,source:main.source,directInput:direct?input:null,directMain:direct?main:null};
 }
+
+export function smisslineProjectSupply(devices,config){return config.buildSystem==='smissline'?commonProjectSupply(devices):null;}

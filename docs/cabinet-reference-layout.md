@@ -115,3 +115,13 @@ Diese Montageabzüge ersetzen die frühere pauschale 20-mm-Randannahme für die 
 ## Senkrechte Einspeiseklemmen
 
 Die Einspeiseklemmen oberhalb der Smissline werden ebenfalls um 90° gedreht und auf der vorhandenen senkrechten Trägerschiene ausgerichtet. Die bisherige waagrechte Zusatzschiene entfällt. Die gedrehte Originalbreite ist der neue vertikale Platzbedarf; genau dieser Wert plus Abstand geht in die Bahnauswahl ein. Die Klemmen beginnen bei 45 mm und sitzen unmittelbar auf der Trägerschiene, während die Smissline darunter auf derselben Schiene montiert bleibt. Die Abzüge von 90 mm und 25 mm sowie die PE-Reserve bleiben erhalten. Die neue 125-A-Ausgabe wurde gerastert und visuell geprüft; die gedrehte Originalgrafik und ihre Ausrichtung werden getestet.
+
+## Standard-Unterverteilung ohne Zähler
+
+Visuell erneut geprüft: AU-00556/S-00556 Blatt 9 (UV 2002-1) und AU-00608/S-00608 Blatt 9 (UV EG): Galip, obere Klemmen und Kanal, darunter Apparateplatten mit Gerätereihen; kein leerer unterer Zähler-/Kupferbereich. Die ebenfalls geprüfte AU-00592 enthält dagegen echte Messplätze und bleibt beim bisherigen Messaufbau.
+
+Bei Standard mit Eingang und Hauptschalter, ohne Zähler/Reserve-Zähler oder Schmelzsicherungen, entfällt der synthetische untere Einspeiseblock. Die Eingangsklemmen kommen auf die obere Klemmenreihe, Hauptschalter und SPD in die erste Apparaterreihe. Es werden keine fiktive Sicherungszone und keine leeren Kupferreihen erzeugt. Die automatische Suche bevorzugt bei diesem Aufbau eine niedrige passende Reihenanordnung innerhalb der Breitenbegrenzung, statt zunächst die schmalste mögliche hohe Verteilung zu wählen. Reserve wird als Zuschlag auf den belegten Platz berücksichtigt.
+
+Die konservative Erkennung eines gemeinsamen Eingangs/Hauptschalters auf derselben Schemaseite gilt nun sowohl für Smissline als auch Standard. Unbenannte Abgänge über mehrere Seiten teilen dieselbe Einspeisegruppe. Mehrere Eingänge, Zähler-/Sicherungsgruppen, explizite Quellen und benannte Gruppen werden nicht pauschal vereinigt. Hager behält Phasenreihen, mit gleicher Startposition der FI/LS auf den drei Phasen nach dem LS-Bereich. Schneider kann Geräte aus aufeinanderfolgenden Seiten zusammenhängend nebeneinander anordnen.
+
+Nachbildung mit 18 FI/LS und 8 LS: Schneider 508 × 720 mm, Hager 758 × 720 mm, jeweils mit 20 % Reserve. Regressionen testen 63 A und 125 A, alle Gerätekennzeichen/-anzahlen, Geometrie innerhalb des Rahmens, gemeinsamen Hager-Reihenbeginn und den Wechsel Standard → Smissline → Standard einschliesslich Speichern/Laden, ohne Schemaänderung. Beide 2D-Ausgaben gerastert und visuell geprüft.
