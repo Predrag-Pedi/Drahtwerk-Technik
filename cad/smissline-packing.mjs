@@ -42,7 +42,8 @@ export function smisslineProjectSupply(devices,config){
  if(incoming.length!==1||switches.length!==1||incoming[0].source?.page!==switches[0].source?.page||devices.some(d=>d.include!==false&&['meter','fuse','rse-fuse'].includes(d.kind)))return null;
  const input=incoming[0],main=switches[0],current=main.current||input.current;
  if(!(current>0))return null;
- // With a plug-in main switch the rail itself is fed at the incoming terminal.
- const source=main.breakerSystem==='smissline'&&current<=63?input:main;
- return {key:'incoming:'+JSON.stringify(input.source),current,from:source.tag,source:source.source};
+ // Workshop rule: the installer connects directly to an on-rail main up to
+ // 63 A. Only its own rail needs no feeder; downstream rails reference the main.
+ const direct=main.breakerSystem==='smissline'&&main.current>0&&current<=63&&!(input.current>63)&&!(main.smisslineFeedCurrent>63)&&!main.circuitName&&!main.meterFed&&!main.smisslineFeedFrom;
+ return {key:'incoming:'+JSON.stringify(input.source),current,from:main.tag,source:main.source,directInput:direct?input:null,directMain:direct?main:null};
 }
