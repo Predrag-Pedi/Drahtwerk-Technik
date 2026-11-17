@@ -101,3 +101,15 @@ platziert. Die ursprünglichen 4er-Vorlagen mit 525 mm Höhe bleiben unveränder
 
 Reproduktion: `node tools/generate-dw-plates.mjs`. Der Generator aktualisiert
 nur seine sechs eigenen IDs und zählt sie getrennt von importierten Vorlagen.
+
+
+### Schema-Assistenten und Dispo-Einfügepunkte
+
+- Neue Dispos starten mit **1:10**. Aufbauwechsel behalten den Massstab. Ein manueller Wechsel skaliert auch Positionen, Leitungen und Bemassungen gemeinsam; Gerätemasse bleiben reale Millimeter. Zoomen verändert nur die Ansicht.
+- Dispo-Einfügepunkt: unten links, unten rechts, oben links, oben rechts oder Mitte; **Tab** wechselt während des Platzierens. Mit Objektfang bleiben passende Platten innerhalb des gewählten Rahmens und rasten an benachbarten Kanten ein. SBR-Rahmen berücksichtigen die beiden 4-mm-Seitenprofile.
+- **Kontakte / Belegung**: am Schütz oder Relais Schliesser, Öffner und Wechsler mit Anschlüssen und Funktionstext konfigurieren. Freie Kontakte platzieren, belegte Kontakte direkt öffnen. Ein Anschluss darf pro Gerät nur einmal verwendet werden. Kopierte externe Kontakte müssen neu zugeordnet werden; eine zusammen kopierte Spule mit Kontakten bildet einen unabhängigen Stromkreis.
+- **Klemmen**: Leiste, Startnummer, Anzahl, Beschriftungen und Abstand eingeben. Ein ausgewähltes natives Symbol kann automatisch mit seinen unteren Anschlüssen verbunden werden. Einzelne Klemmennummern sind rechts editierbar; beim Kopieren werden freie Nummern verwendet. Eingebettete Klemmen innerhalb importierter Makros werden nicht automatisch interpretiert oder verdoppelt.
+- **Auswertungen**: Geräteliste, Klemmenliste, Kontakt-Belegung und Messprotokoll-Vorlage als CSV für Excel. Tatsächliche Messwerte bleiben leer.
+- **PDF**: alle, aktuelle, Schema-, Dispo- oder einzeln gewählte Seiten exportieren. Seiten erhalten Lesezeichen; Querverweise zu enthaltenen Seiten bleiben anklickbar.
+
+Aktor-/KNX-Kontakte können manuell einer Gerätefunktion zugeordnet werden. Herstellerabhängige Kanalbelegungen und Gerätekatalogdaten werden nicht automatisch erschlossen. Weitere Abgrenzungen und Prüfungen: [Video-Abgleich](../docs/cad-tinline-workflow.md).

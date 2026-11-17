@@ -1,16 +1,16 @@
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261117-5';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261117-5';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261117-5';
-import {joinDinRails} from './frame-layout.mjs?v=20261117-5';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261117-5';
-import {standardFrame} from './standard-render.mjs?v=20261117-5';
-import {frameMarkup} from './frame-render.mjs?v=20261117-5';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261117-5';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261117-5';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261117-5';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261117-5';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261117-5';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261117-5';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261117-8';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261117-8';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261117-8';
+import {joinDinRails} from './frame-layout.mjs?v=20261117-8';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261117-8';
+import {standardFrame} from './standard-render.mjs?v=20261117-8';
+import {frameMarkup} from './frame-render.mjs?v=20261117-8';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261117-8';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261117-8';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261117-8';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261117-8';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261117-8';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261117-8';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pdfTarget=(d,id)=>d.pages.some(p=>p.id===id)?`data-pdf-page="${esc(id)}"`:"";
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
@@ -50,6 +50,8 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type===
  if(cut!==null){const id='meter-cut-'+e.id.replace(/[^a-zA-Z0-9_-]/g,'');body=`<defs><clipPath id="${id}"><rect x="-20" y="-20" width="${w+40}" height="${cut*h/e.template.viewHeight+20}"/></clipPath></defs><g clip-path="url(#${id})">${body}</g>`;}
  if(e.dispoKind==='smissline-accessory'&&e.tag!=='Füllstück')body+=text(w/2,h/2,e.tag,`text-anchor="middle" dominant-baseline="middle" font-size="${Math.min(w*.6,8)}" transform="rotate(-90 ${w/2} ${h/2})"`);
  if(e.kind==='template'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
+ if(e.kind==='contact'){const f=functionData(e),pins=f.terminals.split(/[\s,;–—-]+/),labels=f.contactType==='CO'?[pins[1],pins[0],pins[2]]:pins;body+=text(24,8,labels[0]||'','font-size="8"')+text(24,h-2,labels[1]||'','font-size="8"');if(f.contactType==='CO')body+=text(39,8,labels[2]||'','font-size="8"');}
+ if(e.terminalStrip){const t=e.terminalStrip;body+=text(27,20,t.number,'font-size="9"')+text(20,h+14,t.label,'font-size="9" text-anchor="middle"');if(t.first)body+=text(-8,20,t.name,'text-anchor="end" font-weight="bold"');}
  const tag=e.template?(e.dispoSource?'':e.tag):functionBmk(d,p,e);if(tag)body+=e.kind==='module'?text(w/2,-3,tag,`text-anchor="start" font-size="7" transform="rotate(-90 ${w/2} -3)"`):text(-8,18,tag,'text-anchor="end" font-weight="bold"');if(e.value)body+=text(-8,33,e.value,'text-anchor="end"');if(s.ports.length&&e.kind!=='reference'&&e.text)body+=text(w/2,h+18,e.text,'text-anchor="middle"');
  if(e.kind==='reference'){const target=d.pages.find(p=>p.id===e.targetPage);body+=text(42,14,target?`${target.number}.${e.targetPath}`:'?',`fill="#1d5bb5" ${pdfTarget(d,e.targetPage)}`);}
  let connections='';
