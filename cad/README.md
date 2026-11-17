@@ -13,10 +13,10 @@ Erste browserbasierte CAD-Version für den Büro-Bereich. Einstieg über `cad.ht
 - Tastatur: V Auswahl, W Verbindung, R Drehen, Entf Löschen, Strg+D Duplizieren, Strg+Z/Strg+Y Rückgängig/Wiederholen, Esc Abbrechen.
 
 ## Grenzen
-Kein Ersatz für den vollständigen TinLine-Funktionsumfang: vereinfachte Symbolbibliothek, keine Normzertifizierung oder elektrische Prüfung, keine automatische Stromkreis-/Klemmenlistenberechnung, kein DWG/DXF/PDF-Import, kein Hindernisrouting. Bestehende TinLine-Pläne werden nicht automatisch übernommen. Speicherung ist lokal im Browser; JSON-Sicherungen für Gerätewechsel und Datensicherung verwenden. Maximal 200 Seiten und 5000 Zeichnungsobjekte pro Seite beim Import. Grosse PDF-Exporte benötigen entsprechend Browser-Arbeitsspeicher.
+Kein Ersatz für den vollständigen TinLine-Funktionsumfang: keine Normzertifizierung oder elektrische Prüfung, keine automatische Stromkreis-/Klemmenlistenberechnung, kein DWG/DXF/PDF-Import, kein Hindernisrouting. Bestehende TinLine-Pläne werden nicht automatisch übernommen. Speicherung ist lokal im Browser; JSON-Sicherungen für Gerätewechsel und Datensicherung verwenden. Maximal 200 Seiten und 5000 Zeichnungsobjekte pro Seite beim Import. Grosse PDF-Exporte benötigen entsprechend Browser-Arbeitsspeicher.
 
 ## Prüfung
-`node --test tests/cad.test.mjs`
+`node --test tests/cad*.test.mjs`
 
 Browser-Smoke-Test: Beispiel speichern und nach Neuladen öffnen, Seite anlegen, FI/LS platzieren, Verbindung zeichnen, Undo/Redo, Dispo ansehen, direkter PDF-Download. Die beigefügten Kundenpläne werden nicht als Testdaten im Repository gespeichert.
 
@@ -24,7 +24,7 @@ Browser-Smoke-Test: Beispiel speichern und nach Neuladen öffnen, Seite anlegen,
 Beim Einfügen folgt eine halbtransparente Vorschau dem Mauszeiger. Vorschau und Klick verwenden identische Rasterkoordinaten, Abmessungen und Drehungen. R oder die Drehen-Schaltfläche drehen das noch nicht platzierte Symbol. Esc beendet das Werkzeug. Die Vorschau wird beim Verlassen des Blatts ausgeblendet und weder gespeichert noch exportiert. Auf Touch-Geräten wird weiterhin durch Antippen platziert (kein Maus-Hover).
 
 ## TinLine-Vorlagenbibliothek
-Der Tab **Vorlagen** öffnet standardmässig eine visuelle Bibliothek mit 1’136 Bildkacheln, Suche und Schema-/Dispo-Filter. Die Trennkante rechts von der Bibliothek lässt sich ziehen oder mit den Pfeiltasten verschieben. Die Breite wird im Browser gespeichert; je nach Breite erscheinen mehrere Spalten. Vorschaubilder sind komprimierte PNGs in eigenständigen SVG-Dateien; die Zeichnung selbst bleibt vektorbasiert.
+Der Tab **Vorlagen** öffnet standardmässig eine visuelle Bibliothek mit 4’285 Bildkacheln, Suche sowie Filter für Schema/Dispo, Fachbereich, Hersteller und Funktion. Die Trennkante rechts von der Bibliothek lässt sich ziehen oder mit den Pfeiltasten verschieben. Die Breite wird im Browser gespeichert; je nach Breite erscheinen mehrere Spalten. Vorschaubilder werden bei Bedarf aus den geprüften Vektordaten erzeugt. 3’149 weitere Vorlagen wurden ergänzt; 33 nicht vollständig konvertierbare Dateien sind im Katalog und im [Importbericht](../docs/cad-tinline-basics.md) ausgewiesen.
 
 ### Blatt und Platzierung
 A3 quer ist exakt 420 × 297 mm. Der Zeichenbereich endet oberhalb des Schriftfelds. Neue Vorlagen werden innerhalb dieses Bereichs gehalten; zu grosse Vorlagen werden nicht unbemerkt abgeschnitten. Die Mausvorschau verwendet dieselbe Platzierungsfunktion wie der Klick. Dispo-Abmessungen bleiben in realen mm und folgen dem Seitenmassstab.
@@ -76,3 +76,14 @@ nicht hinterlegt. SP-165-Rahmen erfordern weiterhin mindestens 165 mm Tiefe.
 
 Validierung: CAD-Regressionstests inklusive Klemmenfilter, kompakter Anlagen,
 ungleicher Felder, gemischter Plattenzonen und Export/Import der 3D-Struktur.
+
+
+### Manuelle Zeichenwerkzeuge (17.11.2026)
+
+- **Objektfang**: Dispo-Geräte und Rahmen rasten beim Platzieren und Verschieben an benachbarten Kanten oder Mittellinien ein. Hilfslinien zeigen die Ausrichtung. Alt unterdrückt den Fang beim Ziehen; die Checkbox schaltet ihn dauerhaft ab.
+- **Rahmen**: Breite/Höhe in realen Millimetern eingeben, anschliessend den Rahmen auf dem Blatt platzieren. Massstab und bestehende Schrankdarstellung bleiben erhalten.
+- **Mass**: Zwei Messpunkte und anschliessend die Lage der Masslinie anklicken. Ecken und Kantenmitten werden gefangen; horizontal/vertikal ist automatisch oder manuell wählbar. Der Wert berücksichtigt den Dispo-Massstab. Messobjekte sind unabhängig, nicht an Geräte gebunden; nach Geräteänderungen neu bemassen.
+- **Verbindung**: Ein bis fünf getrennte Leiter mit wählbarem Abstand (Blatt-mm). Rechtwinklige Knicke erscheinen bereits in der Vorschau; Tab oder die Knick-Schaltfläche wechselt die Richtung. Zu enge oder rückwärts laufende Bögen und Leiter ausserhalb des Zeichenbereichs werden abgewiesen. Vorhandene Anschlussreferenzen bleiben erhalten. Ein Leitungszug ist eine gemeinsame Undo-Aktion, nach dem Zeichnen bleiben Leiter einzeln bearbeitbar.
+- **Schema-Vorlagen skalieren**: Symbolgrösse in Prozent oder «Symbol aufs Blatt einpassen» vor dem Platzieren; damit sind auch grosse Installationssymbole nutzbar. Dispo-Vorlagen behalten ihre echten Abmessungen.
+
+Noch nicht enthalten: automatisch aufgetrennte Leitungen beim Einsetzen eines Geräts in die Mitte einer bestehenden Leitung, assoziative Bemassung, Hindernisrouting, externe Schema-PDF → Dispo sowie eine Lizenz-/Produkttrennung in Lite/Pro. Die vorhandene automatische Dispo aus dem eigenen Projekt bleibt verfügbar.
