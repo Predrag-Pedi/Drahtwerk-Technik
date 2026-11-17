@@ -12,7 +12,7 @@ const plate=read(catalog.items.find(t=>t.name==='250x525').id);
 test('every indexed template exists, has safe vector geometry and matching dimensions',()=>{
  assert.equal(new Set(catalog.items.map(t=>t.id)).size,catalog.items.length);
  assert.equal(catalog.items.filter(t=>/^tl-\d+$/.test(t.id)).length,1136);
- assert.equal(catalog.items.length,1136+catalog.importSummary.added);
+ assert.equal(catalog.items.length,1136+catalog.importSummary.added+(catalog.generatedSummary?.drahtwerkPlates||0));
  for(const meta of catalog.items){const t=read(meta.id);for(const key of ['id','name','width','height','category'])assert.equal(t[key],meta[key],`${meta.id}: ${key}`);}
 });
 test('dispo preserves real plate dimensions and follows page scale',()=>{
