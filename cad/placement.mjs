@@ -1,8 +1,9 @@
-import {snapDispo} from './drawing-tools.mjs?v=20261117-8';
-import {alignMacro} from './alignment.mjs?v=20261117-8';
-import {DRAW,BUS,MM,bounds} from './geometry.mjs?v=20261117-8';
-import {createElement,snap,symbols,size} from './model.mjs?v=20261117-8';
-import {elementMarkup} from './render.mjs?v=20261117-8';
+import {manualInterior} from './dispo-parts.mjs?v=20261117-9';
+import {snapDispo} from './drawing-tools.mjs?v=20261117-9';
+import {alignMacro} from './alignment.mjs?v=20261117-9';
+import {DRAW,BUS,MM,bounds} from './geometry.mjs?v=20261117-9';
+import {createElement,snap,symbols,size} from './model.mjs?v=20261117-9';
+import {elementMarkup} from './render.mjs?v=20261117-9';
 export function placement(page,kind,point,grid=true,rotation=0,template=null,autoConnect=true,options={}){
  if(!point||!symbols[kind]||point.x<DRAW.left||point.x>DRAW.right||point.y<DRAW.top||point.y>DRAW.bottom)return null;
  if(kind==='template'&&!template)return null;
@@ -28,7 +29,7 @@ export function placement(page,kind,point,grid=true,rotation=0,template=null,aut
   // The four millimetre SBR side profiles are outside the usable plate width.
   if(page.type==='dispo'&&e.kind!=='cabinet'){
    const frames=page.elements.filter(f=>f.kind==='cabinet'&&!f.rotation).map(f=>({f,b:bounds(f,...size(f,page))})).filter(({b})=>point.x>=b.left&&point.x<=b.right&&point.y>=b.top&&point.y<=b.bottom).sort((a,b)=>(a.b.right-a.b.left)*(a.b.bottom-a.b.top)-(b.b.right-b.b.left)*(b.b.bottom-b.b.top));
-   if(frames.length){const {f,b}=frames[0],inset=f.frameStyle==='drahtwerk'?4*MM/page.scale:0,own=bounds(e,...size(e,page));b.left+=inset;b.right-=inset;
+   if(frames.length){const {f,b}=frames[0],inset=f.frameStyle==='drahtwerk'?4*MM/page.scale:0,own=bounds(e,...size(e,page));const interior=manualInterior(f),factor=MM/page.scale;if(interior){b.right=b.left+interior.right*factor;b.bottom=b.top+interior.bottom*factor;b.left+=interior.left*factor;b.top+=interior.top*factor;}else{b.left+=inset;b.right-=inset;}
     if(own.right-own.left<=b.right-b.left&&own.bottom-own.top<=b.bottom-b.top){insideBounds=b;e.x+=Math.max(0,b.left-own.left)-Math.max(0,own.right-b.right);e.y+=Math.max(0,b.top-own.top)-Math.max(0,own.bottom-b.bottom);}
    }
   }

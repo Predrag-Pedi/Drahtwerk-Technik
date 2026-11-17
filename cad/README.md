@@ -113,3 +113,12 @@ nur seine sechs eigenen IDs und zählt sie getrennt von importierten Vorlagen.
 - **PDF**: alle, aktuelle, Schema-, Dispo- oder einzeln gewählte Seiten exportieren. Seiten erhalten Lesezeichen; Querverweise zu enthaltenen Seiten bleiben anklickbar.
 
 Aktor-/KNX-Kontakte können manuell einer Gerätefunktion zugeordnet werden. Herstellerabhängige Kanalbelegungen und Gerätekatalogdaten werden nicht automatisch erschlossen. Weitere Abgrenzungen und Prüfungen: [Video-Abgleich](../docs/cad-tinline-workflow.md).
+
+
+### Aufbau einfügen wie im Vorgabevideo
+
+Auf einer Dispo-Seite stehen unter **Zeichnen** die vier direkten Werkzeuge **Rahmen**, **Schrank**, **Kanal** und **Schiene**. Alle öffnen denselben Aufbauassistenten mit Bauteilauswahl links, bemasster Vorschau und Millimetereingaben. Die Vorschau aktualisiert sich beim Eingeben. Bei Rahmen und Schrank sind Randabstände einstellbar; beim Schrank zusätzlich der Sockel. Der Innenraum wird aus den Aussenmassen, Rändern und dem Sockel berechnet.
+
+**Einsetzen** hängt das Teil an den Mauszeiger. Klicken platziert es, weitere Klicks setzen gleiche Teile; **R** dreht, **Tab** wechselt den Einfügepunkt und **Esc** beendet. Kabelkanal und Montageschiene können bereits im Assistenten waagrecht oder senkrecht gewählt werden. Der Seitenmassstab bleibt erhalten. Ungültige Masse oder ein durch Ränder/Sockel aufgebrauchter Innenraum werden abgewiesen.
+
+Ein platziertes Teil auswählen und rechts **Aufbau bearbeiten** wählen, um denselben Assistenten zur Änderung zu öffnen. Die Parameter bleiben beim Speichern/Importieren erhalten und gelten auch für SVG/PDF und die 3D-Geometrie. Schränke sind frei bemasste Gehäuse; konkrete Herstellerartikel bleiben in der Originalvorlagenbibliothek.

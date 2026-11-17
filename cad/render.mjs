@@ -1,16 +1,17 @@
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261117-8';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261117-8';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261117-8';
-import {joinDinRails} from './frame-layout.mjs?v=20261117-8';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261117-8';
-import {standardFrame} from './standard-render.mjs?v=20261117-8';
-import {frameMarkup} from './frame-render.mjs?v=20261117-8';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261117-8';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261117-8';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261117-8';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261117-8';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261117-8';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261117-8';
+import {manualInterior} from './dispo-parts.mjs?v=20261117-9';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261117-9';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261117-9';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261117-9';
+import {joinDinRails} from './frame-layout.mjs?v=20261117-9';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261117-9';
+import {standardFrame} from './standard-render.mjs?v=20261117-9';
+import {frameMarkup} from './frame-render.mjs?v=20261117-9';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261117-9';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261117-9';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261117-9';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261117-9';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261117-9';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261117-9';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pdfTarget=(d,id)=>d.pages.some(p=>p.id===id)?`data-pdf-page="${esc(id)}"`:"";
 const text=(x,y,s,extra='')=>`<text x="${x}" y="${y}" ${extra}>${esc(s)}</text>`;
@@ -37,7 +38,8 @@ export function cabinetDimensions(e,w,h,p){
  return `<g class="cabinet-dimensions" stroke-width=".5">${width}${height}</g>`;
 }
 export function elementMarkup(e,p,d,editor=false,groupSelect=false){if(p.type==='dispo')groupSelect=true;e=meterView(e,p);const cut=continuationCut(e);const [w,h]=size(e,p),s=symbols[e.kind];let body='';
- if(frameMarkup(e,w,h)!==null){body=frameMarkup(e,w,h);}
+ if(manualInterior(e)){const m=manualInterior(e),f=W/420/p.scale,sockel=e.manualPart.plinth;body=`<rect width="${w}" height="${h}" fill="#f3f5f7"/><rect x="${m.left*f}" y="${m.top*f}" width="${(m.right-m.left)*f}" height="${(m.bottom-m.top)*f}" fill="white"/>`+(sockel?line(0,h-sockel*f,w,h-sockel*f):'')+cabinetDimensions(e,w,h,p);}
+ else if(frameMarkup(e,w,h)!==null){body=frameMarkup(e,w,h);}
  else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,p.type==='schema'?tariffTextEdits(d,e):(e.textEdits||{}),editor&&!groupSelect,hits,e.textOffsets||{});}
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,16+i*17,l)).join('');
