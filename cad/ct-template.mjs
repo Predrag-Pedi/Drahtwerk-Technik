@@ -1,4 +1,4 @@
-import {pathHash} from './template-text.mjs?v=20261117-2';
+import {pathHash} from './template-text.mjs?v=20261117-3';
 // Keep the small original CT horizontal and at its original physical scale.
 // Its 121.1 mm library envelope includes the BMK to the right; the actual
 // drawing ends at x=6605 (about 80 mm). Move the editable caption above the
