@@ -1,5 +1,5 @@
-import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261116-16';
-import {systemLayout,zoneFreeSmissline,smisslineRails,smisslineInputSpace,smisslineMount} from './system-layout.mjs?v=20261116-16';
+import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261117-1';
+import {systemLayout,zoneFreeSmissline,smisslineRails,smisslineInputSpace,smisslineMount} from './system-layout.mjs?v=20261117-1';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;
@@ -20,7 +20,7 @@ export function siteConfig(devices,c){
  if(!perField)throw Error('Durchgang zu schmal: Ein 250er-Feld benötigt mindestens 258 mm Breite.');
  if(maxH<400)throw Error('Einbau- oder Durchgangshöhe zu klein.');
  const conventional=c.buildSystem==='standard'&&active.some(d=>d.kind==='switch')&&active.some(d=>d.incoming)&&!active.some(d=>['meter','fuse','rse-fuse'].includes(d.kind)||d.measurementOwner);
- const heights=[...new Set([1,2,3,4,5,6,7,8].map(n=>(compact?20:c.topHeight)+(!compact&&!conventional&&devices.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0)+20+n*400).filter(h=>h<=maxH).concat(maxH,compact?smisslineRails.map(r=>r.length+2*smisslineMount.edge+smisslineMount.stop+smisslineInputSpace(active)).filter(h=>h<=maxH&&h>=400):[]))].sort((a,b)=>a-b);
+ const heights=[...new Set([1,2,3,4,5,6,7,8].map(n=>(compact?20:c.topHeight)+(!compact&&!conventional&&devices.some(d=>d.kind==='fuse'||d.incoming)?c.fuseHeight:0)+20+n*400).filter(h=>h<=maxH).concat(maxH,conventional&&c.topHeight+545<=maxH?[c.topHeight+545]:[],compact?smisslineRails.map(r=>r.length+2*smisslineMount.edge+smisslineMount.stop+smisslineInputSpace(active)).filter(h=>h<=maxH&&h>=400):[]))].sort((a,b)=>a-b);
  // Prefer a slightly larger local circuit arrangement over cross-field wiring.
  for(const [local,upper] of [[true,true],[true,false],[false,true],[false,false]])for(let fields=1;fields<=Math.min(12,Math.floor(c.maxWidth/258));fields++){
   const maxCols=Math.min(fields*perField,Math.floor((c.maxWidth-fields*8)/250));
