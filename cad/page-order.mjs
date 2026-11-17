@@ -1,5 +1,5 @@
-import {normalizePageTitle} from './page-titles.mjs?v=20261117-1';
-import {functionBmk} from './references.mjs?v=20261117-1';
+import {normalizePageTitle} from './page-titles.mjs?v=20261117-2';
+import {functionBmk} from './references.mjs?v=20261117-2';
 
 // Page IDs remain stable: links and device ownership survive reordering.
 export function reconcilePageOrder(doc,before,{repair=false}={}){
