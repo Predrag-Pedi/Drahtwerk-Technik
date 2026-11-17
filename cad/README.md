@@ -8,6 +8,7 @@ Erste browserbasierte CAD-Version für den Büro-Bereich. Einstieg über `cad.ht
 - Symbol auswählen, auf dem Blatt platzieren und mit Auswahl verschieben. Rechts Kennzeichen, Typ, Text, Position und Drehung bearbeiten.
 - Verbindungen: Anschluss oder freien Startpunkt anklicken, Zwischenpunkte setzen, am Zielanschluss oder mit Enter abschliessen. An Symbolen befestigte Enden folgen Verschiebungen und Drehungen.
 - Dispo: Abmessungen von Schränken, Schienen, Kanälen und Einbaugeräten in mm; Darstellung über den Seitenmassstab. Zeichnungspositionen verwenden Blattkoordinaten.
+- Der Dispo-Massstab bleibt beim automatischen Erzeugen und beim Wechsel des Aufbausystems (z. B. Smissline ↔ Standard) erhalten. Neue Seiten starten bei 1:10; Änderungen erfolgen manuell unter **Massstab 1 :**. Die automatische Schrankdimensionierung passt weiterhin die realen Schrankmasse an, ohne den Seitenmassstab zu ändern.
 - Seitenverweise zeigen Zielblatt und Pfad 0–9; Blattnummeränderungen aktualisieren die Verweise.
 - Sichern exportiert ein JSON-Projekt; Import legt eine unabhängige Kopie an. SVG exportiert die aktuelle Seite als Vektor. PDF lädt alle Seiten in Projekt-Reihenfolge als A3 quer herunter (gerenderte Rasterseiten).
 - Tastatur: V Auswahl, W Verbindung, R Drehen, Entf Löschen, Strg+D Duplizieren, Strg+Z/Strg+Y Rückgängig/Wiederholen, Esc Abbrechen.
