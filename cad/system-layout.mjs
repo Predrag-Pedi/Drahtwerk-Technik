@@ -1,6 +1,6 @@
-import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261117-3';
-import {frameLayout} from './frame-layout.mjs?v=20261117-3';
-import {fieldLayout} from './field-layout.mjs?v=20261117-3';
+import {smisslineBlocks,smisslineFeed} from './smissline-packing.mjs?v=20261117-4';
+import {frameLayout,dinBodyCenter} from './frame-layout.mjs?v=20261117-4';
+import {fieldLayout} from './field-layout.mjs?v=20261117-4';
 // Verified ABB overall dimensions including end pieces. Only original library
 // rails agreeing within 2 mm are selected, reserving the larger ABB envelope.
 // The 48/50 ME library envelopes differ by 18/36 mm and are excluded.
@@ -92,7 +92,7 @@ export function systemLayout(devices,c){
   parts.push({kind:'rail',profile:'smissline-stop',x:x+82.5,y:y+r.length,width:35,height:smisslineMount.stop,depth:25,mountZ:-110,drawingLabel:'Stützwinkel 25'});
   let offset=20;
   for(const d of lane.feed){placed.push({...d,x:x+(columnWidth-d.width)/2,y:y+offset});offset+=d.height;}
-  for(const block of lane.blocks){for(const piece of block.pieces){const d=piece.device,body=piece.role==='body';placed.push({...d,kind:body?d.kind:'smissline-accessory',tag:body?d.tag:piece.role,dispoTemplateId:piece.id,x:x+(columnWidth-(body?d.width:90))/2,y:y+offset+piece.offset,width:body?d.width:90,height:piece.length,templateRotation:piece.rotate?90:0,frameStyle:body?'smissline':'smissline-accessory',mountZ:-70});}offset+=block.length;}
+  for(const block of lane.blocks){for(const piece of block.pieces){const d=piece.device,body=piece.role==='body';placed.push({...d,kind:body?d.kind:'smissline-accessory',tag:body?d.tag:piece.role,dispoTemplateId:piece.id,x:x+(columnWidth-(body?d.width:90))/2+(body&&piece.rotate?dinBodyCenter({...d,height:d.width})-d.width/2:0),y:y+offset+piece.offset,width:body?d.width:90,height:piece.length,templateRotation:piece.rotate?90:0,frameStyle:body?'smissline':'smissline-accessory',mountZ:-70});}offset+=block.length;}
 
  }
  return {parts,placed,overflow:[]};
