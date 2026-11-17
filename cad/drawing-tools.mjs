@@ -1,5 +1,5 @@
-import {MM,DRAW,bounds,localPoint} from './geometry.mjs?v=20261117-5';
-import {size,createElement} from './model.mjs?v=20261117-5';
+import {MM,DRAW,bounds,localPoint} from './geometry.mjs?v=20261117-8';
+import {size,createElement} from './model.mjs?v=20261117-8';
 
 const drawable=e=>['cabinet','plate','rail','duct','module'].includes(e.kind)||e.kind==='template'&&e.template?.category==='Dispo';
 export const elementBox=(e,p)=>bounds(e,...size(e,p));
@@ -9,6 +9,7 @@ export function snapBox(p,box,excluded=[],tolerance=10){
  let dx=0,dy=0,bestX=Infinity,bestY=Infinity,gx=null,gy=null;
  const candidates=(a,b,c,d)=>[[a,c,0],[a,d,0],[b,c,0],[b,d,0],[(a+b)/2,(c+d)/2,1]];
  for(const e of p.elements){if(excluded.includes(e.id)||!drawable(e))continue;const b=elementBox(e,p),rank=e.kind==='cabinet'?2:0;
+  if(e.kind==='cabinet'&&e.frameStyle==='drahtwerk'&&!e.rotation){b.left+=4*MM/p.scale;b.right-=4*MM/p.scale;}
   // Edges clip to edges; only centres align to centres. Neighbouring devices
   // take precedence over the enclosing cabinet, whose width may include margins.
   if(box.bottom>=b.top-tolerance&&box.top<=b.bottom+tolerance)for(const [own,x,type] of candidates(box.left,box.right,b.left,b.right)){const d=x-own,score=(rank+type)*(tolerance+1)+Math.abs(d);if(Math.abs(d)<=tolerance&&score<bestX){bestX=score;dx=d;gx=x;}}
