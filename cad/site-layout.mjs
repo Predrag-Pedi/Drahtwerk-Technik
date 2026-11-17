@@ -1,5 +1,5 @@
-import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261117-3';
-import {systemLayout,zoneFreeSmissline,smisslineRails,smisslineInputSpace,smisslineMount} from './system-layout.mjs?v=20261117-3';
+import {isCabinet,cabinetSiteConfig} from './cabinet-layout.mjs?v=20261117-4';
+import {systemLayout,zoneFreeSmissline,smisslineRails,smisslineInputSpace,smisslineMount} from './system-layout.mjs?v=20261117-4';
 export const isReserveMeter=d=>d.kind==='meter'&&/\bRes(?:erve)?(?:\b|\.)/i.test((d.name||'')+' '+(d.circuitName||''));
 export function reserveMeters(devices,count,pageId){
  const present=devices.filter(isReserveMeter).length;

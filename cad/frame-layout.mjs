@@ -1,11 +1,20 @@
-import {apGeometry} from './rse.mjs?v=20261117-3';
-import {fuseLimits,copperFuse,fuseZoneHeight,placeCopperBanks} from './fuse-systems.mjs?v=20261117-3';
-import {fieldLayout} from './field-layout.mjs?v=20261117-3';
-import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261117-3';
+import {apGeometry} from './rse.mjs?v=20261117-4';
+import {fuseLimits,copperFuse,fuseZoneHeight,placeCopperBanks} from './fuse-systems.mjs?v=20261117-4';
+import {fieldLayout} from './field-layout.mjs?v=20261117-4';
+import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261117-4';
 // Drahtwerk assembly grid. Confirmed plate envelope: 250/500/750 x 400 mm.
 // Profile cross-sections below are simplified envelopes, not manufacturing drawings.
 export const profiles={SP09048:{name:'SP 090.48',face:17,depth:99},SP45:{name:'SP 45.0',face:17,depth:45.2},EV165:{name:'EV 165',face:35,depth:150},SP165:{name:'SP 165 DIN',face:40,depth:165},AS35:{name:'AS 35.2',face:35,depth:15},BS25:{name:'BS 25.0',face:25,depth:15},AS50:{name:'AS 50.0',face:50,depth:15},ZS39:{name:'ZS 39.0',face:39,depth:22}};
 export const plateOpenings=(width,cut=false)=>![250,500,750].includes(width)?[{x:Math.min(24,width/4),width:width-2*Math.min(24,width/4)}]:cut&&width>=500?[{x:24,width:width-48}]:width===500?([{x:24,width:216},{x:260,width:216}]):Array.from({length:Math.floor(width/250)},(_,i)=>({x:i*250+17,width:216}));
+// Visual body centres in original library coordinates. Labels above a body
+// and the longer neutral module must not shift the body off the DIN centre.
+export function dinBodyCenter(d){
+ const id=d.dispoTemplateId;
+ if(['tl-0531','tl-0535','tl-0542'].includes(id))return 45;
+ if(['tl-0624','tl-0625'].includes(id))return d.height*(1959+9998)/20000;
+ if(id==='tl-0735')return d.height*(3323+10000)/20000;
+ return d.height/2;
+}
 // Compare complete valid layouts before selecting a construction variant.
 // Fewer occupied rows per supply leave whole rails free; then prefer a
 // narrower group footprint, preserving separated pole rows on an exact tie.
@@ -38,6 +47,7 @@ export function frameLayout(devices,c){
  if(![250,500,750].includes(c.plateWidth))throw Error('Plattenbreite muss 250, 500 oder 750 mm sein.');
  const selected=devices.filter(d=>d.include!==false),ordinary=c.buildSystem==='standard'&&selected.some(d=>d.kind==='switch')&&selected.some(d=>d.incoming)&&!selected.some(d=>['meter','fuse','rse-fuse'].includes(d.kind)||d.measurementOwner||d.frameStyle?.startsWith('transfer-')||d.source?.element==='incoming-supply'),hasFuses=!ordinary&&(c._fuseZone||selected.some(d=>d.kind==='fuse'||d.kind==='rse-fuse'&&!d.measurementOwner||d.incoming||d.kind==='switch'&&d.height>110)),fuseHeight=c.fuseHeight||400;
  const customWidth=(c.width-8)%250!==0,usableWidth=customWidth?c.width-8:Math.floor((c.width-8)/250)*250,cols=Math.ceil(usableWidth/c.plateWidth),panelPitch=customWidth?usableWidth/cols:c.plateWidth;
+ const leadingService=ordinary&&selected.some(d=>d.manufacturer==='hager')&&usableWidth>750&&usableWidth%250===0;
  const parts=[],placed=[],overflow=[],left=(c.width-usableWidth)/2,plateTop=c.topHeight||300,fuseY=c.height-20-(hasFuses?fuseHeight:0);
  const add=(kind,x,y,width,height,extra={})=>parts.push({kind,x,y,width,height,...extra});
  if(cols<1||fuseY<=plateTop)throw Error('Rahmen zu klein für die gewählten Platten und Zonen.');
@@ -46,7 +56,7 @@ export function frameLayout(devices,c){
  add('rail',4,0,c.width-8,17,{profile:'SP45',depth:45.2,mountZ:-45.2});
  add('rail',4,c.height-17,c.width-8,17,{profile:'SP09048',depth:99,mountZ:-99});
  for(const x of [4,c.width-39])for(const y of [17,c.height-52])add('rail',x,y,35,35,{profile:'EV165',depth:150,mountZ:-160});
- for(let i=1;i<cols;i++)add('rail',left+i*panelPitch-12.5,35,25,c.height-70,{profile:'BS25',depth:15,mountZ:-110});
+ for(let i=1;i<(leadingService?1+Math.ceil((usableWidth-250)/panelPitch):cols);i++)add('rail',left+(leadingService?250+(i-1)*panelPitch:i*panelPitch)-12.5,35,25,c.height-70,{profile:'BS25',depth:15,mountZ:-110});
  const bar=(profile,y)=>add('rail',40,y,c.width-80,profiles[profile].face,{profile,depth:profiles[profile].depth,mountZ:profile==='ZS39'?-22:-110});
  bar('AS50',30);bar('AS35',plateTop-145);bar('BS25',plateTop-85);add('duct',40,plateTop-75,c.width-80,60,{depth:60,mountZ:-100});
  add('plate',left,17,c.width-2*left,plateTop-17,{plateType:'cover',depth:3,mountZ:0});
@@ -61,7 +71,7 @@ export function frameLayout(devices,c){
  const gap=meterTop-(plateTop+regularRows*apparatusHeight+(shortPanel?200:0));if(gap>0)add('plate',left,meterTop-gap,c.width-2*left,gap,{plateType:'cover',depth:3,mountZ:0});
  const put=(d,x,y,extra={})=>{if(d.depth>c.depth){overflow.push(d);return;}placed.push({...d,x,y,...extra});};
 
- const slots=[],hasMeterFeed=regular.some(d=>d.meterFed)||!ordinary&&(inputs.length>0||spds.length>0),devicePlateWidth=panelPitch,panels=[];for(let x=left;x<c.width-left;){const pw=Math.min(hasMeterFeed&&x===left?250:devicePlateWidth,c.width-left-x);panels.push({x,pw});x+=pw;}
+ const slots=[],hasMeterFeed=regular.some(d=>d.meterFed)||!ordinary&&(inputs.length>0||spds.length>0),devicePlateWidth=panelPitch,panels=[];for(let x=left;x<c.width-left;){const pw=Math.min((hasMeterFeed||leadingService)&&x===left?250:devicePlateWidth,c.width-left-x);panels.push({x,pw});x+=pw;}
  for(let r=0;r<regularRows+(shortPanel?1:0);r++){const y=plateTop+r*apparatusHeight,ph=r<regularRows?apparatusHeight:200,slotYs=ph===525?[60,185,310,435]:ph===400?[60,185,310]:[60];bar('ZS39',y-22);for(const {x,pw} of panels){add('plate',x,y,pw,ph,{plateType:'slots',cutCenterBridge:!!c.cutCenterBridge&&pw>=500,depth:3,mountZ:0});for(const sy of slotYs)for(const opening of plateOpenings(pw,c.cutCenterBridge))slots.push({row:slotYs.indexOf(sy),x:x+opening.x,y:y+sy,used:0,panelWidth:pw,width:opening.width});}for(const sy of slotYs)bar('AS35',y+sy+7.5);}
  // Unused trailing meter cells remain prepared apparatus panels, even when
  // all current devices fit above. This does not add reserve meter places.
@@ -90,7 +100,7 @@ export function frameLayout(devices,c){
   // plate or a synthetic bottom supply bank. Main and SPD occupy apparatus rows.
   let right=c.width-40;
   for(const d of inputs){const x=right-d.width,y=plateTop-110-d.height;if(x<40||y<17){overflow.push(d);continue;}put(d,x,y,{mountZ:-70,frameStyle:'conventional-input'});right=x-18;}
-  for(const d of [...selected.filter(d=>d.kind==='switch'),...spds]){const slot=slots.find(s=>s.row===0&&s.used+d.width<=s.width&&d.height<=160);if(!slot){overflow.push(d);continue;}put(d,slot.x+slot.used,slot.y+25-d.height/2,{mountZ:-70,frameStyle:'conventional-apparatus'});slot.used+=d.width+18;}
+  for(const d of [...selected.filter(d=>d.kind==='switch'),...spds]){const slot=slots.find(s=>s.row===0&&s.used+d.width<=s.width&&d.height<=160);if(!slot){overflow.push(d);continue;}put(d,slot.x+slot.used,slot.y+25-dinBodyCenter(d),{mountZ:-70,frameStyle:'conventional-apparatus'});slot.used+=d.width+18;}
  }
  // Keep the area beneath incoming apparatus out of the outgoing reserve.
  if(ordinary){const serviceEnd=Math.max(0,...slots.filter(s=>s.used>0).map(s=>s.x+s.used));for(const s of slots){s.serviceInset=Math.max(0,Math.min(s.width,serviceEnd-s.x));s.used=Math.max(s.used,s.serviceInset);}}
@@ -99,7 +109,7 @@ export function frameLayout(devices,c){
  // in a narrow column, leaving the rest of each rail available to other groups.
  const singles=regular.filter(d=>c._stackMeterSingles!==false&&d.meterFed&&d.supplyKey&&regular.filter(q=>q.meterFed&&q.supplyKey===d.supplyKey).length===1&&(d.poles||1)<=2);
  let singleWidth=0;
- for(const d of singles){const slot=[...slots].sort((a,b)=>a.x-b.x||a.y-b.y).find(s=>!s.singleOutlet&&s.width>=d.width+18&&d.height<=120);if(!slot){overflow.push(d);regular.splice(regular.indexOf(d),1);continue;}slot.singleOutlet=d;put(d,slot.x,slot.y+25-d.height/2,{mountZ:8-d.depth,frameStyle:'recessed'});singleWidth+=d.width;regular.splice(regular.indexOf(d),1);}
+ for(const d of singles){const slot=[...slots].sort((a,b)=>a.x-b.x||a.y-b.y).find(s=>!s.singleOutlet&&s.width>=d.width+18&&d.height<=120);if(!slot){overflow.push(d);regular.splice(regular.indexOf(d),1);continue;}slot.singleOutlet=d;put(d,slot.x,slot.y+25-dinBodyCenter(d),{mountZ:8-d.depth,frameStyle:'recessed'});singleWidth+=d.width;regular.splice(regular.indexOf(d),1);}
  for(const s of slots){const same=slots.filter(q=>panelKey(q)===panelKey(s)&&q.singleOutlet);if(same.length){s.used=Math.max(...same.map(q=>q.singleOutlet.width))+18;s.reservedMeter=true;}}
  const meterPanels=new Set();if(regular.some(d=>d.meterFed)&&slots.length)meterPanels.add(panelKey(slots[0]));
  const owners=new Map(),named=[...new Set(regular.filter(d=>!d.meterFed).map(d=>d.circuitName).filter(Boolean))],separatePanels=named.length>1&&named.length<=[...new Set(slots.map(panelKey))].filter(k=>!meterPanels.has(k)).length;
@@ -111,13 +121,13 @@ export function frameLayout(devices,c){
  for(const d of ordered){const key=family(d),individual=d.kind==='ls'&&d.lsMode==='individual',count=individual?(d.poles||1):1;
   if(occupied+d.width*count>capacity){overflow.push(d);continue;}
   let chosen=null;
-  for(const first of [...slots].sort((a,b)=>ordinary&&d.manufacturer==='schneider'?a.y-b.y||a.x-b.x:Number(owners.get(panelKey(b))===d.circuitName&&!!d.circuitName)-Number(owners.get(panelKey(a))===d.circuitName&&!!d.circuitName)||Number(slots.some(s=>panelKey(s)===panelKey(b)&&s.group===key))-Number(slots.some(s=>panelKey(s)===panelKey(a)&&s.group===key)))){if(ordinary&&d.manufacturer==='schneider'){const last=schneiderCursor.get(key);if(last&&(first.y<last.y||first.y===last.y&&first.x<last.x))continue;}if(!ordinary&&c._schneiderRows&&d.manufacturer==='schneider'&&(d.poles||1)>=3&&placed.some(e=>['ls','fils'].includes(e.kind)&&family(e)===key&&(e.poles||1)<3&&first.y<=e.y+e.height/2-25+.1))continue;if(separatePanels&&d.circuitName&&!d.meterFed&&owners.has(panelKey(first))&&owners.get(panelKey(first))!==d.circuitName)continue;if(first.phaseFamily&&first.phaseFamily!==key)continue;if(phaseStack(d)&&slots.some(s=>panelKey(s)===panelKey(first)&&(s.used>(s.serviceInset||0)&&!s.reservedMeter&&s.group!==key||s.phaseFamily&&s.phaseFamily!==key)))continue;if(first.form&&first.form!==form(d))continue;if(d.manufacturer==='hager'&&!d.meterFed&&first.group&&first.group!==key)continue;if(d.meterFed?!meterPanels.has(panelKey(first)):meterPanels.has(panelKey(first)))continue;if(phaseStack(d)&&!individual&&first.row!==Number(d.phase[1])-1)continue;const rows=Array.from({length:count},(_,i)=>slots.find(s=>s.x===first.x&&Math.abs(s.y-first.y-i*125)<.1));if(rows.some(s=>!s||s.form&&s.form!==form(d)||d.manufacturer==='hager'&&!d.meterFed&&s.group&&s.group!==key))continue;const alignFils=ordinary&&phaseStack(d)&&d.kind==='fils',phaseRows=slots.filter(s=>panelKey(s)===panelKey(first)),filsStart=alignFils?(first.phaseFilsStart??Math.max(...phaseRows.map(s=>s.used))+(phaseRows.some(s=>s.lastKind==='ls')?Math.min(54,Math.ceil(3*c.reserve/20)*18):0)):0;const transition=!alignFils&&phaseStack(d)&&d.kind==='fils'&&rows.some(s=>s.lastKind==='ls')?Math.min(54,Math.ceil(3*c.reserve/20)*18):0;const used=Math.max(filsStart,...rows.map(s=>s.used))+transition+(d.meterFed&&rows.some(s=>s.group&&s.group!==key)?18:0)+(rows.some(s=>s.circuitName&&d.circuitName&&s.circuitName!==d.circuitName)?18:0);if(rows.some(s=>used+d.width+(ordinary?Math.ceil(Math.max(0,used+d.width-(s.serviceInset||0))*c.reserve/100/18)*18:0)>s.width)||d.height>120)continue;const group=buckets.get(key),needed=group.reduce((n,e)=>n+e.width,0);if((d.poles||1)>1&&group[0]===d&&needed>first.width-used&&slots.some(s=>s.used===0&&s.width>=needed&&(!separatePanels||!owners.has(panelKey(s))||owners.get(panelKey(s))===d.circuitName)))continue;chosen={rows,used,...(alignFils?{filsStart}:{})};break;}
+  for(const first of [...slots].sort((a,b)=>ordinary&&d.manufacturer==='schneider'?a.y-b.y||a.x-b.x:Number(owners.get(panelKey(b))===d.circuitName&&!!d.circuitName)-Number(owners.get(panelKey(a))===d.circuitName&&!!d.circuitName)||Number(slots.some(s=>panelKey(s)===panelKey(b)&&s.group===key))-Number(slots.some(s=>panelKey(s)===panelKey(a)&&s.group===key)))){if(ordinary&&d.manufacturer==='schneider'){const last=schneiderCursor.get(key);if(last&&(first.y<last.y||first.y===last.y&&first.x<last.x))continue;}if(!ordinary&&c._schneiderRows&&d.manufacturer==='schneider'&&(d.poles||1)>=3&&placed.some(e=>['ls','fils'].includes(e.kind)&&family(e)===key&&(e.poles||1)<3&&first.y<=e.y+e.height/2-25+.1))continue;if(separatePanels&&d.circuitName&&!d.meterFed&&owners.has(panelKey(first))&&owners.get(panelKey(first))!==d.circuitName)continue;if(first.phaseFamily&&first.phaseFamily!==key)continue;if(phaseStack(d)&&slots.some(s=>panelKey(s)===panelKey(first)&&(s.used>(s.serviceInset||0)&&!s.reservedMeter&&s.group!==key||s.phaseFamily&&s.phaseFamily!==key)))continue;if(first.form&&first.form!==form(d))continue;if(d.manufacturer==='hager'&&!d.meterFed&&first.group&&first.group!==key)continue;if(d.meterFed?!meterPanels.has(panelKey(first)):meterPanels.has(panelKey(first)))continue;if(phaseStack(d)&&!individual&&first.row!==Number(d.phase[1])-1)continue;const rows=Array.from({length:count},(_,i)=>slots.find(s=>s.x===first.x&&Math.abs(s.y-first.y-i*125)<.1));if(rows.some(s=>!s||s.form&&s.form!==form(d)||d.manufacturer==='hager'&&!d.meterFed&&s.group&&s.group!==key))continue;const alignFils=ordinary&&phaseStack(d)&&d.kind==='fils',phaseRows=slots.filter(s=>panelKey(s)===panelKey(first)),filsStart=alignFils?(first.phaseFilsStart??Math.max(...phaseRows.map(s=>s.used))+(phaseRows.some(s=>s.lastKind==='ls')?18:0)):0;const transition=!alignFils&&phaseStack(d)&&d.kind==='fils'&&rows.some(s=>s.lastKind==='ls')?Math.min(54,Math.ceil(3*c.reserve/20)*18):0;const used=Math.max(filsStart,...rows.map(s=>s.used))+transition+(d.meterFed&&rows.some(s=>s.group&&s.group!==key)?18:0)+(rows.some(s=>s.circuitName&&d.circuitName&&s.circuitName!==d.circuitName)?18:0);if(rows.some(s=>used+d.width+(ordinary?Math.ceil(Math.max(0,used+d.width-(s.serviceInset||0))*c.reserve/100/18)*18:0)>s.width)||d.height>120)continue;const group=buckets.get(key),needed=group.reduce((n,e)=>n+e.width,0);if((d.poles||1)>1&&group[0]===d&&needed>first.width-used&&slots.some(s=>s.used===0&&s.width>=needed&&(!separatePanels||!owners.has(panelKey(s))||owners.get(panelKey(s))===d.circuitName)))continue;chosen={rows,used,...(alignFils?{filsStart}:{})};break;}
   if(!chosen){overflow.push(d);continue;}
   if(ordinary&&d.manufacturer==='schneider')schneiderCursor.set(key,chosen.rows[0]);
   if(chosen.filsStart!==undefined)for(const s of slots.filter(s=>panelKey(s)===panelKey(chosen.rows[0])))s.phaseFilsStart=chosen.filsStart;
   if(phaseStack(d))for(const s of slots.filter(s=>panelKey(s)===panelKey(chosen.rows[0])))s.phaseFamily=key;
   occupied+=d.width*count;
-  for(const [i,s]of chosen.rows.entries()){if(chosen.used>s.used)add('plate',s.x+s.used,s.y,chosen.used-s.used,46,{plateType:'blank',depth:3,mountZ:3});put(d,s.x+chosen.used,s.y+25-d.height/2,{mountZ:8-d.depth,frameStyle:'recessed',phase:individual?'L'+(i+1):(d.phase||'')});s.used=chosen.used+d.width;s.lastKind=d.kind;s.group=key;s.form=form(d);s.circuitName=d.circuitName||'';if(separatePanels&&d.circuitName&&!d.meterFed)owners.set(panelKey(s),d.circuitName);
+  for(const [i,s]of chosen.rows.entries()){if(chosen.used>s.used)add('plate',s.x+s.used,s.y,chosen.used-s.used,46,{plateType:'blank',depth:3,mountZ:3});put(d,s.x+chosen.used,s.y+25-dinBodyCenter(d),{mountZ:8-d.depth,frameStyle:'recessed',phase:individual?'L'+(i+1):(d.phase||'')});s.used=chosen.used+d.width;s.lastKind=d.kind;s.group=key;s.form=form(d);s.circuitName=d.circuitName||'';if(separatePanels&&d.circuitName&&!d.meterFed)owners.set(panelKey(s),d.circuitName);
    if((d.circuitName||ordinary&&d.supplyKey)&&(individual||d.manufacturer==='schneider'||d.manufacturer==='hager')){const k=key+'|'+s.y+'|'+s.x,group=connections.get(k)||{x:s.x+chosen.used,y:s.y+55,width:0,profile:individual||phaseStack(d)?'copper':'comb'};group.width=s.used-(group.x-s.x);connections.set(k,group);}
   }
  }

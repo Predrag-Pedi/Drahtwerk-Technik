@@ -1,12 +1,12 @@
-import {isCabinet,cabinetLayout} from './cabinet-layout.mjs?v=20261117-3';
-import {systemLayout} from './system-layout.mjs?v=20261117-3';
-import {isRse,groupRseFuses} from './rse.mjs?v=20261117-3';
-import {measurementGroups} from './metering.mjs?v=20261117-3';
-import {DRAW} from './geometry.mjs?v=20261117-3';
-import {meterParentFor,frame} from './alignment.mjs?v=20261117-3';
-import {deviceText,protectionKind,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261117-3';
-import {createElement,W} from './model.mjs?v=20261117-3';
-import {allFunctions,functionBmk} from './references.mjs?v=20261117-3';
+import {isCabinet,cabinetLayout} from './cabinet-layout.mjs?v=20261117-4';
+import {systemLayout} from './system-layout.mjs?v=20261117-4';
+import {isRse,groupRseFuses} from './rse.mjs?v=20261117-4';
+import {measurementGroups} from './metering.mjs?v=20261117-4';
+import {DRAW} from './geometry.mjs?v=20261117-4';
+import {meterParentFor,frame} from './alignment.mjs?v=20261117-4';
+import {deviceText,protectionKind,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261117-4';
+import {createElement,W} from './model.mjs?v=20261117-4';
+import {allFunctions,functionBmk} from './references.mjs?v=20261117-4';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],spd:[72,134.8,75],terminal:[8,60,45]};
 export function schemaDevices(doc){
@@ -71,7 +71,7 @@ export function planDispo(devices,c){return isCabinet(c)?cabinetLayout(devices,v
 export function generateDispo(p,devices,config){
  const c=validateDispoConfig(config);assertConfiguredDistribution(c);const layout=planDispo(devices,c);if(layout.overflow.length)throw Object.assign(Error(`Kein Platz für ${layout.overflow.map(d=>d.tag).join(', ')}. Schrank vergrössern, Felder ergänzen oder Geräteauswahl anpassen.`),{code:'DISPO_CAPACITY'});
  if(c.construction==='drahtwerk')c.cutCenterBridge=layout.parts.some(p=>p.cutCenterBridge);
- const required=Math.max(c.width/350,c.height/225),scale=p.elements.some(e=>!e.generatedDispo)?p.scale:([1,2,5,10,20,50,100].find(s=>s>=required)||100),factor=W/420/scale,origin={x:(DRAW.left+DRAW.right-c.width*factor)/2,y:(DRAW.top+DRAW.bottom-c.height*factor)/2};
+ const required=Math.max(c.width/350,c.height/225),scale=p.elements.some(e=>!e.generatedDispo)?p.scale:([1,2,5,7.5,10,20,50,100].find(s=>s>=required)||100),factor=W/420/scale,origin={x:(DRAW.left+DRAW.right-c.width*factor)/2,y:(DRAW.top+DRAW.bottom-c.height*factor)/2};
  const elements=[];
  const add=(kind,x,y,width,height,extra={})=>{const e=createElement(p,kind,0,0);Object.assign(e,{x:origin.x+x*factor,y:origin.y+y*factor,width,height,generatedDispo:true,...extra});elements.push(e);return e;};
  if(c.construction==='drahtwerk'&&c.fields>1){let offset=0;for(const width of c.fieldWidths||Array(c.fields).fill(c.width/c.fields)){add('cabinet',offset,0,width,c.height,{depth:c.depth,text:'',dispoFrame:c.frame,frameStyle:isCabinet(c)?'almatec-'+(c.distributionType==='standing'?'an':c.wallMount||'ap'):c.construction,doorClearance:isCabinet(c)&&devices.some(d=>d.kind==='meter')?190:0,plinthHeight:c.distributionType==='standing'?c.plinthHeight||0:0});offset+=width;}}else add('cabinet',0,0,c.width,c.height,{depth:c.depth,text:'',dispoFrame:c.frame,frameStyle:isCabinet(c)?'almatec-'+(c.distributionType==='standing'?'an':c.wallMount||'ap'):c.construction,doorClearance:isCabinet(c)&&devices.some(d=>d.kind==='meter')?190:0,plinthHeight:c.distributionType==='standing'?c.plinthHeight||0:0});
