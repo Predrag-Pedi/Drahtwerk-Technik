@@ -1,7 +1,7 @@
-import {apGeometry} from './rse.mjs?v=20261117-4';
-import {fuseLimits,copperFuse,fuseZoneHeight,placeCopperBanks} from './fuse-systems.mjs?v=20261117-4';
-import {fieldLayout} from './field-layout.mjs?v=20261117-4';
-import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261117-4';
+import {apGeometry} from './rse.mjs?v=20261117-5';
+import {fuseLimits,copperFuse,fuseZoneHeight,placeCopperBanks} from './fuse-systems.mjs?v=20261117-5';
+import {fieldLayout} from './field-layout.mjs?v=20261117-5';
+import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261117-5';
 // Drahtwerk assembly grid. Confirmed plate envelope: 250/500/750 x 400 mm.
 // Profile cross-sections below are simplified envelopes, not manufacturing drawings.
 export const profiles={SP09048:{name:'SP 090.48',face:17,depth:99},SP45:{name:'SP 45.0',face:17,depth:45.2},EV165:{name:'EV 165',face:35,depth:150},SP165:{name:'SP 165 DIN',face:40,depth:165},AS35:{name:'AS 35.2',face:35,depth:15},BS25:{name:'BS 25.0',face:25,depth:15},AS50:{name:'AS 50.0',face:50,depth:15},ZS39:{name:'ZS 39.0',face:39,depth:22}};
