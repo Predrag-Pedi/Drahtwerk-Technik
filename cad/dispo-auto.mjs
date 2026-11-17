@@ -5,7 +5,7 @@ import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261
 import {horizontalCT} from './ct-template.mjs?v=20261117-5';
 import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261117-5';
 import {validateTemplate} from './template.mjs?v=20261117-5';
-import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261117-5';
+import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261117-7';
 import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261117-6';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
