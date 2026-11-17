@@ -24,7 +24,7 @@ Browser-Smoke-Test: Beispiel speichern und nach Neuladen öffnen, Seite anlegen,
 Beim Einfügen folgt eine halbtransparente Vorschau dem Mauszeiger. Vorschau und Klick verwenden identische Rasterkoordinaten, Abmessungen und Drehungen. R oder die Drehen-Schaltfläche drehen das noch nicht platzierte Symbol. Esc beendet das Werkzeug. Die Vorschau wird beim Verlassen des Blatts ausgeblendet und weder gespeichert noch exportiert. Auf Touch-Geräten wird weiterhin durch Antippen platziert (kein Maus-Hover).
 
 ## TinLine-Vorlagenbibliothek
-Der Tab **Vorlagen** öffnet standardmässig eine visuelle Bibliothek mit 4’285 Bildkacheln, Suche sowie Filter für Schema/Dispo, Fachbereich, Hersteller und Funktion. Die Trennkante rechts von der Bibliothek lässt sich ziehen oder mit den Pfeiltasten verschieben. Die Breite wird im Browser gespeichert; je nach Breite erscheinen mehrere Spalten. Vorschaubilder werden bei Bedarf aus den geprüften Vektordaten erzeugt. 3’149 weitere Vorlagen wurden ergänzt; 33 nicht vollständig konvertierbare Dateien sind im Katalog und im [Importbericht](../docs/cad-tinline-basics.md) ausgewiesen.
+Der Tab **Vorlagen** öffnet standardmässig eine visuelle Bibliothek mit 4’291 Bildkacheln, Suche sowie Filter für Schema/Dispo, Fachbereich, Hersteller und Funktion. Die Trennkante rechts von der Bibliothek lässt sich ziehen oder mit den Pfeiltasten verschieben. Die Breite wird im Browser gespeichert; je nach Breite erscheinen mehrere Spalten. Vorschaubilder werden bei Bedarf aus den geprüften Vektordaten erzeugt. 3’149 weitere Vorlagen wurden ergänzt; 33 nicht vollständig konvertierbare Dateien sind im Katalog und im [Importbericht](../docs/cad-tinline-basics.md) ausgewiesen.
 
 ### Blatt und Platzierung
 A3 quer ist exakt 420 × 297 mm. Der Zeichenbereich endet oberhalb des Schriftfelds. Neue Vorlagen werden innerhalb dieses Bereichs gehalten; zu grosse Vorlagen werden nicht unbemerkt abgeschnitten. Die Mausvorschau verwendet dieselbe Platzierungsfunktion wie der Klick. Dispo-Abmessungen bleiben in realen mm und folgen dem Seitenmassstab.
@@ -87,3 +87,16 @@ ungleicher Felder, gemischter Plattenzonen und Export/Import der 3D-Struktur.
 - **Schema-Vorlagen skalieren**: Symbolgrösse in Prozent oder «Symbol aufs Blatt einpassen» vor dem Platzieren; damit sind auch grosse Installationssymbole nutzbar. Dispo-Vorlagen behalten ihre echten Abmessungen.
 
 Noch nicht enthalten: automatisch aufgetrennte Leitungen beim Einsetzen eines Geräts in die Mitte einer bestehenden Leitung, assoziative Bemassung, Hindernisrouting, externe Schema-PDF → Dispo sowie eine Lizenz-/Produkttrennung in Lite/Pro. Die vorhandene automatische Dispo aus dem eigenen Projekt bleibt verfügbar.
+
+### Kleine Apparateplatten
+
+Unter **Vorlagen → Dispo → Platten DW** stehen 1er-, 2er- und 3er-Platten
+mit 250 oder 500 mm Breite zur Verfügung. Die Höhen sind 150, 275 und 400 mm.
+Suche nach `1er`, `2er`, `3er` oder beispielsweise `500x275`.
+Die sechs ergänzten Drahtwerk-Konstruktionen verwenden das vorhandene
+125-mm-Reihenraster und 216 × 46 mm grosse Ausschnitte (500 mm: zwei
+getrennte Ausschnitte je Reihe). Sie werden mit echten Millimetermassen
+platziert. Die ursprünglichen 4er-Vorlagen mit 525 mm Höhe bleiben unverändert.
+
+Reproduktion: `node tools/generate-dw-plates.mjs`. Der Generator aktualisiert
+nur seine sechs eigenen IDs und zählt sie getrennt von importierten Vorlagen.

@@ -10,7 +10,7 @@ export function templateAssembly(generated,choices){
  return {...generated,elements};
 }
 export async function chooseAssemblyTemplates(generated,apply){
- const response=await fetch('cad/templates/catalog.json?v=20261117-5');if(!response.ok)throw Error('Vorlagenbibliothek nicht erreichbar');const catalog=(await response.json()).items.filter(t=>t.category==='Dispo');
+ const response=await fetch('cad/templates/catalog.json?v=20261117-6');if(!response.ok)throw Error('Vorlagenbibliothek nicht erreichbar');const catalog=(await response.json()).items.filter(t=>t.category==='Dispo');
  const groups=[...new Map(generated.elements.filter(e=>e.kind!=='cabinet').map(e=>[assemblyKey(e),e])).entries()];
  const dialog=document.createElement('dialog');dialog.className='dispo-builder';dialog.innerHTML='<header><h2>Dispo aus vorhandenen Vorlagen</h2><button data-cancel>Abbrechen</button></header><p>Für Geräte, Platten und Profile die passende Bibliotheksvorlage wählen. Es werden ausschliesslich gewählte Vorlagen eingefügt. Nicht gewählte Rahmen-/Abdeckteile bleiben als Aufbau in 3D erhalten, werden in 2D aber nicht als zusätzliche Grafik eingefügt. Geräte benötigen eine Zuordnung. Abweichende Masse müssen ausdrücklich bestätigt werden.</p><div data-rows></div><p data-error role="status"></p><footer><button data-apply>Vorlagen einsetzen</button></footer>';
  let saved={};try{saved=JSON.parse(localStorage.getItem('cad-dispo-template-map')||'{}');}catch{}
