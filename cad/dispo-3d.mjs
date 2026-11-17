@@ -1,7 +1,8 @@
-import {joinDinRails} from './frame-layout.mjs?v=20261117-8';
-import {createGpuRenderer} from './dispo-gpu.mjs?v=20261117-8';
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261117-8';
-import {frameBoxes} from './frame-render.mjs?v=20261117-8';
+import {manualInterior} from './dispo-parts.mjs?v=20261117-9';
+import {joinDinRails} from './frame-layout.mjs?v=20261117-9';
+import {createGpuRenderer} from './dispo-gpu.mjs?v=20261117-9';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261117-9';
+import {frameBoxes} from './frame-render.mjs?v=20261117-9';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p){
  const factor=420*p.scale/1200,boxes=[];
@@ -10,6 +11,15 @@ export function sceneBoxes(p){
  const sources=p.elements.flatMap(e=>[e,...joinDinRails(e.dispoStructure||[]).map(part=>{const a=(e.rotation||0)*Math.PI/180,dx=part.x+part.width/2-e.width/2,dy=part.y+part.height/2-e.height/2;return {...part,id:e.id,x:e.x+(e.width/2+dx*Math.cos(a)-dy*Math.sin(a)-part.width/2)/factor,y:e.y+(e.height/2+dx*Math.sin(a)+dy*Math.cos(a)-part.height/2)/factor,rotation:e.rotation||0};})]);
  for(const source of sources){const e=source.kind==='template'&&source.dispoGeometryKind?{...source,kind:source.dispoGeometryKind}:{...source};if(source.kind==='template'&&source.dispoKind==='meter'&&['tl-0740','tl-0741','tl-0743','tl-0744'].includes(source.template?.id)){e.x+=35/factor;e.y+=45/factor;e.width=180;e.height=260;}const enclosure=p.elements.find(c=>c.kind==='cabinet'&&c.frameStyle?.startsWith('almatec-')&&e.x+e.width/2/factor>=c.x&&e.x+e.width/2/factor<c.x+c.width/factor);if(enclosure&&e.kind!=='cabinet')e.cabinetSetback=enclosure.doorClearance?enclosure.doorClearance+3:50;const x=e.x*factor,y=e.y*factor,w=e.width,h=e.height,d=e.depth||({cabinet:400,rail:15,duct:60,module:80,plate:3})[e.kind];if(!d)continue;
   if(e.kind==='module'&&e.dispoKind==='meter')e.plateMounted=true;
+  if(manualInterior(e)){
+   const m=manualInterior(e),base=e.manualPart.plinth,body=h-base;
+   if(e.manualPart.type==='cabinet')add(e,x,y,-d,w,body,3,'#c9ccce');
+   add(e,x,y,-d,m.left,body,d,'#a8b4bf');add(e,x+m.right,y,-d,w-m.right,body,d,'#a8b4bf');
+   add(e,x+m.left,y,-d,m.right-m.left,m.top,d,'#bac4cd');add(e,x+m.left,y+m.bottom,-d,m.right-m.left,body-m.bottom,d,'#bac4cd');
+   if(base)add(e,x,y+body,-d,w,base,d,'#929da7');continue;
+  }
+  if(e.manualPart&&['rail','duct'].includes(e.kind)&&e.mountZ===undefined){const c=p.elements.find(c=>c.kind==='cabinet'&&e.x+e.width/2/factor>=c.x&&e.x+e.width/2/factor<c.x+c.width/factor&&e.y+e.height/2/factor>=c.y&&e.y+e.height/2/factor<c.y+c.height/factor);e.mountZ=-(c?.depth||400)+30;}
+
   if(e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-')){const base=e.plinthHeight||0,body=h-base;add(e,x,y,-d,w,body,3,'#c9ccce');for(const xx of [x,x+w-20])add(e,xx,y,-d,20,body,d,'#b9bec2');for(const yy of [y,y+body-20])add(e,x,yy,-d,w,20,d,'#cbd0d3');if(base)add(e,x+12,y+body,-d+12,w-24,base,d-24,'#92999e');/* Open door leaves keep the populated interior visible. */const wings=w>1000?2:1;add(e,x-8,y+10,0,8,body-20,w/wings-20,'#d3d5d6');if(wings===2)add(e,x+w,y+10,0,8,body-20,w/2-20,'#d3d5d6');continue;}
   if(frameBoxes(e,x,y,add))continue;if(e.kind==='cabinet'){if(e.frameStyle==='drahtwerk')continue;
    if(!e.dispoFrame)add(e,x,y,-d,w,h,8,'#b5c1ce');
