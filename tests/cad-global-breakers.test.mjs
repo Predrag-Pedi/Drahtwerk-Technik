@@ -43,7 +43,7 @@ test('real phase-specific RCBO templates stack with copper for Hager and use one
  for(const manufacturer of ['hager','schneider']){
   q.dispoConfig={...defaultConfig(),breakerManufacturer:manufacturer};const g=await buildAutomaticDispo(d,q,fetcher),fi=g.elements.filter(e=>e.dispoKind==='fils'),ls=g.elements.filter(e=>e.dispoKind==='ls'),structure=g.elements.find(e=>e.kind==='cabinet').dispoStructure;
   assert.deepEqual(fi.map(e=>e.phase),['L1','L2','L3']);assert.ok(fi.every(e=>e.width===36&&e.manufacturer===manufacturer));
-  assert.ok(ls.every(e=>e.template.id===(manufacturer==='hager'?'tl-0531':'tl-0529')&&e.width===(manufacturer==='hager'?27:36)));
+  assert.ok(ls.every(e=>e.template.id===(manufacturer==='hager'?'tl-0531':'tl-0530')&&e.width===(manufacturer==='hager'?27:18)));
   if(manufacturer==='hager'){assert.equal(new Set(fi.map(e=>e.x)).size,1);assert.equal(new Set(fi.map(e=>e.y)).size,3);assert.ok(structure.some(e=>e.profile==='copper'));}
   else{assert.equal(new Set(fi.map(e=>e.y)).size,1);assert.ok(Math.abs(fi[1].x-fi[0].x-36*1200/420/g.scale)<.001);assert.ok(structure.some(e=>e.profile==='comb'));assert.ok(!structure.some(e=>e.profile==='copper'));}
  }
