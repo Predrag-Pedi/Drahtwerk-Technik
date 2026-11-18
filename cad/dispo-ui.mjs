@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261118-4';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-4';
+import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261118-5';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-5';
 // Only a proven capacity failure may offer a reduction; never change the
 // saved page or reserve until the complete alternative has been approved.
 export async function editAutomaticDispo(doc,p,apply,confirmReduction=()=>false,build=null){
@@ -34,12 +34,13 @@ export function editSiteSettings(p,showForm,apply){
   {key:'buildSystem',label:'Aufbausystem',value:c.buildSystem||'standard',options:[['standard','Standard'],['smissline','Smissline'],['silas60','60 mm · Silas'],['vertigroup185','185 mm · Vertigroup']],layout:'site-wide'},
   {key:'systemScope',label:'Gerätesysteme in der Dispo',value:c.systemScope||'individual',options:[['individual','Einzeleinstellungen aus Schema berücksichtigen'],['all','Gewähltes Aufbausystem für die ganze Dispo']],layout:'site-wide'},
   {key:'smisslineDuctWidth',label:'Gitterbahnbreite bei Smissline',value:c.smisslineDuctWidth||200,options:[[200,'200 mm'],[300,'300 mm']],layout:'site-wide'},
-  {key:'plinthHeight',label:'AN-Standschrank: Korpus + Sockel',value:c.plinthHeight||0,options:[[0,'Ohne Sockel · Gesamthöhe 2000 mm'],[100,'100 mm Sockel · Gesamthöhe 2100 mm'],[200,'200 mm Sockel · Gesamthöhe 2200 mm']],layout:'site-wide'},
+  {key:'cabinetMode',label:'Schrankausführung',value:c.cabinetMode||'standard',options:[['standard','Standardschrank · AN'],['custom','Individualschrank · freie Masse']],layout:'site-wide'},
+  {key:'plinthHeight',label:'Sockelhöhe (in Gesamthöhe enthalten)',value:c.plinthHeight||0,options:[[0,'Ohne Sockel'],[50,'50 mm'],[80,'80 mm'],[100,'100 mm'],[200,'200 mm']],layout:'site-wide'},
   {key:'cabinetTopHeight',label:'Anschlussraum im konventionellen Standschrank (mm)',value:c.cabinetTopHeight??800,type:'number',min:400,max:1000,layout:'site-wide'},
   {key:'wallMount',label:'Wandschrank',value:c.wallMount||'ap',options:[['ap','AP · Aufputz'],['up','UP · Unterputz']],layout:'site-wide'},
   {key:'supportSpacing185',label:'Max. Trägerabstand Vertigroup 185 mm (max. 1000 mm)',value:c.supportSpacing185,type:'number',min:56,max:1000,layout:'site-wide'}
  ],data=>{
-  const next=validateDispoConfig({...c,cabinetTopHeight:Number(data.cabinetTopHeight??c.cabinetTopHeight??800),systemScope:data.buildSystem!==undefined&&data.buildSystem!==c.buildSystem?'all':data.systemScope??c.systemScope,smisslineDuctWidth:Number(data.smisslineDuctWidth??c.smisslineDuctWidth??200),plinthHeight:Number(data.plinthHeight??c.plinthHeight??0),wallMount:data.wallMount??c.wallMount,buildSystem:data.buildSystem??c.buildSystem,distributionType:data.distributionType??c.distributionType,supportSpacing185:Number(data.supportSpacing185??c.supportSpacing185),autoSize:true,...Object.fromEntries(['maxWidth','maxHeight','maxDepth','passageWidth','passageHeight','passageDepth','reserveMeters'].map(k=>[k,Number(data[k]??c[k]??0)]))});
+  const plinthHeight=Number(data.plinthHeight??c.plinthHeight??0);const next=validateDispoConfig({...c,cabinetMode:data.cabinetMode??c.cabinetMode,cabinetOptions:{...c.cabinetOptions,plinth:plinthHeight?'Aluminium':'Kein'},cabinetTopHeight:Number(data.cabinetTopHeight??c.cabinetTopHeight??800),systemScope:data.buildSystem!==undefined&&data.buildSystem!==c.buildSystem?'all':data.systemScope??c.systemScope,smisslineDuctWidth:Number(data.smisslineDuctWidth??c.smisslineDuctWidth??200),plinthHeight:Number(data.plinthHeight??c.plinthHeight??0),wallMount:data.wallMount??c.wallMount,buildSystem:data.buildSystem??c.buildSystem,distributionType:data.distributionType??c.distributionType,supportSpacing185:Number(data.supportSpacing185??c.supportSpacing185),autoSize:true,...Object.fromEntries(['maxWidth','maxHeight','maxDepth','passageWidth','passageHeight','passageDepth','reserveMeters'].map(k=>[k,Number(data[k]??c[k]??0)]))});
   if(next.autoSize&&(next.maxWidth<258||next.maxHeight<400))throw Error('Für die automatische Berechnung Einbaubreite ab 258 mm und Einbauhöhe ab 400 mm eingeben.');
   apply(next);
  });

@@ -7,11 +7,11 @@ import {validateProject} from '../cad/model.mjs';
 import {schemaDevices} from '../cad/dispo.mjs';
 import {editSiteSettings} from '../cad/dispo-ui.mjs';
 
-test('37-device project compares all six primary builds without changing schema, scale, limits or reserve',async()=>{
+test('37-device project compares all nine primary builds without changing schema, scale, limits or reserve',async()=>{
  const {d,p}=cabinetProjectFixture(),before=JSON.stringify(d),variants=dispoVariants(p),build=cachedDispoBuild(fetcher);
  const current=await calculateDispoVariant(d,p,variants[0],build);
  assert.equal(current.code,'DISPO_CABINET_HEIGHT');assert.match(current.error,/2000 mm Korpus \+ 100 mm Sockel = 2100 mm/);
- const wanted=variants.filter(v=>v.id!=='current'&&!v.config.plinthHeight&&['standard','smissline'].includes(v.config.buildSystem));assert.equal(wanted.length,6);
+ const wanted=variants.filter(v=>v.id!=='current'&&!v.config.plinthHeight&&['standard','smissline'].includes(v.config.buildSystem));assert.equal(wanted.length,9);
  const sources=new Set(schemaDevices(d).devices.map(d=>JSON.stringify(d.source)));
  for(const v of wanted){
   const {result:g,error}=await calculateDispoVariant(d,p,v,build);assert.ok(g,v.name+': '+error);
@@ -22,7 +22,7 @@ test('37-device project compares all six primary builds without changing schema,
   for(const source of sources)assert.ok(actual.has(source),v.name+' lost '+source);
   assert.equal(g.elements.filter(e=>e.dispoKind==='ls').length,16);assert.equal(g.elements.filter(e=>e.dispoKind==='fils').length,18);
   assert.equal(g.elements.some(e=>e.profile==='smissline'),v.config.buildSystem==='smissline');
-  if(v.config.distributionType==='standing'){assert.equal(g.config.height,2000);assert.equal(g.config.plinthHeight,0);}
+  if(v.config.distributionType==='standing'){if(v.config.cabinetMode==='standard')assert.equal(g.config.height,2000);assert.equal(g.config.plinthHeight,0);}
  }
  assert.equal(JSON.stringify(d),before);
 });
@@ -42,7 +42,7 @@ test('variant override switches explicit Smissline devices to standard and back 
 
 test('changing the system explicitly selects whole-dispo scope and preserves the basket width',()=>{
  const {p}=cabinetProjectFixture();let submit,next;
- editSiteSettings(p,(_,fields,callback)=>{submit=callback;assert.ok(fields.find(f=>f.key==='plinthHeight').options[1][1].includes('2100'));},c=>next=c);
+ editSiteSettings(p,(_,fields,callback)=>{submit=callback;assert.ok(fields.find(f=>f.key==='plinthHeight').options.some(([v])=>v===80));assert.ok(fields.find(f=>f.key==='cabinetMode').options.some(([v])=>v==='custom'));},c=>next=c);
  submit({buildSystem:'standard',systemScope:'individual',smisslineDuctWidth:300});assert.equal(next.systemScope,'all');assert.equal(next.smisslineDuctWidth,300);
 });
 
