@@ -1,5 +1,5 @@
-import {fieldLayout} from './field-layout.mjs?v=20261118-2';
-import {systemLayout} from './system-layout.mjs?v=20261118-2';
+import {fieldLayout} from './field-layout.mjs?v=20261118-3';
+import {systemLayout} from './system-layout.mjs?v=20261118-3';
 // Public Almatec configurator, checked 2026-11-16. Custom reference cabinets
 // are not silently promoted to catalogue sizes. All dimensions are outer mm.
 export const anWidths=[400,500,600,700,750,800,850,900,1000,1100,1150,1200,1300,1400,1500,1550,1600,1700,1800,1900,2000];
@@ -11,8 +11,14 @@ export const cabinetMargin=60;
 export const cabinetVerticalMargin=80;
 export const meterDoorClearance=190;
 const requiredDepth=ds=>Math.max(165,...ds.map(d=>d.depth||0))+(ds.some(d=>d.kind==='meter')?meterDoorClearance+20:50);
+function checkStandingHeight(c){
+ if(c.distributionType!=='standing'||!c.autoSize)return;
+ const height=2000+(c.plinthHeight||0),limit=Math.min(c.maxHeight||Infinity,c.passageHeight||Infinity);
+ if(height>limit)throw Object.assign(Error(`AN-Standschrank: 2000 mm Korpus + ${c.plinthHeight||0} mm Sockel = ${height} mm Gesamthöhe. Erlaubt sind ${limit} mm (${c.passageHeight&&c.passageHeight<c.maxHeight?'Durchgang':'Einbauhöhe'}). ${limit>=2000?'Ohne Sockel ist die Höhe möglich. Unter «Varianten vergleichen» den vollständigen Aufbau prüfen.':'Einbau- und Durchgangshöhe prüfen.'}`),{code:'DISPO_CABINET_HEIGHT'});
+}
 export function checkCabinet(c){
  if(c.distributionType==='wall')throw Error('Wandschränke sind bis zur Vermessung zurückgestellt.');
+ checkStandingHeight(c);
  const widths=c.fieldWidths||Array(c.fields).fill(c.width/c.fields);
  if(c.distributionType==='standing'){
   if(c.height!==2000+(c.plinthHeight||0)||!anDepths.includes(c.depth)||widths.some(w=>!anWidths.includes(w))||c.fields>10)throw Error('AN: Korpus 2000 mm, Sockel 0/100/200 mm und Katalogbreiten/-tiefen verwenden.');
@@ -36,6 +42,7 @@ export function cabinetSiteConfig(devices,c){
  if(c.distributionType==='wall')throw Error('Wandschränke sind bis zur Vermessung zurückgestellt.');
  if(!c.autoSize){checkCabinet(c);return c;}
  if(!c.maxWidth||!c.maxHeight)throw Error('Maximale Einbaubreite und Einbauhöhe eingeben.');
+ checkStandingHeight(c);
  const standing=c.distributionType==='standing',maxH=Math.min(c.maxHeight,c.passageHeight||Infinity),maxW=Math.min(c.maxWidth,c.passageWidth||Infinity),maxD=Math.min(c.maxDepth||Infinity,c.passageDepth||Infinity),neededDepth=requiredDepth(devices);
  const depth=standing?anDepths.find(d=>d>=neededDepth&&d<=maxD):230;
  const heights=standing?[2000+(c.plinthHeight||0)]:Array.from({length:33},(_,i)=>400+i*50).concat(Math.min(2000,maxH)).filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b);

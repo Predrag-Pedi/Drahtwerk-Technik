@@ -1,4 +1,4 @@
-import {partNames,partDefaults,partFields,partSpec,partValues} from './dispo-parts.mjs?v=20261118-2';
+import {partNames,partDefaults,partFields,partSpec,partValues} from './dispo-parts.mjs?v=20261118-3';
 
 const remembered={};
 const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};

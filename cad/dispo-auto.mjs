@@ -1,12 +1,12 @@
-import {smisslineTemplate,smisslineFeed,smisslineProjectSupply,commonProjectSupply} from './smissline-packing.mjs?v=20261118-2';
-import {smisslineRails,onSmissline} from './system-layout.mjs?v=20261118-2';
-import {fuseTemplate,copperFuse,neutralTemplate,fuseZoneHeight} from './fuse-systems.mjs?v=20261118-2';
-import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261118-2';
-import {horizontalCT} from './ct-template.mjs?v=20261118-2';
-import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261118-2';
-import {validateTemplate} from './template.mjs?v=20261118-2';
-import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261118-2';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261118-2';
+import {smisslineTemplate,smisslineFeed,smisslineProjectSupply,commonProjectSupply} from './smissline-packing.mjs?v=20261118-3';
+import {smisslineRails,onSmissline} from './system-layout.mjs?v=20261118-3';
+import {fuseTemplate,copperFuse,neutralTemplate,fuseZoneHeight} from './fuse-systems.mjs?v=20261118-3';
+import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261118-3';
+import {horizontalCT} from './ct-template.mjs?v=20261118-3';
+import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261118-3';
+import {validateTemplate} from './template.mjs?v=20261118-3';
+import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261118-3';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261118-3';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  if(['ls','fils'].includes(d.kind)&&d.breakerSystem&&d.breakerSystem==='uniway')throw Error(`${d.tag}: ${d.breakerSystem==='smissline'?'Smissline':'Uniway'} ist gewählt; die automatische Disposition für dieses System ist noch nicht konfiguriert.`);
@@ -24,7 +24,7 @@ export function automaticTemplateId(d){
  const poles=d.poles||(/LS[_ -]L[123]N/i.test(poleText)?1:Number(poleText.match(/(?:\b|_)([1-4])\s*(?:L|P|pol)/i)?.[1])||(d.width>=54?3:d.width>=36&&d.kind==='ls'?2:1)),neutral=d.neutral||/[1-4]\s*(?:L|P)\s*\+?\s*N|L[123]N/i.test(poleText);
  if(onSmissline(d))return smisslineTemplate(d);
  if(d.kind==='ls'&&d.lsMode==='individual')return 'tl-0530';
- if(d.kind==='ls'&&d.manufacturer==='schneider')return poles<=2?'tl-0530':poles<=4?'tl-0541':undefined;
+ if(d.kind==='ls'&&d.manufacturer==='schneider')return ({1:neutral?'tl-0534':'tl-0530',2:'tl-0534',3:neutral?'tl-0543':'tl-0541',4:'tl-0543'})[poles];
  if(d.kind==='ls'&&d.manufacturer==='hager')return poles===1?(neutral?'tl-0531':'tl-0530'):poles===3?(neutral?'tl-0542':'tl-0541'):poles===2?'tl-0534':poles===4?'tl-0543':undefined;
  if(d.kind==='ls')return ({'1':'tl-0530','1N':'tl-0531','2':'tl-0534','2N':'tl-0535','3':'tl-0541','3N':'tl-0542','4':'tl-0543'})[poles+(neutral?'N':'')];
  if(d.kind==='fils')return poles===1||poles===2&&neutral?'tl-0626':poles===3||poles===4?'tl-0624':undefined;
@@ -39,6 +39,13 @@ export function templateTextEdits(t,d){
 export async function buildAutomaticDispo(doc,p,fetcher=fetch){
  let c=validateDispoConfig({...defaultConfig(),...p.dispoConfig});assertConfiguredDistribution(c);
  const {devices,warnings}=schemaDevices(doc);
+ // Variant changes affect the derived disposition only; schema overrides remain
+ // available when returning to individual settings.
+ if(c.systemScope==='all')for(const d of devices){
+  if(['ls','fils','spd','switch'].includes(d.kind)){d.breakerSystem=c.buildSystem==='smissline'?'smissline':'conventional';d.breakerSystemExplicit=false;}
+  if(d.kind==='fuse'){d.fuseSystem='conventional';d.fuseSystemExplicit=false;}
+ }
+
  if(c.buildSystem==='smissline')for(const d of devices.filter(d=>['ls','fils','spd','switch'].includes(d.kind)&&!d.breakerSystemExplicit))d.breakerSystem='smissline';
  if(['silas60','vertigroup185'].includes(c.buildSystem))for(const d of devices.filter(d=>d.kind==='fuse'&&!d.fuseSystemExplicit)){d.fuseSystem=c.buildSystem;if(c.buildSystem==='vertigroup185'&&['DII','DIII','NH000'].includes(d.fuseType))d.fuseType='NH00';}
 for(const d of devices)if(['ls','fils'].includes(d.kind)&&c.breakerManufacturer!=='auto'){d.manufacturer=c.breakerManufacturer;d.lsMode='allpole';}
@@ -60,7 +67,7 @@ for(const d of devices)if(['ls','fils'].includes(d.kind)&&c.breakerManufacturer!
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.some(d=>d.incoming))throw Error('Einspeisblock: Bemessungsstrom in den Projektdaten ergänzen (Vorlagen bis 100 A bzw. bis 160 A).');
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261118-2');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const get=async path=>{const r=await fetcher(path+'?v=20261118-3');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
  const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set([...ids,...(selected.some(onSmissline)?[...smisslineRails.map(r=>r.id),'tl-0524','tl-0630','tl-0632']:[]),...selected.filter(copperFuse).map(neutralTemplate),...(selected.some(d=>d.fuseSystem==='vertigroup185')?['tl-0870']:[]),...(ids.includes('tl-0581')?['tl-0580']:[])])].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,id==='tl-0849'?horizontalCT(validateTemplate({...t,details:details[id]})):validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.incoming&&t.id==='tl-0746')d.frameStyle='incoming-terminal';if(d.kind!=='meter'&&(d.kind!=='fuse'||copperFuse(d))){d.width=d.kind==='fils'&&d.manufacturer==='schneider'&&t.id==='tl-0624'?90:t.width;d.height=t.height;d.poles??=({'tl-0529':1,'tl-0530':1,'tl-0531':1,'tl-0534':2,'tl-0540':3,'tl-0541':3,'tl-0542':3,'tl-0543':4,'tl-0624':3,'tl-0626':1})[t.id];}if(onSmissline(d)){d.width=t.height;d.height=t.width;d.templateRotation=90;}d.confirmed=false;}
