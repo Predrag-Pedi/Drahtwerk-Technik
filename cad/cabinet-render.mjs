@@ -1,5 +1,5 @@
-import {cabinetField,ralColors} from './cabinet-options.mjs?v=20261118-5';
-import {plateOpenings} from './frame-layout.mjs?v=20261118-5';
+import {cabinetField,ralColors} from './cabinet-options.mjs?v=20261118-6';
+import {plateOpenings} from './frame-layout.mjs?v=20261118-6';
 
 // Front view with the door open: the enclosure surrounds a separate interior.
 // Dimensions here are the same millimetres used by the assembly and 3D model.

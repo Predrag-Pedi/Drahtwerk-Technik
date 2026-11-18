@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig,schemaDevices} from './dispo.mjs?v=20261118-5';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-5';
+import {defaultConfig,validateDispoConfig,schemaDevices} from './dispo.mjs?v=20261118-6';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-6';
 
 export function dispoVariants(p){
  const c=validateDispoConfig({...defaultConfig(),...p.dispoConfig});

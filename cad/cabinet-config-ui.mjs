@@ -1,10 +1,10 @@
-import {choices,ralColors,cabinetOptions,cabinetField,anBodyWidths,anDepths,fieldExtra} from './cabinet-options.mjs?v=20261118-5';
-import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261118-5';
-import {checkCabinet} from './cabinet-layout.mjs?v=20261118-5';
-import {cachedDispoBuild} from './dispo-variants.mjs?v=20261118-5';
-import {svgPage} from './render.mjs?v=20261118-5';
+import {choices,ralColors,cabinetOptions,cabinetField,anBodyWidths,anDepths,fieldExtra} from './cabinet-options.mjs?v=20261118-6';
+import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261118-6';
+import {checkCabinet} from './cabinet-layout.mjs?v=20261118-6';
+import {cachedDispoBuild} from './dispo-variants.mjs?v=20261118-6';
+import {svgPage} from './render.mjs?v=20261118-6';
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
-export function configureCabinet({config,doc,page,submitLabel='Übernehmen'}){
+export function configureCabinet({config,doc,page,submitLabel='Übernehmen',onApply}){
  return new Promise(resolve=>{
   let c={...defaultConfig(),...structuredClone(config),distributionType:'standing'},o=cabinetOptions(c.cabinetOptions,c.plinthHeight),fieldIndex=0,answer=null,revision=0;
   const dialog=el('dialog',undefined,'cad-workflow-dialog cabinet-config-dialog'),head=el('div',undefined,'workflow-heading'),close=el('button','Abbrechen');head.append(el('h2','Schrank konfigurieren'),close);close.onclick=()=>dialog.close();dialog.append(head);
@@ -58,7 +58,17 @@ export function configureCabinet({config,doc,page,submitLabel='Übernehmen'}){
   preview.append(el('h3','Aufbau und Beschreibung'),el('p','Wähle die Schrankausführung und Ausstattung. «Aufbau prüfen» zeigt den vollständig berechneten Entwurf.','hint'));
   form.oninput=()=>{revision++;preview.querySelector('[data-preview-state]')?.remove();const n=el('p','Konfiguration geändert – Aufbau erneut prüfen.','hint');n.dataset.previewState='';preview.append(n);};form.onsubmit=e=>e.preventDefault();
   test.onclick=async()=>{const version=revision;error.textContent='';error.className='workflow-error';test.disabled=true;save.disabled=true;try{const config=read(),g=await build(doc,{...page,dispoConfig:config});if(!dialog.open||version!==revision)return;preview.replaceChildren(el('h3',`${g.config.width} × ${g.config.height} × ${g.config.depth} mm`));const drawing=el('div',undefined,'cabinet-config-drawing');drawing.innerHTML=svgPage(doc,{...page,elements:g.elements,dispoConfig:g.config,grid:false},{grid:false,frame:false});preview.append(drawing);const text=el('pre',g.elements.find(e=>e.dispoDescription)?.text||'');preview.append(text);error.className='cabinet-config-success';error.textContent='Aufbau passt mit '+g.config.reserve+' % Geräte-Platzreserve.';}catch(e){error.textContent=e.message;}finally{test.disabled=false;save.disabled=false;}};
-  save.onclick=()=>{try{answer=read();dialog.close();}catch(e){error.textContent=e.message;}};
+  save.onclick=async()=>{
+   if(save.disabled)return;const version=revision;error.textContent='';error.className='workflow-error';save.disabled=true;test.disabled=true;
+   try{
+    const next=read(),result=onApply?await build(doc,{...page,dispoConfig:next}):null;
+    if(!dialog.open)return;
+    if(version!==revision){error.textContent='Konfiguration wurde während der Prüfung geändert. Bitte erneut übernehmen.';return;}
+    if(onApply)onApply(result);
+    answer=result?.config||next;dialog.close();
+   }catch(e){error.textContent=e.message;}
+   finally{save.disabled=false;test.disabled=false;}
+  };
   drawForm();document.body.append(dialog);dialog.onclose=()=>{dialog.remove();resolve(answer);};dialog.showModal();
  });
 }
