@@ -1,18 +1,18 @@
-import {boxWorldPoint} from './box-transform.mjs?v=20261118-6';
-import {boxMesh} from './dispo-mesh.mjs?v=20261118-6';
+import {boxWorldPoint} from './box-transform.mjs?v=20261118-7';
+import {boxMesh} from './dispo-mesh.mjs?v=20261118-7';
 // Static geometry is uploaded once; orbit/zoom only update camera uniforms.
-export function prepareGeometry(boxes,center){
+export function prepareGeometry(boxes,center,indices){
  const triangles=[],edges=[],labels=[];
  boxes.forEach((b,index)=>{
   const {vertices,surfaces}=boxMesh(b);const world=point=>boxWorldPoint(b,point,center);
-  const points=vertices.map(world),rgb=b.color.match(/\w\w/g).map(c=>parseInt(c,16)/255),id=index+1,pick=[(id&255)/255,((id>>8)&255)/255,((id>>16)&255)/255],seen=new Set();
+  const points=vertices.map(world),rgb=b.color.match(/\w\w/g).map(c=>parseInt(c,16)/255),id=(indices?.[index]??index)+1,pick=[(id&255)/255,((id>>8)&255)/255,((id>>16)&255)/255],seen=new Set();
   for(const face of surfaces){const [a,bp,c]=face.map(i=>points[i]),u=bp.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]),n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],length=Math.hypot(...n)||1,normal=n.map(v=>v/length);
    const record=i=>[...points[i],...normal,...rgb,...pick,b.plate?1:0];
    for(let i=1;i<face.length-1;i++)for(const j of [face[0],face[i],face[i+1]])triangles.push(...record(j));
    // Curved surfaces are shaded smoothly by their facets, without polygon seams.
    if(!b.shape)for(let i=0;i<face.length;i++){const a=face[i],z=face[(i+1)%face.length],key=[a,z].sort((a,b)=>a-b).join(':');if(seen.has(key))continue;seen.add(key);edges.push(...record(a),...record(z));}
   }
-  if(b.label)labels.push({index,point:world([b.w/2,b.h/2,b.d]),text:b.label,width:b.w,plate:b.plate});
+  if(b.label)labels.push({index:indices?.[index]??index,point:world([b.w/2,b.h/2,b.d]),text:b.label,width:b.w,plate:b.plate});
  });
  return {triangles:new Float32Array(triangles),edges:new Float32Array(edges),labels};
 }
@@ -26,15 +26,19 @@ export function createGpuRenderer(boxes,center,extent){
  function shader(type,src){const s=gl.createShader(type);resources.push(()=>gl.deleteShader(s));gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
  try{
  const program=gl.createProgram();resources.push(()=>gl.deleteProgram(program));gl.attachShader(program,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
- let data=prepareGeometry(boxes,center);const buffers=[data.triangles,data.edges].map(values=>{const b=gl.createBuffer();resources.push(()=>gl.deleteBuffer(b));gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,values,gl.STATIC_DRAW);return {buffer:b,count:values.length/13};}),uniforms=Object.fromEntries(['angles','viewport','pan','scale','extent','plates','picking','outline'].map(k=>[k,gl.getUniformLocation(program,k)])),attrs=['position','normal','color','identity','plate'].map(k=>gl.getAttribLocation(program,k));
+ const groups=[];
+ function group(dynamic){const indices=boxes.flatMap((b,i)=>(b.hingeX!==undefined)===dynamic?[i]:[]);if(!indices.length)return;const members=indices.map(i=>boxes[i]),data=prepareGeometry(members,center,indices),buffers=[data.triangles,data.edges].map(values=>{const buffer=gl.createBuffer();resources.push(()=>gl.deleteBuffer(buffer));gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,values,dynamic?gl.DYNAMIC_DRAW:gl.STATIC_DRAW);return {buffer,count:values.length/13};});groups.push({dynamic,indices,members,data,buffers});}
+ group(false);group(true);
+ function upload(g){g.members=g.indices.map(i=>boxes[i]);g.data=prepareGeometry(g.members,center,g.indices);[g.data.triangles,g.data.edges].forEach((values,i)=>{gl.bindBuffer(gl.ARRAY_BUFFER,g.buffers[i].buffer);gl.bufferData(gl.ARRAY_BUFFER,values,g.dynamic?gl.DYNAMIC_DRAW:gl.STATIC_DRAW);g.buffers[i].count=values.length/13;});}
+ const uniforms=Object.fromEntries(['angles','viewport','pan','scale','extent','plates','picking','outline'].map(k=>[k,gl.getUniformLocation(program,k)])),attrs=['position','normal','color','identity','plate'].map(k=>gl.getAttribLocation(program,k));
  const fb=gl.createFramebuffer(),texture=gl.createTexture(),depth=gl.createRenderbuffer();resources.push(()=>gl.deleteFramebuffer(fb),()=>gl.deleteTexture(texture),()=>gl.deleteRenderbuffer(depth));let fw=0,fh=0;
  function bind(b){gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);attrs.forEach((a,i)=>{gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,i===4?1:3,gl.FLOAT,false,52,i*12);});}
  function camera(){gl.useProgram(program);gl.uniform2f(uniforms.angles,view.camera.yaw,view.camera.pitch);gl.uniform2f(uniforms.viewport,view.width,view.height);gl.uniform2f(uniforms.pan,...view.pan);gl.uniform1f(uniforms.scale,view.scale);gl.uniform1f(uniforms.extent,extent*3);gl.uniform1i(uniforms.plates,view.plates);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.BLEND);gl.viewport(0,0,canvas.width,canvas.height);}
- function paint(picking){camera();gl.uniform1i(uniforms.picking,picking);gl.uniform1i(uniforms.outline,false);gl.clearColor(picking?0:.949,picking?0:.961,picking?0:.973,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!picking){gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(1,1);}bind(buffers[0]);gl.drawArrays(gl.TRIANGLES,0,buffers[0].count);gl.disable(gl.POLYGON_OFFSET_FILL);if(!picking){gl.uniform1i(uniforms.outline,true);bind(buffers[1]);gl.drawArrays(gl.LINES,0,buffers[1].count);}}
+ function paint(picking){camera();gl.uniform1i(uniforms.picking,picking);gl.uniform1i(uniforms.outline,false);gl.clearColor(picking?0:.949,picking?0:.961,picking?0:.973,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!picking){gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(1,1);}for(const g of groups){bind(g.buffers[0]);gl.drawArrays(gl.TRIANGLES,0,g.buffers[0].count);}gl.disable(gl.POLYGON_OFFSET_FILL);if(!picking){gl.uniform1i(uniforms.outline,true);for(const g of groups){bind(g.buffers[1]);gl.drawArrays(gl.LINES,0,g.buffers[1].count);}}}
  function preparePick(){if(pickReady)return;gl.bindFramebuffer(gl.FRAMEBUFFER,fb);if(fw!==canvas.width||fh!==canvas.height){fw=canvas.width;fh=canvas.height;gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,fw,fh,0,gl.RGBA,gl.UNSIGNED_BYTE,null);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texture,0);gl.bindRenderbuffer(gl.RENDERBUFFER,depth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,fw,fh);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,depth);}gl.disable(gl.DITHER);paint(true);gl.enable(gl.DITHER);pickReady=true;}
  const pixel=new Uint8Array(4);
  function hit(x,y){if(!view||destroyed||lost||x<0||y<0||x>=view.width||y>=view.height)return -1;preparePick();gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.readPixels(Math.floor(x*canvas.width/view.width),canvas.height-1-Math.floor(y*canvas.height/view.height),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);gl.bindFramebuffer(gl.FRAMEBUFFER,null);return pixel[0]+pixel[1]*256+pixel[2]*65536-1;}
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});
- return {canvas,get labels(){return data.labels;},update(boxes,nextCenter=center,nextExtent=extent){if(destroyed||lost)return;center=nextCenter;extent=nextExtent;data=prepareGeometry(boxes,center);[data.triangles,data.edges].forEach((values,i)=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffers[i].buffer);gl.bufferData(gl.ARRAY_BUFFER,values,gl.STATIC_DRAW);buffers[i].count=values.length/13;});pickReady=false;},get lost(){return lost;},draw(next){if(destroyed||lost)return false;view=next;const dpr=Math.min(2,next.dpr||1),w=Math.max(1,Math.round(next.width*dpr)),h=Math.max(1,Math.round(next.height*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}gl.bindFramebuffer(gl.FRAMEBUFFER,null);paint(false);pickReady=false;return true;},hit,destroy(){if(destroyed)return;destroyed=true;resources.reverse().forEach(f=>f());gl.getExtension('WEBGL_lose_context')?.loseContext();}};
+ return {canvas,get labels(){return groups.flatMap(g=>g.data.labels);},updateDoors(){if(destroyed||lost)return;for(const g of groups)if(g.dynamic)upload(g);pickReady=false;},get lost(){return lost;},draw(next){if(destroyed||lost)return false;view=next;const dpr=Math.min(2,next.dpr||1),w=Math.max(1,Math.round(next.width*dpr)),h=Math.max(1,Math.round(next.height*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}gl.bindFramebuffer(gl.FRAMEBUFFER,null);paint(false);pickReady=false;return true;},hit,destroy(){if(destroyed)return;destroyed=true;resources.reverse().forEach(f=>f());gl.getExtension('WEBGL_lose_context')?.loseContext();}};
  }catch{resources.reverse().forEach(f=>f());return null;}
 }

@@ -11,3 +11,9 @@ export function sceneBounds(boxes){
  for(const b of boxes)for(const x of [0,b.w])for(const y of [0,b.h])for(const z of [0,b.d]){const p=boxWorldPoint(b,[x,y,z]);for(let i=0;i<3;i++){min[i]=Math.min(min[i],p[i]);max[i]=Math.max(max[i],p[i]);}}
  return {center:min.map((v,i)=>(v+max[i])/2),extent:Math.max(...max.map((v,i)=>v-min[i]),1)};
 }
+
+// Keep one camera envelope for the entire door sweep, so only the leaves move.
+export function doorMotionBounds(boxes){
+ const envelope=boxes.flatMap(b=>b.hingeX===undefined?[b]:[0,90,b.doorLimit||180].map(angle=>({...b,doorAngle:Math.min(angle,b.doorLimit||180)*(b.doorDirection||1)})));
+ const bounds=sceneBounds(envelope);return {...bounds,extent:bounds.extent+32};
+}

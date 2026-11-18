@@ -1,6 +1,14 @@
 // Open conduit with a front cable-entry cutout. Dimensions are visual planning
 // default diameter is 40 mm; paired length is the specified 740 mm.
 export function boxMesh(b){
+ if(b.shape==='entryPerforated'){
+  const vertices=[],surfaces=[],nx=Math.min(16,Math.max(2,Math.floor(b.w/24))),nz=Math.min(8,Math.max(2,Math.floor(b.d/24))),cw=b.w/nx,cd=b.d/nz;
+  for(let x=0;x<nx;x++)for(let z=0;z<nz;z++){
+   const start=vertices.length,x0=x*cw,z0=z*cd,mx=cw*.23,mz=cd*.23;
+   for(const y of [0,b.h])for(const ring of [0,1])for(const [px,pz]of [[x0+ring*mx,z0+ring*mz],[x0+cw-ring*mx,z0+ring*mz],[x0+cw-ring*mx,z0+cd-ring*mz],[x0+ring*mx,z0+cd-ring*mz]])vertices.push([px,y,pz]);
+   for(let k=0;k<4;k++){const j=(k+1)%4;for(const face of [[k,j,j+4,k+4],[k+8,k+12,j+12,j+8],[k,k+8,j+8,j],[k+4,j+4,j+12,k+12]])surfaces.push(face.map(i=>start+i));}
+  }return {vertices,surfaces};
+ }
  if(b.shape==='meterTube'){
   const vertices=[],surfaces=[],n=24,r=b.w/2,t=2,ys=[0,b.h*(b.cutout==='lower'?.7:.2),b.h*(b.cutout==='lower'?.8:.3),b.h];
   const index=(ring,inner,i)=>ring*n*2+inner*n+(i+n)%n;
