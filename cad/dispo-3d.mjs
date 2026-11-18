@@ -1,10 +1,12 @@
-import {cabinetOptions,cabinetField,ralColors} from './cabinet-options.mjs?v=20261118-6';
-import {boxWorldPoint,sceneBounds} from './box-transform.mjs?v=20261118-6';
-import {manualInterior} from './dispo-parts.mjs?v=20261118-6';
-import {joinDinRails} from './frame-layout.mjs?v=20261118-6';
-import {createGpuRenderer} from './dispo-gpu.mjs?v=20261118-6';
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261118-6';
-import {frameBoxes} from './frame-render.mjs?v=20261118-6';
+import {cableEntryBoxes} from './cable-entry-3d.mjs?v=20261118-7';
+import {createDoorMotion} from './door-motion.mjs?v=20261118-7';
+import {cabinetOptions,cabinetField,ralColors} from './cabinet-options.mjs?v=20261118-7';
+import {boxWorldPoint,doorMotionBounds} from './box-transform.mjs?v=20261118-7';
+import {manualInterior} from './dispo-parts.mjs?v=20261118-7';
+import {joinDinRails} from './frame-layout.mjs?v=20261118-7';
+import {createGpuRenderer} from './dispo-gpu.mjs?v=20261118-7';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261118-7';
+import {frameBoxes} from './frame-render.mjs?v=20261118-7';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p,doorAngles={}){
  const factor=420*p.scale/1200,boxes=[];
@@ -18,7 +20,7 @@ export function sceneBoxes(p,doorAngles={}){
    if(e.manualPart.type==='cabinet')add(e,x,y,-d,w,body,3,'#c9ccce');
    add(e,x,y,-d,m.left,body,d,'#a8b4bf');add(e,x+m.right,y,-d,w-m.right,body,d,'#a8b4bf');
    add(e,x+m.left,y,-d,m.right-m.left,m.top,d,'#bac4cd');add(e,x+m.left,y+m.bottom,-d,m.right-m.left,body-m.bottom,d,'#bac4cd');
-   if(base)add(e,x,y+body,-d,w,base,d,'#111111');continue;
+   if(base){const t=Math.min(16,w/8,d/8);for(const [xx,zz,ww,dd]of [[x,-d,w,t],[x,-t,w,t],[x,-d+t,t,d-2*t],[x+w-t,-d+t,t,d-2*t]])add(e,xx,y+body,zz,ww,base,dd,'#111111');}continue;
   }
   if(e.manualPart&&['rail','duct'].includes(e.kind)&&e.mountZ===undefined){const c=p.elements.find(c=>c.kind==='cabinet'&&e.x+e.width/2/factor>=c.x&&e.x+e.width/2/factor<c.x+c.width/factor&&e.y+e.height/2/factor>=c.y&&e.y+e.height/2/factor<c.y+c.height/factor);e.mountZ=-(c?.depth||400)+30;}
 
@@ -28,15 +30,18 @@ export function sceneBoxes(p,doorAngles={}){
    for(const [xx,side]of [[x,o.sideLeft],[x+w-20,o.sideRight]])if(side!=='Keine')add(e,xx,y,-d,side==='Flach'?5:20,body,d,color);
    // Structural top/bottom rails remain even when the floor infill is absent.
    for(const yy of [y,y+body-20])add(e,x,yy,-d,w,20,30,color);
-   add(e,x,y,-d,w,3,d,f.roof==='Standard mit PVC'?'#d5d7d6':color);
-   if(f.floor!=='Kein')add(e,x,y+body-3,-d,w,3,d,f.floorMaterial==='PVC'?'#d5d7d6':color);
+   for(const [position,selection,material]of [['roof',f.roof],['floor',f.floor,f.floorMaterial]])for(const part of cableEntryBoxes({width:w,depth:d,position,selection,material,color})){
+    // Roof assemblies extend into the cabinet; floor seals extend upwards.
+    const yy=position==='roof'?y+part.y:y+body-part.y-part.h;
+    add({...e,shape:part.shape},x+part.x,yy,-d+part.z,part.w,part.h,part.d,part.color);boxes.at(-1).entry=part.entry;
+   }
    if(f.mount!=='Keine')add(e,x+30,y+30,-d+15,w-60,body-60,3,'#b9bec2');
    if(o.thirdLevel)for(const xx of [x+35,x+w-45])add(e,xx,y+40,-d+75,10,body-80,10,'#a4adb4');
    for(const height of f.shelves)add(e,x+25,y+body-height,-d+20,w-50,3,d-45,'#c9ccce');
-   if(base)add(e,x,y+body,-d,w,base,d,'#111111');
+   if(base){const t=Math.min(16,w/8,d/8);for(const [xx,zz,ww,dd]of [[x,-d,w,t],[x,-t,w,t],[x,-d+t,t,d-2*t],[x+w-t,-d+t,t,d-2*t]])add(e,xx,y+body,zz,ww,base,dd,'#111111');}
    if(f.door){const wings=f.wings==='2-flüglig'?2:1,leaf=(w-20)/wings,angle=Math.max(0,Math.min(f.angle,doorAngles[e.id]??90));
     for(let i=0;i<wings;i++){const left=wings===2?i===0:f.hinge==='Links',hinge=left?0:leaf-2;
-     const part=(dx,dy,z,pw,ph,pd,color,door=false)=>{add(e,x+10+i*leaf+dx,y+10+dy,z,pw,ph,pd,color);Object.assign(boxes.at(-1),{door,hingeX:hinge-dx,hingeZ:-z,doorAngle:angle===0?0:left?angle:-angle});};
+     const part=(dx,dy,z,pw,ph,pd,color,door=false)=>{add(e,x+10+i*leaf+dx,y+10+dy,z,pw,ph,pd,color);Object.assign(boxes.at(-1),{door,hingeX:hinge-dx,hingeZ:-z,doorDirection:left?1:-1,doorLimit:f.angle,doorAngle:angle===0?0:left?angle:-angle});};
      part(0,0,0,leaf-2,body-20,8,color,true);
      const handleX=left?leaf-45:20,handleH=f.lock.includes('Griff')||f.lock.includes('griff')?100:35;
      part(handleX,(body-handleH)/2,8,18,handleH,12,'#42484c');
@@ -58,16 +63,16 @@ export function sceneBoxes(p,doorAngles={}){
 export function projectPoint(point,camera){const [x,y,z]=point,{yaw,pitch}=camera;const a=x*Math.cos(yaw)+z*Math.sin(yaw),b=-x*Math.sin(yaw)+z*Math.cos(yaw);return [a,y*Math.cos(pitch)-b*Math.sin(pitch),y*Math.sin(pitch)+b*Math.cos(pitch)];}
 export function openDispo3D(p,onSelect){
  let boxes=sceneBoxes(p);if(!boxes.length)throw Error('Zuerst einen Schrank, Rahmen oder Geräte in der Dispo platzieren.');
- const dialog=document.createElement('dialog');dialog.className='dispo-3d';dialog.innerHTML='<header><strong>Disposition · 3D</strong><span>Planungsmodell</span><button data-view="front">Vorne</button><button data-view="side">Seite</button><button data-view="rear">Hinten</button><button data-view="top">Oben</button><button data-view="iso">Einpassen</button><button data-view="plus" aria-label="Vergrössern">+</button><button data-view="minus" aria-label="Verkleinern">−</button><label><input type="checkbox" checked data-labels> BMK</label><label><input type="checkbox" checked data-plates> Platten</label><button data-close>Zurück zu 2D ✕</button></header><canvas tabindex="0" aria-label="3D-Anlage. Ziehen dreht, Mausrad zoomt, Mitteltaste verschiebt. Pfeiltasten drehen."></canvas><footer>Linke Maustaste: drehen · Mausrad: zoomen · Mitteltaste / Umschalt: verschieben · Doppelklick auf Gerät: Eigenschaften in 2D</footer>';
+ const dialog=document.createElement('dialog');dialog.className='dispo-3d';dialog.innerHTML='<header><strong>Disposition · 3D</strong><span>Planungsmodell</span><button data-view="front">Vorne</button><button data-view="side">Seite</button><button data-view="rear">Hinten</button><button data-view="top">Oben</button><button data-view="bottom">Unten</button><button data-view="iso">Einpassen</button><button data-view="plus" aria-label="Vergrössern">+</button><button data-view="minus" aria-label="Verkleinern">−</button><label><input type="checkbox" checked data-labels> BMK</label><label><input type="checkbox" checked data-plates> Platten</label><button data-close>Zurück zu 2D ✕</button></header><canvas tabindex="0" aria-label="3D-Anlage. Ziehen dreht, Mausrad zoomt, Mitteltaste verschiebt. Pfeiltasten drehen."></canvas><footer>Linke Maustaste: drehen · Mausrad: zoomen · Mitteltaste / Umschalt: verschieben · Doppelklick auf Gerät: Eigenschaften in 2D</footer>';
  const omitted=p.elements.filter(e=>e.kind==='template'&&!e.dispoGeometryKind).length;if(omitted)dialog.querySelector('footer').textContent+=` · ${omitted} Grafikvorlagen ohne 3D-Körper`;document.body.append(dialog);const canvas=dialog.querySelector('canvas'),ctx=canvas.getContext('2d');if(!ctx){dialog.remove();throw Error('3D-Zeichenfläche konnte nicht gestartet werden.');}
- let {center,extent}=sceneBounds(boxes);
+ const {center,extent}=doorMotionBounds(boxes);
  let camera={yaw:-.45,pitch:.2},zoom=1,pan=[0,0],pointer=null,faces=[],labels=true,showPlates=true,hitMap=null,hitWidth=0;
  const gpu=createGpuRenderer(boxes,center,extent);let meshes=new Map(boxes.map(b=>[b,boxMesh(b)]));
- let pending=0,closed=false,settle=0,moving=false;
+ let pending=0,closed=false,settle=0,moving=false,doorMoving=false,doorMotion=null;
  const schedule=()=>{if(!closed&&!pending)pending=requestAnimationFrame(()=>{pending=0;draw();});};
  const interact=()=>{moving=true;clearTimeout(settle);settle=setTimeout(()=>{moving=false;schedule();},120);schedule();};
  function draw(){const r=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1),cw=Math.max(1,Math.round(r.width*dpr)),ch=Math.max(1,Math.round(r.height*dpr));if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#edf2f7';ctx.fillRect(0,0,r.width,r.height);const scale=Math.min(r.width,r.height)*.86/extent*zoom;faces=[];
-  if(gpu?.draw({width:r.width,height:r.height,dpr,camera,pan,scale,plates:showPlates})){ctx.drawImage(gpu.canvas,0,0,r.width,r.height);if(labels&&!moving){const occupied=[];for(const label of gpu.labels){if(!showPlates&&label.plate)continue;const [px,py]=projectPoint(label.point,camera),x=r.width/2+pan[0]+px*scale,y=r.height/2+pan[1]+py*scale;if(label.width*scale<24||gpu.hit(x,y)!==label.index)continue;ctx.font='600 11px system-ui, sans-serif';const w=Math.min(160,ctx.measureText(label.text).width+12),h=19;if(occupied.some(a=>Math.abs(a.x-x)<(a.w+w)/2+3&&Math.abs(a.y-y)<h+3))continue;occupied.push({x,y,w});ctx.fillStyle='rgba(255,255,255,.9)';ctx.fillRect(x-w/2,y-h/2,w,h);ctx.fillStyle='#19324a';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label.text,x,y,w-8);}}return;}
+  if(gpu?.draw({width:r.width,height:r.height,dpr,camera,pan,scale,plates:showPlates})){ctx.drawImage(gpu.canvas,0,0,r.width,r.height);if(labels&&!moving&&!doorMoving){const occupied=[];for(const label of gpu.labels){if(!showPlates&&label.plate)continue;const [px,py]=projectPoint(label.point,camera),x=r.width/2+pan[0]+px*scale,y=r.height/2+pan[1]+py*scale;if(label.width*scale<24||gpu.hit(x,y)!==label.index)continue;ctx.font='600 11px system-ui, sans-serif';const w=Math.min(160,ctx.measureText(label.text).width+12),h=19;if(occupied.some(a=>Math.abs(a.x-x)<(a.w+w)/2+3&&Math.abs(a.y-y)<h+3))continue;occupied.push({x,y,w});ctx.fillStyle='rgba(255,255,255,.9)';ctx.fillRect(x-w/2,y-h/2,w,h);ctx.fillStyle='#19324a';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label.text,x,y,w-8);}}return;}
 
   for(const b of boxes){if(!showPlates&&b.plate)continue;const {vertices,surfaces}=meshes.get(b);const points=vertices.map(point=>projectPoint(boxWorldPoint(b,point,center),camera)).map(([x,y,z])=>[r.width/2+pan[0]+x*scale,r.height/2+pan[1]+y*scale,z]);
    surfaces.forEach((ids,i)=>faces.push({points:ids.map(j=>points[j]),z:ids.reduce((v,j)=>v+points[j][2],0)/ids.length,b,front:i===1,shade:b.shape==='meterTube'?(ids.every(j=>j%48>=24)?.45:Math.min(1,.82+ids.reduce((v,j)=>v+(vertices[j][0]-b.w/2)*.35+(vertices[j][2]-b.d/2)*.65,0)/ids.length/b.w*.3)):undefined}));
@@ -84,7 +89,7 @@ export function openDispo3D(p,onSelect){
    }
   }}
   hitMap=hits;hitWidth=width;const buffer=document.createElement('canvas');buffer.width=width;buffer.height=height;buffer.getContext('2d').putImageData(pixels,0,0);ctx.drawImage(buffer,0,0,width,height);
-  for(const f of faces){if(!labels||!f.front||!f.b.label)continue;const [a,b,c]=f.points,x=(a[0]+c[0])/2,y=(a[1]+c[1])/2,z=(a[2]+c[2])/2,index=Math.round(y)*width+Math.round(x);if(x<0||x>=width||y<0||y>=height||z<depth[index]-1||Math.hypot(b[0]-a[0],b[1]-a[1])<22)continue;ctx.fillStyle='#132d48';ctx.font='11px sans-serif';ctx.textBaseline='alphabetic';ctx.textAlign='center';ctx.fillText(f.b.label,x,y,Math.hypot(b[0]-a[0],b[1]-a[1]));}
+  for(const f of faces){if(!labels||moving||doorMoving||!f.front||!f.b.label)continue;const [a,b,c]=f.points,x=(a[0]+c[0])/2,y=(a[1]+c[1])/2,z=(a[2]+c[2])/2,index=Math.round(y)*width+Math.round(x);if(x<0||x>=width||y<0||y>=height||z<depth[index]-1||Math.hypot(b[0]-a[0],b[1]-a[1])<22)continue;ctx.fillStyle='#132d48';ctx.font='11px sans-serif';ctx.textBaseline='alphabetic';ctx.textAlign='center';ctx.fillText(f.b.label,x,y,Math.hypot(b[0]-a[0],b[1]-a[1]));}
 
  }
  const clamp=()=>{zoom=Math.max(.15,Math.min(10,zoom));camera.pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,camera.pitch));};
@@ -95,13 +100,16 @@ export function openDispo3D(p,onSelect){
  canvas.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','Home'].includes(e.key)){e.preventDefault();if(e.key==='ArrowLeft')camera.yaw-=.1;if(e.key==='ArrowRight')camera.yaw+=.1;if(e.key==='ArrowUp')camera.pitch-=.1;if(e.key==='ArrowDown')camera.pitch+=.1;if(e.key==='+')zoom*=1.1;if(e.key==='-')zoom/=1.1;if(e.key==='Home'){zoom=1;pan=[0,0];}clamp();interact();}};
  canvas.ondblclick=e=>{const r=canvas.getBoundingClientRect(),x=Math.floor(e.clientX-r.left),y=Math.floor(e.clientY-r.top),b=boxes[gpu&&!gpu.lost?gpu.hit(x,y):(hitMap?.[y*hitWidth+x]||0)-1];if(b){dialog.close();onSelect?.(b.id);}};
  dialog.querySelector('[data-plates]').onchange=e=>{showPlates=e.target.checked;schedule();};dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.querySelector('[data-labels]').onchange=e=>{labels=e.target.checked;schedule();};
- dialog.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;if(v==='plus')zoom*=1.2;else if(v==='minus')zoom/=1.2;else{camera=v==='front'?{yaw:0,pitch:0}:v==='side'?{yaw:Math.PI/2,pitch:0}:v==='rear'?{yaw:Math.PI,pitch:0}:v==='top'?{yaw:0,pitch:-Math.PI/2}:{yaw:-.45,pitch:.2};zoom=1;pan=[0,0];}clamp();interact();});
+ dialog.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;if(v==='plus')zoom*=1.2;else if(v==='minus')zoom/=1.2;else{camera=v==='front'?{yaw:0,pitch:0}:v==='side'?{yaw:Math.PI/2,pitch:0}:v==='rear'?{yaw:Math.PI,pitch:0}:v==='top'?{yaw:0,pitch:-Math.PI/2}:v==='bottom'?{yaw:0,pitch:Math.PI/2}:{yaw:-.45,pitch:.2};zoom=1;pan=[0,0];}clamp();interact();});
  const cabinets=p.elements.filter(e=>e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-')&&cabinetField(e.cabinetOptions).door);
- if(cabinets.length){const bar=document.createElement('div');bar.className='door-controls';bar.innerHTML='<label>Türen <select aria-label="Türfeld"><option value="all">Alle Felder</option></select></label><button data-open>Türen öffnen</button><button data-shut>Türen schliessen</button><label>Öffnungswinkel <input aria-label="Türöffnungswinkel" type="range" min="0" max="180" value="90" step="1"></label><output aria-live="polite">90°</output>';dialog.querySelector('canvas').before(bar);const select=bar.querySelector('select'),range=bar.querySelector('input'),output=bar.querySelector('output'),angles=Object.fromEntries(cabinets.map(e=>[e.id,90]));for(const [i,e]of cabinets.entries()){const option=document.createElement('option');option.value=e.id;option.textContent='Feld '+(i+1);select.append(option);}
+ if(cabinets.length){const bar=document.createElement('div');bar.className='door-controls';bar.innerHTML='<label>Türen <select aria-label="Türfeld"><option value="all">Alle Felder</option></select></label><button data-open>Türen öffnen</button><button data-shut>Türen schliessen</button><label>Öffnungswinkel <input aria-label="Türöffnungswinkel" type="range" min="0" max="180" value="90" step="1"></label><output aria-live="polite">90°</output>';dialog.querySelector('canvas').before(bar);const select=bar.querySelector('select'),range=bar.querySelector('input'),output=bar.querySelector('output');let angles=Object.fromEntries(cabinets.map(e=>[e.id,90]));for(const [i,e]of cabinets.entries()){const option=document.createElement('option');option.value=e.id;option.textContent='Feld '+(i+1);select.append(option);}
   const targets=()=>cabinets.filter(e=>select.value==='all'||select.value===e.id);
-  const refresh=()=>{const cs=targets();range.max=Math.min(...cs.map(e=>cabinetField(e.cabinetOptions).angle));range.value=angles[cs[0].id];output.textContent=cs.every(e=>angles[e.id]===angles[cs[0].id])?angles[cs[0].id]+'°':'Verschiedene Winkel';};
-  const update=value=>{for(const e of targets())angles[e.id]=Math.min(cabinetField(e.cabinetOptions).angle,value);boxes=sceneBoxes(p,angles);meshes=new Map(boxes.map(b=>[b,boxMesh(b)]));({center,extent}=sceneBounds(boxes));gpu?.update(boxes,center,extent);refresh();schedule();};
-  select.onchange=refresh;range.oninput=()=>update(Number(range.value));bar.querySelector('[data-open]').onclick=()=>update(180);bar.querySelector('[data-shut]').onclick=()=>update(0);refresh();
+  const refresh=()=>{const cs=targets();range.max=Math.min(...cs.map(e=>cabinetField(e.cabinetOptions).angle));range.value=Math.round(angles[cs[0].id]);output.textContent=cs.every(e=>Math.round(angles[e.id])===Math.round(angles[cs[0].id]))?Math.round(angles[cs[0].id])+'°':'Verschiedene Winkel';};
+  const movingParts=boxes.filter(b=>b.hingeX!==undefined);
+  doorMotion=createDoorMotion({angles,limits:Object.fromEntries(cabinets.map(e=>[e.id,cabinetField(e.cabinetOptions).angle])),reducedMotion:()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false,onChange:(next,active)=>{angles=next;doorMoving=active;for(const b of movingParts)b.doorAngle=angles[b.id]*b.doorDirection;gpu?.updateDoors();output.setAttribute('aria-live',active?'off':'polite');refresh();schedule();}});
+  select.onchange=refresh;range.oninput=()=>doorMotion.set(targets().map(e=>e.id),Number(range.value));bar.querySelector('[data-open]').onclick=()=>doorMotion.animate(targets().map(e=>e.id),180);bar.querySelector('[data-shut]').onclick=()=>doorMotion.animate(targets().map(e=>e.id),0);refresh();
  }
- const observer=new ResizeObserver(schedule);dialog.onclose=()=>{closed=true;cancelAnimationFrame(pending);clearTimeout(settle);observer.disconnect();gpu?.destroy();dialog.remove();};dialog.showModal();observer.observe(canvas);schedule();canvas.focus();
+ const entries=p.elements.filter(e=>e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-'));
+ if(entries.length){const summary=document.createElement('div');summary.className='entry-summary';summary.setAttribute('aria-label','Kabeleinführungen');for(const [i,e]of entries.entries()){const f=cabinetField(e.cabinetOptions),line=document.createElement('span');line.textContent=`Feld ${i+1} · Oben: ${f.roof} · Unten: ${f.floor==='Kein'?'offen':f.floor+' · '+f.floorMaterial}`;summary.append(line);}canvas.before(summary);}
+ const observer=new ResizeObserver(schedule);dialog.onclose=()=>{closed=true;doorMotion?.destroy();cancelAnimationFrame(pending);clearTimeout(settle);observer.disconnect();gpu?.destroy();dialog.remove();};dialog.showModal();observer.observe(canvas);schedule();canvas.focus();
 }

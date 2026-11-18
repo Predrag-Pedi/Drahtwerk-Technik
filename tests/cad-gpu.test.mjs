@@ -12,3 +12,14 @@ test('GPU buffers are reused across orbit frames and all resources are released 
  const old=globalThis.document;globalThis.document={createElement:()=>canvas};try{const r=createGpuRenderer([box],[0,0,0],100);assert.ok(r);const frame={width:800,height:600,dpr:2,camera:{yaw:0,pitch:0},pan:[0,0],scale:1,plates:true};r.draw(frame);r.draw({...frame,camera:{yaw:1,pitch:.2}});assert.equal(uploads,2);assert.equal(draws,4);assert.equal(canvas.width,1600);assert.equal(r.hit(30,30),0);assert.equal(r.hit(30,30),0);assert.equal(draws,5);r.draw({...frame,plates:false});assert.equal(r.hit(-1,20),-1);assert.ok(calls.some(c=>c[0]==='uniform1i'&&c[1]==='plates'&&c[2]===false));r.destroy();const n=deletes;assert.ok(n>=8);r.destroy();assert.equal(deletes,n);}finally{globalThis.document=old;}
 });
 test('unsupported graphics contexts retain the software renderer path',()=>{const old=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>null})};try{assert.equal(createGpuRenderer([box],[0,0,0],100),null);}finally{globalThis.document=old;}});
+test('door frames upload only moving geometry and retain original picking identities',()=>{
+ const uploads=[],gl=new Proxy({getShaderParameter:()=>true,getProgramParameter:()=>true,getAttribLocation:()=>0,getUniformLocation:(_,name)=>name,bufferData:(_,values,usage)=>uploads.push({values:new Float32Array(values),usage}),getExtension:()=>null},{get(o,k){if(k in o)return o[k];if(k.startsWith('create'))return ()=>({});if(k.toUpperCase()===k)return k;return ()=>{};}}),canvas={getContext:()=>gl,addEventListener(){}},old=globalThis.document;
+ globalThis.document={createElement:()=>canvas};
+ try{
+  const door={...box,id:'door',label:'Door',hingeX:0,doorAngle:0},renderer=createGpuRenderer([door,box],[0,0,0],100);
+  assert.equal(uploads.length,4);assert.equal(uploads.filter(u=>u.usage==='STATIC_DRAW').length,2);assert.deepEqual(renderer.labels.map(l=>l.index),[1,0]);
+  door.doorAngle=45;renderer.updateDoors();assert.equal(uploads.length,6);assert.ok(uploads.slice(4).every(u=>u.usage==='DYNAMIC_DRAW'));assert.notDeepEqual(uploads[2].values,uploads[4].values);
+  for(let i=9;i<uploads[4].values.length;i+=13)assert.ok(Math.abs(uploads[4].values[i]*255-1)<1e-6);
+  assert.equal(uploads.filter(u=>u.usage==='STATIC_DRAW').length,2);renderer.destroy();renderer.updateDoors();assert.equal(uploads.length,6);
+ }finally{globalThis.document=old;}
+});
