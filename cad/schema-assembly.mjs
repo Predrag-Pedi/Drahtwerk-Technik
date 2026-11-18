@@ -1,6 +1,6 @@
-import {createElement,ports,uid,size,symbols} from './model.mjs?v=20261118-1';
-import {DRAW,bounds} from './geometry.mjs?v=20261118-1';
-import {allFunctions,functionBmk,functionData,referenceLocation,contactsFor} from './references.mjs?v=20261118-1';
+import {createElement,ports,uid,size,symbols} from './model.mjs?v=20261118-2';
+import {DRAW,bounds} from './geometry.mjs?v=20261118-2';
+import {allFunctions,functionBmk,functionData,referenceLocation,contactsFor} from './references.mjs?v=20261118-2';
 
 export function outgoingPorts(e,p){
  if(!e||e.rotation||e.template)return [];

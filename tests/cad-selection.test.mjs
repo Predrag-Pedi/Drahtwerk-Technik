@@ -7,3 +7,23 @@ const fixture=()=>{const d=project(),p=d.pages[1],e=createElement(p,'template',4
 test('normal template selection has no area-sized hit rectangle and enables lines and text',()=>{const {d,p,e}=fixture();const svg=elementMarkup(e,p,d,true);assert.match(svg,/data-element="macro" pointer-events="none"/);assert.doesNotMatch(svg,/<rect x="-4"/);assert.match(svg,/data-template-line="macro:0"/);assert.match(svg,/data-template-text="t0"/);assert.ok(svg.indexOf('data-template-line')<svg.indexOf('data-template-text'));});
 test('drawn wire has a topmost hit target above template geometry; group selection is explicit',()=>{const {d,p,e}=fixture();const svg=svgPage(d,p,{editor:true});assert.ok(svg.lastIndexOf('data-wire="drawn"')>svg.indexOf('data-template-text="t0"'));const group=elementMarkup(e,p,d,true,true);assert.match(group,/<rect x="-4"/);assert.doesNotMatch(group,/data-template-line=/);assert.doesNotMatch(group,/data-template-text=/);const exported=svgPage(d,p);assert.doesNotMatch(exported,/data-template-line=/);assert.doesNotMatch(exported,/vector-effect="non-scaling-stroke"/);});
 test('selecting a template line leaves drawn wires intact and creates independent editable wire',()=>{const {p,e}=fixture();const existing=structuredClone(p.wires[0]);const detached=detachLine(p,e,0,'separate');assert.deepEqual(p.wires[0],existing);assert.equal(detached.id,'separate');assert.equal(detached.direct,true);assert.equal(p.elements.length,1);});
+
+test('selected rotated symbols highlight their geometry without adding a bounding rectangle',()=>{
+ const {d,p,e}=fixture();e.rotation=90;
+ const before=structuredClone(e),plain=elementMarkup(e,p,d,true,true),marked=elementMarkup(e,p,d,true,true,true);
+ // Even a template with substantial empty space has exactly the original geometry.
+ assert.equal(marked.replace('<g class="cad-selected">','').replace(/<\/g><\/g>$/,'</g>'),plain);
+ assert.deepEqual(e,before);
+ const svg=svgPage(d,p,{editor:true,selected:e.id,lineMode:false});
+ assert.equal((svg.match(/class="cad-selected"/g)||[]).length,1);
+ assert.doesNotMatch(svg,/stroke-dasharray="5 4" pointer-events="none"/);
+});
+test('multi-selection highlights devices and wires together and never enters exports',()=>{
+ const {d,p,e}=fixture(),other=createElement(p,'coil',300,300);p.elements.push(other);
+ const selection=[{kind:'element',id:e.id},{kind:'element',id:other.id},{kind:'wire',id:'drawn'}];
+ const svg=svgPage(d,p,{editor:true,selection,lineMode:false});
+ assert.equal((svg.match(/class="cad-selected"/g)||[]).length,2);
+ assert.match(svg,/<polyline points="100,200 300,200" fill="none" stroke="#2463eb"/);
+ assert.doesNotMatch(svgPage(d,p,{editor:true}),/class="cad-selected"/);
+ assert.equal(svgPage(d,p,{selected:'drawn',selection}),svgPage(d,p));
+});

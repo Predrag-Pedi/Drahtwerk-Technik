@@ -1,7 +1,7 @@
-import {allFunctions,functionBmk,functionData,findFunction,contactsFor,configureContacts,referenceLocation} from './references.mjs?v=20261118-1';
-import {uid} from './model.mjs?v=20261118-1';
-import {reportRows,csv} from './schema-assembly.mjs?v=20261118-1';
-import {download} from './export.mjs?v=20261118-1';
+import {allFunctions,functionBmk,functionData,findFunction,contactsFor,configureContacts,referenceLocation} from './references.mjs?v=20261118-2';
+import {uid} from './model.mjs?v=20261118-2';
+import {reportRows,csv} from './schema-assembly.mjs?v=20261118-2';
+import {download} from './export.mjs?v=20261118-2';
 
 const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 function button(parent,text,action){const b=node('button',text);b.type='button';b.onclick=action;parent.append(b);return b;}
