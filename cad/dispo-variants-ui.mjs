@@ -1,5 +1,6 @@
-import {dispoVariants,cachedDispoBuild,calculateDispoVariant} from './dispo-variants.mjs?v=20261118-4';
-import {svgPage} from './render.mjs?v=20261118-4';
+import {configureCabinet} from './cabinet-config-ui.mjs?v=20261118-5';
+import {dispoVariantName,dispoVariants,cachedDispoBuild,calculateDispoVariant} from './dispo-variants.mjs?v=20261118-5';
+import {svgPage} from './render.mjs?v=20261118-5';
 
 const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 export function openDispoVariants({doc,page,onApply,initialError=''}){
@@ -20,14 +21,15 @@ export function openDispoVariants({doc,page,onApply,initialError=''}){
  function show(row){
   active=row;for(const [id,r]of rows)r.button.setAttribute('aria-pressed',String(id===row.id));
   detail.replaceChildren(node('h3',row.name));
+  if(row.config.distributionType==='standing'){const configure=node('button','Schrank konfigurieren','variant-configure');configure.type='button';configure.onclick=async()=>{const next=await configureCabinet({config:row.result?.config||row.config,doc,page,submitLabel:'Variante neu berechnen'});if(!next||closed)return;row.revision=(row.revision||0)+1;row.config=next;row.name=dispoVariantName(next);row.button.querySelector('strong').textContent=row.name;delete row.result;row.error='Wird neu berechnet …';show(row);const result=await calculateDispoVariant(doc,page,row,build);if(closed)return;Object.assign(row,result);row.status.textContent=row.result?`${row.result.config.width} × ${row.result.config.height} × ${row.result.config.depth} mm · passt`:'Nicht möglich · Grund ansehen';row.button.classList.toggle('variant-fits',!!row.result);row.button.classList.toggle('variant-blocked',!row.result);if(active===row)show(row);};detail.append(configure);}
   if(!row.result){detail.append(node('p',row.error||'Wird berechnet …',row.error?'workflow-error':'hint'));return;}
   const g=row.result,c=g.config;
   detail.append(node('p',`${c.width} × ${c.height} × ${c.depth} mm · ${c.fields} Feld(er) · ${c.reserve} % Geräte-Platzreserve`,'variant-dimensions'));
-  if(c.distributionType==='standing')detail.append(node('p',`AN: 2000 mm Korpus + ${c.plinthHeight} mm Sockel`,'hint'));
+  if(c.distributionType==='standing')detail.append(node('p',`${c.cabinetMode==='custom'?'Individualschrank':'AN-Standard'}: ${c.height-c.plinthHeight} mm Korpus + ${c.plinthHeight} mm Sockel`,'hint'));
   const preview=node('div',undefined,'variant-preview');preview.innerHTML=svgPage(doc,{...page,elements:g.elements,wires:[],grid:false},{grid:false,frame:false});
   const cabinets=g.elements.filter(e=>e.kind==='cabinet'),f=1200/420/g.scale;
   if(cabinets.length){const left=Math.min(...cabinets.map(e=>e.x))-45,top=Math.min(...cabinets.map(e=>e.y))-40,right=Math.max(...cabinets.map(e=>e.x+e.width*f))+20,bottom=Math.max(...cabinets.map(e=>e.y+e.height*f))+20;preview.querySelector('svg').setAttribute('viewBox',`${left} ${top} ${right-left} ${bottom-top}`);}
-  detail.append(preview);
+  detail.append(preview);const description=g.elements.find(e=>e.dispoDescription);if(description)detail.append(node('pre',description.text,'variant-description'));
   for(const warning of g.warnings||[])detail.append(node('p',warning,'hint'));
   const apply=node('button','Diese Variante übernehmen','primary');apply.type='button';apply.onclick=()=>{try{onApply(g);dialog.close();}catch(e){progress.textContent=e.message;}};detail.append(apply);
  }
@@ -43,7 +45,7 @@ export function openDispoVariants({doc,page,onApply,initialError=''}){
   let done=0,ok=0;
   for(const row of queue){
    await new Promise(resolve=>setTimeout(resolve,0));if(closed)return;
-   Object.assign(row,await calculateDispoVariant(doc,page,row,build));if(closed)return;
+   const revision=row.revision||0,result=await calculateDispoVariant(doc,page,row,build);if(closed)return;if(revision!==(row.revision||0))continue;Object.assign(row,result);
    const c=row.result?.config;row.status.textContent=c?`${c.width} × ${c.height} × ${c.depth} mm · passt`:'Nicht möglich · Grund ansehen';row.button.classList.add(c?'variant-fits':'variant-blocked');if(c)ok++;
    if(active===row)show(row);progress.textContent=`${++done} / ${queue.length} geprüft · ${ok} passende Varianten`;
   }

@@ -1,12 +1,13 @@
-import {smisslineTemplate,smisslineFeed,smisslineProjectSupply,commonProjectSupply} from './smissline-packing.mjs?v=20261118-4';
-import {smisslineRails,onSmissline} from './system-layout.mjs?v=20261118-4';
-import {fuseTemplate,copperFuse,neutralTemplate,fuseZoneHeight} from './fuse-systems.mjs?v=20261118-4';
-import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261118-4';
-import {horizontalCT} from './ct-template.mjs?v=20261118-4';
-import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261118-4';
-import {validateTemplate} from './template.mjs?v=20261118-4';
-import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261118-4';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261118-4';
+import {addDispositionDescription} from './dispo-description.mjs?v=20261118-5';
+import {smisslineTemplate,smisslineFeed,smisslineProjectSupply,commonProjectSupply} from './smissline-packing.mjs?v=20261118-5';
+import {smisslineRails,onSmissline} from './system-layout.mjs?v=20261118-5';
+import {fuseTemplate,copperFuse,neutralTemplate,fuseZoneHeight} from './fuse-systems.mjs?v=20261118-5';
+import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261118-5';
+import {horizontalCT} from './ct-template.mjs?v=20261118-5';
+import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261118-5';
+import {validateTemplate} from './template.mjs?v=20261118-5';
+import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261118-5';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261118-5';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  if(['ls','fils'].includes(d.kind)&&d.breakerSystem&&d.breakerSystem==='uniway')throw Error(`${d.tag}: ${d.breakerSystem==='smissline'?'Smissline':'Uniway'} ist gewählt; die automatische Disposition für dieses System ist noch nicht konfiguriert.`);
@@ -67,7 +68,7 @@ for(const d of devices)if(['ls','fils'].includes(d.kind)&&c.breakerManufacturer!
  const ids=selected.map(automaticTemplateId),missing=selected.filter((d,i)=>!ids[i]);
  if(missing.some(d=>d.incoming))throw Error('Einspeisblock: Bemessungsstrom in den Projektdaten ergänzen (Vorlagen bis 100 A bzw. bis 160 A).');
  if(missing.length)throw Error(`Dispo unverändert: Keine eindeutige Originalvorlage für ${missing.map(d=>d.tag+' ('+d.name+')').join(', ')}. Gerätetyp im Schema ergänzen.`);
- const get=async path=>{const r=await fetcher(path+'?v=20261118-4');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
+ const get=async path=>{const r=await fetcher(path+'?v=20261118-5');if(!r.ok)throw Error('Dispo unverändert: Vorlagenbibliothek konnte nicht geladen werden.');return r.json();};
  const [details,raw]=await Promise.all([get('cad/template-details.json'),Promise.all([...new Set([...ids,...(selected.some(onSmissline)?[...smisslineRails.map(r=>r.id),'tl-0524','tl-0630','tl-0632']:[]),...selected.filter(copperFuse).map(neutralTemplate),...(selected.some(d=>d.fuseSystem==='vertigroup185')?['tl-0870']:[]),...(ids.includes('tl-0581')?['tl-0580']:[])])].map(async id=>[id,await get('cad/templates/'+id+'.json')]))]);
  const templates=new Map(raw.map(([id,t])=>[id,id==='tl-0849'?horizontalCT(validateTemplate({...t,details:details[id]})):validateTemplate({...t,details:details[id]})]));
  for(let i=0;i<selected.length;i++){const d=selected[i],t=templates.get(ids[i]);d.dispoTemplateId=t.id;if(d.incoming&&t.id==='tl-0746')d.frameStyle='incoming-terminal';if(d.kind!=='meter'&&(d.kind!=='fuse'||copperFuse(d))){d.width=d.kind==='fils'&&d.manufacturer==='schneider'&&t.id==='tl-0624'?90:t.width;d.height=t.height;d.poles??=({'tl-0529':1,'tl-0530':1,'tl-0531':1,'tl-0534':2,'tl-0540':3,'tl-0541':3,'tl-0542':3,'tl-0543':4,'tl-0624':3,'tl-0626':1})[t.id];}if(onSmissline(d)){d.width=t.height;d.height=t.width;d.templateRotation=90;}d.confirmed=false;}
@@ -100,5 +101,6 @@ for(const d of devices)if(['ls','fils'].includes(d.kind)&&c.breakerManufacturer!
  const cabinets=assembled.elements.filter(e=>e.kind==='cabinet'),fieldOf=e=>cabinets.findIndex(b=>e.x>=b.x-.01&&e.x<b.x+b.width*factor);
  const separated=[...new Set(assembled.elements.filter(e=>e.dispoKind==='meter'&&e.circuitName).filter(m=>assembled.elements.some(e=>e.dispoSource&&e.dispoKind!=='meter'&&e.circuitName===m.circuitName&&fieldOf(e)!==fieldOf(m))).map(m=>m.circuitName))];
  if(separated.length)warnings.push('Feldübergreifende Abgänge erforderlich: '+separated.join(', ')+'. Kein vollständig gemeinsamer Aufbau innerhalb der gewählten Masse gefunden.');
+ const note=addDispositionDescription(assembled,p,doc);if(note)warnings.push(note);
  return {...assembled,warnings};
 }

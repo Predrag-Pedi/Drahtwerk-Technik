@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig,schemaDevices} from './dispo.mjs?v=20261118-4';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-4';
+import {defaultConfig,validateDispoConfig,schemaDevices} from './dispo.mjs?v=20261118-5';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-5';
 
 export function dispoVariants(p){
  const c=validateDispoConfig({...defaultConfig(),...p.dispoConfig});
@@ -7,9 +7,9 @@ export function dispoVariants(p){
  const base={...c,autoSize:true,maxWidth:c.maxWidth||c.width,maxHeight:c.maxHeight||c.height};
  const variants=[{id:'current',name:'Aktuelle Einstellungen',config:{...base}}];
  const systems=[['standard','hager','Standard · Hager'],['standard','schneider','Standard · Schneider'],['smissline','auto','Smissline'],['silas60','auto','Silas · 60 mm'],['vertigroup185','auto','Vertigroup · 185 mm']];
- for(const type of ['sbr','standing'])for(const [system,manufacturer,label]of systems){
-  const plinths=type==='standing'?[...new Set([0,c.plinthHeight||0])]:[0];
-  for(const plinthHeight of plinths)variants.push({id:[type,system,manufacturer,plinthHeight].join('-'),name:`${type==='sbr'?'SBR':`Standschrank AN · ${plinthHeight?plinthHeight+' mm Sockel':'ohne Sockel'}`} / ${label}`,config:{...base,distributionType:type,buildSystem:system,breakerManufacturer:manufacturer,systemScope:'all',plinthHeight}});
+ for(const type of ['sbr','standing','custom'])for(const [system,manufacturer,label]of systems){
+  const plinths=type!=='sbr'?[...new Set([0,c.plinthHeight||0])]:[0];
+  for(const plinthHeight of plinths)variants.push({id:[type,system,manufacturer,plinthHeight].join('-'),name:`${type==='sbr'?'SBR':`${type==='custom'?'Individualschrank':'Standschrank AN'} · ${plinthHeight?plinthHeight+' mm Sockel':'ohne Sockel'}`} / ${label}`,config:{...base,distributionType:type==='custom'?'standing':type,cabinetMode:type==='custom'?'custom':'standard',cabinetSizing:'auto',cabinetOptions:{...base.cabinetOptions,plinth:plinthHeight?(base.cabinetOptions.plinth==='Stahl'?'Stahl':'Aluminium'):'Kein'},buildSystem:system,breakerManufacturer:manufacturer,systemScope:'all',plinthHeight}});
  }
  return variants;
 }
@@ -29,3 +29,5 @@ export async function calculateDispoVariant(doc,p,variant,build=cachedDispoBuild
  }
  catch(error){return {...variant,error:error.message,code:error.code||''};}
 }
+
+export function dispoVariantName(c){return `${c.distributionType==='sbr'?'SBR':(c.cabinetMode==='custom'?'Individualschrank':'Standschrank AN')+' · '+(c.plinthHeight?c.plinthHeight+' mm Sockel':'ohne Sockel')} / ${{standard:'Standard',smissline:'Smissline',silas60:'Silas · 60 mm',vertigroup185:'Vertigroup · 185 mm'}[c.buildSystem]}${c.buildSystem==='standard'&&c.breakerManufacturer!=='auto'?' · '+({hager:'Hager',schneider:'Schneider'}[c.breakerManufacturer]):''}`;}

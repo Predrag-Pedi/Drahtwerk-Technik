@@ -1,10 +1,10 @@
-import {boxMesh} from './dispo-mesh.mjs?v=20261118-4';
+import {boxWorldPoint} from './box-transform.mjs?v=20261118-5';
+import {boxMesh} from './dispo-mesh.mjs?v=20261118-5';
 // Static geometry is uploaded once; orbit/zoom only update camera uniforms.
 export function prepareGeometry(boxes,center){
  const triangles=[],edges=[],labels=[];
  boxes.forEach((b,index)=>{
-  const {vertices,surfaces}=boxMesh(b),angle=(b.rotation||0)*Math.PI/180,cs=Math.cos(angle),sn=Math.sin(angle);
-  const world=([x,y,z])=>[b.x+b.w/2+(x-b.w/2)*cs-(y-b.h/2)*sn-center[0],b.y+b.h/2+(x-b.w/2)*sn+(y-b.h/2)*cs-center[1],b.z+z-center[2]];
+  const {vertices,surfaces}=boxMesh(b);const world=point=>boxWorldPoint(b,point,center);
   const points=vertices.map(world),rgb=b.color.match(/\w\w/g).map(c=>parseInt(c,16)/255),id=index+1,pick=[(id&255)/255,((id>>8)&255)/255,((id>>16)&255)/255],seen=new Set();
   for(const face of surfaces){const [a,bp,c]=face.map(i=>points[i]),u=bp.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]),n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],length=Math.hypot(...n)||1,normal=n.map(v=>v/length);
    const record=i=>[...points[i],...normal,...rgb,...pick,b.plate?1:0];
@@ -26,7 +26,7 @@ export function createGpuRenderer(boxes,center,extent){
  function shader(type,src){const s=gl.createShader(type);resources.push(()=>gl.deleteShader(s));gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
  try{
  const program=gl.createProgram();resources.push(()=>gl.deleteProgram(program));gl.attachShader(program,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
- const data=prepareGeometry(boxes,center),buffers=[data.triangles,data.edges].map(values=>{const b=gl.createBuffer();resources.push(()=>gl.deleteBuffer(b));gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,values,gl.STATIC_DRAW);return {buffer:b,count:values.length/13};}),uniforms=Object.fromEntries(['angles','viewport','pan','scale','extent','plates','picking','outline'].map(k=>[k,gl.getUniformLocation(program,k)])),attrs=['position','normal','color','identity','plate'].map(k=>gl.getAttribLocation(program,k));
+ let data=prepareGeometry(boxes,center);const buffers=[data.triangles,data.edges].map(values=>{const b=gl.createBuffer();resources.push(()=>gl.deleteBuffer(b));gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,values,gl.STATIC_DRAW);return {buffer:b,count:values.length/13};}),uniforms=Object.fromEntries(['angles','viewport','pan','scale','extent','plates','picking','outline'].map(k=>[k,gl.getUniformLocation(program,k)])),attrs=['position','normal','color','identity','plate'].map(k=>gl.getAttribLocation(program,k));
  const fb=gl.createFramebuffer(),texture=gl.createTexture(),depth=gl.createRenderbuffer();resources.push(()=>gl.deleteFramebuffer(fb),()=>gl.deleteTexture(texture),()=>gl.deleteRenderbuffer(depth));let fw=0,fh=0;
  function bind(b){gl.bindBuffer(gl.ARRAY_BUFFER,b.buffer);attrs.forEach((a,i)=>{gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,i===4?1:3,gl.FLOAT,false,52,i*12);});}
  function camera(){gl.useProgram(program);gl.uniform2f(uniforms.angles,view.camera.yaw,view.camera.pitch);gl.uniform2f(uniforms.viewport,view.width,view.height);gl.uniform2f(uniforms.pan,...view.pan);gl.uniform1f(uniforms.scale,view.scale);gl.uniform1f(uniforms.extent,extent*3);gl.uniform1i(uniforms.plates,view.plates);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.BLEND);gl.viewport(0,0,canvas.width,canvas.height);}
@@ -35,6 +35,6 @@ export function createGpuRenderer(boxes,center,extent){
  const pixel=new Uint8Array(4);
  function hit(x,y){if(!view||destroyed||lost||x<0||y<0||x>=view.width||y>=view.height)return -1;preparePick();gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.readPixels(Math.floor(x*canvas.width/view.width),canvas.height-1-Math.floor(y*canvas.height/view.height),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);gl.bindFramebuffer(gl.FRAMEBUFFER,null);return pixel[0]+pixel[1]*256+pixel[2]*65536-1;}
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});
- return {canvas,labels:data.labels,get lost(){return lost;},draw(next){if(destroyed||lost)return false;view=next;const dpr=Math.min(2,next.dpr||1),w=Math.max(1,Math.round(next.width*dpr)),h=Math.max(1,Math.round(next.height*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}gl.bindFramebuffer(gl.FRAMEBUFFER,null);paint(false);pickReady=false;return true;},hit,destroy(){if(destroyed)return;destroyed=true;resources.reverse().forEach(f=>f());gl.getExtension('WEBGL_lose_context')?.loseContext();}};
+ return {canvas,get labels(){return data.labels;},update(boxes,nextCenter=center,nextExtent=extent){if(destroyed||lost)return;center=nextCenter;extent=nextExtent;data=prepareGeometry(boxes,center);[data.triangles,data.edges].forEach((values,i)=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffers[i].buffer);gl.bufferData(gl.ARRAY_BUFFER,values,gl.STATIC_DRAW);buffers[i].count=values.length/13;});pickReady=false;},get lost(){return lost;},draw(next){if(destroyed||lost)return false;view=next;const dpr=Math.min(2,next.dpr||1),w=Math.max(1,Math.round(next.width*dpr)),h=Math.max(1,Math.round(next.height*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}gl.bindFramebuffer(gl.FRAMEBUFFER,null);paint(false);pickReady=false;return true;},hit,destroy(){if(destroyed)return;destroyed=true;resources.reverse().forEach(f=>f());gl.getExtension('WEBGL_lose_context')?.loseContext();}};
  }catch{resources.reverse().forEach(f=>f());return null;}
 }
