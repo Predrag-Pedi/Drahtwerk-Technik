@@ -1,39 +1,39 @@
-import {openDispoVariants} from './dispo-variants-ui.mjs?v=20261118-3';
-import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261118-3';
-import {openDispoParts} from './dispo-parts-ui.mjs?v=20261118-3';
-import {partNames,validateManualPart} from './dispo-parts.mjs?v=20261118-3';
-import {setDispoScale} from './dispo-scale.mjs?v=20261118-3';
-import {terminalAssembly,outgoingPorts,updateTerminal} from './schema-assembly.mjs?v=20261118-3';
-import {openContacts,openReports,openPrintSelection} from './schema-workflow-ui.mjs?v=20261118-3';
-import {updateFunction} from './references.mjs?v=20261118-3';
-import {snapMove,nearestDrawingPoint,makeDimension,parallelRoutes} from './drawing-tools.mjs?v=20261118-3';
-import {tariffInspector} from './tariff-ui.mjs?v=20261118-3';
-import {isRse,rseLegend,rsePhase,setRsePhase} from './rse.mjs?v=20261118-3';
-import {protectionKind} from './circuit-data.mjs?v=20261118-3';
-import {fuseSystems,fuseNames} from './fuse-systems.mjs?v=20261118-3';
-import {reconcilePageOrder} from './page-order.mjs?v=20261118-3';
-import {addStandardPages} from './model.mjs?v=20261118-3';
-import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261118-3';
-import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261118-3';
-import {drahtwerkDemo} from './dispo.mjs?v=20261118-3';
-import {defaultConfig} from './dispo.mjs?v=20261118-3';
-import {editAutomaticDispo,editSiteSettings,editManualSettings} from './dispo-ui.mjs?v=20261118-3';
-import {openDispo3D} from './dispo-3d.mjs?v=20261118-3';
-import {createTextClickTracker} from './text-click.mjs?v=20261118-3';
-import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261118-3';
-import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261118-3';
-import {installNavigation} from './navigation.mjs?v=20261118-3';
-import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261118-3';
-import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261118-3';
-import {filterLibrary,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261118-3';
-import {alignMacro,alignPage} from './alignment.mjs?v=20261118-3';
-import {MM,BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261118-3';
-import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261118-3';
-import {placement,placementMarkup,snapGuidesMarkup} from './placement.mjs?v=20261118-3';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261118-3';
-import {svgPage,glyph,esc} from './render.mjs?v=20261118-3';
-import {database} from './storage.mjs?v=20261118-3';
-import {pdf,download} from './export.mjs?v=20261118-3';
+import {openDispoVariants} from './dispo-variants-ui.mjs?v=20261118-4';
+import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261118-4';
+import {openDispoParts} from './dispo-parts-ui.mjs?v=20261118-4';
+import {partNames,validateManualPart} from './dispo-parts.mjs?v=20261118-4';
+import {setDispoScale} from './dispo-scale.mjs?v=20261118-4';
+import {terminalAssembly,outgoingPorts,updateTerminal} from './schema-assembly.mjs?v=20261118-4';
+import {openContacts,openReports,openPrintSelection} from './schema-workflow-ui.mjs?v=20261118-4';
+import {updateFunction} from './references.mjs?v=20261118-4';
+import {snapMove,nearestDrawingPoint,makeDimension,parallelRoutes} from './drawing-tools.mjs?v=20261118-4';
+import {tariffInspector} from './tariff-ui.mjs?v=20261118-4';
+import {isRse,rseLegend,rsePhase,setRsePhase} from './rse.mjs?v=20261118-4';
+import {protectionKind} from './circuit-data.mjs?v=20261118-4';
+import {fuseSystems,fuseNames} from './fuse-systems.mjs?v=20261118-4';
+import {reconcilePageOrder} from './page-order.mjs?v=20261118-4';
+import {addStandardPages} from './model.mjs?v=20261118-4';
+import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261118-4';
+import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261118-4';
+import {drahtwerkDemo} from './dispo.mjs?v=20261118-4';
+import {defaultConfig} from './dispo.mjs?v=20261118-4';
+import {editAutomaticDispo,editSiteSettings,editManualSettings} from './dispo-ui.mjs?v=20261118-4';
+import {openDispo3D} from './dispo-3d.mjs?v=20261118-4';
+import {createTextClickTracker} from './text-click.mjs?v=20261118-4';
+import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261118-4';
+import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261118-4';
+import {installNavigation} from './navigation.mjs?v=20261118-4';
+import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261118-4';
+import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261118-4';
+import {filterLibrary,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261118-4';
+import {alignMacro,alignPage} from './alignment.mjs?v=20261118-4';
+import {MM,BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261118-4';
+import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261118-4';
+import {placement,placementMarkup,snapGuidesMarkup} from './placement.mjs?v=20261118-4';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261118-4';
+import {svgPage,glyph,esc} from './render.mjs?v=20261118-4';
+import {database} from './storage.mjs?v=20261118-4';
+import {pdf,download} from './export.mjs?v=20261118-4';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null,connectionSelection=[];
@@ -47,7 +47,7 @@ let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
-async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261118-3').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
+async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261118-4').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=enrichedDetails(e.template.id,templateDetails[e.template.id]);}
 async function hydrateDetails(){try{await loadDetails();if(doc){doc.pages.forEach(p=>p.elements.forEach(attachDetails));render();}}catch(e){toast(e.message);}}
 function editTemplateText(e,key){
@@ -174,7 +174,7 @@ function inspector(){const root=$('inspector');if(multi.length>1||multi.some(s=>
  }else if(w){field(root,'Leiter / Beschriftung',w.label,v=>change(()=>w.label=v));field(root,'Gestrichelt (z. B. N)',w.dashed,v=>change(()=>w.dashed=v),{type:'checkbox'});const hint=document.createElement('p');hint.className='hint';hint.textContent='Linie ziehen zum Verschieben. Blaue Endpunkte ziehen zum Neuverbinden; Anschlussfang verbindet mit Symbolen, Vorlagenpunkten oder anderen Leitungsenden.';root.append(hint);
  for(const [i,name] of [[0,'Start'],[w.points.length-1,'Ende']]){const ref=i===0?'from':'to',position=endpoint(p,w[ref],w.points[i]);for(const axis of ['x','y'])field(root,name+' '+axis.toUpperCase(),position[axis],v=>change(()=>{w.points[i]={x:position.x,y:position.y,[axis]:v};w[ref]=null;}),{type:'number',min:-1000,max:3000});if(w[ref])inspectorButton(root,name+' lösen',()=>change(()=>{w.points[i]={x:position.x,y:position.y};w[ref]=null;}));}field(root,'Direkte Linie',w.direct,v=>change(()=>w.direct=v),{type:'checkbox'});
  }else{field(root,'Seitentitel',p.title,v=>change(()=>p.title=v));field(root,'Blattnummer',p.number,v=>{if(!Number.isInteger(v)||doc.pages.some(q=>q!==p&&q.number===v))throw Error('Bitte eine eindeutige ganze Blattnummer wählen.');change(()=>p.number=v);},{type:'number',min:1,max:9999});if(p.type==='dispo'){
- const config={...defaultConfig(),...p.dispoConfig};const set=(key,value)=>change(()=>p.dispoConfig={...config,[key]:value});
+ const config={...defaultConfig(),...p.dispoConfig},conventional=config.distributionType==='standing'&&config.buildSystem==='standard'&&p.elements.some(e=>e.dispoStructure?.some(a=>a.frameStyle==='cabinet-terminal'));const set=(key,value)=>change(()=>p.dispoConfig={...config,[key]:value});
  const status=document.createElement('p');status.className='hint';status.textContent=config.autoSize?'Automatische Berechnung nach Einbau- und Durchgangsmassen aktiv.':'Manuelle Rahmenmasse aktiv.';root.append(status);
  inspectorButton(root,'Einbaumasse / Reserve',()=>$('siteSizeSettings').click());
  inspectorButton(root,'Varianten vergleichen',()=>$('compareDispo').click());
@@ -182,15 +182,16 @@ function inspector(){const root=$('inspector');if(multi.length>1||multi.some(s=>
  field(root,'Reserve-Zählerplätze gesamt (inkl. Schema)',config.reserveMeters,v=>set('reserveMeters',v),{type:'number',min:0,max:120});
  field(root,'Sicherungen – Hersteller für alle',config.breakerManufacturer,v=>set('breakerManufacturer',v),{options:[['auto','Einzeleinstellungen / Vorlagen'],['hager','Hager – L1 oben, L2 Mitte, L3 unten'],['schneider','Schneider – nebeneinander']]});
  {const result=document.createElement('p');result.className='hint';result.textContent=`Letzter Aufbau: ${config.width} × ${config.height} × ${config.depth} mm · ${(config.fieldWidths||[config.width]).join(' + ')} mm · ${config.fields} Feld(er)`;root.append(result);}
- for(const [key,label,min,max] of [['width','Rahmenbreite (mm)',300,10000],['height','Rahmenhöhe (mm)',400,4000],['depth','Rahmentiefe (mm)',165,1500],['fields','Felder',1,12],['reserve','Platzreserve Geräte (%)',0,60],['topHeight','Obere Zone (mm)',200,500],['fuseHeight','Sicherungszone (mm)',200,1600]]){if(['width','height','depth','fields'].includes(key))continue;field(root,label,config[key],v=>{if(['width','fields'].includes(key))change(()=>{p.dispoConfig={...config,[key]:v};delete p.dispoConfig.fieldWidths;});else set(key,v);},{type:'number',min,max});}
- field(root,'Plattenbreite',config.plateWidth,v=>set('plateWidth',Number(v)),{options:[[250,'250 mm'],[500,'500 mm'],[750,'750 mm']]});
+ for(const [key,label,min,max] of [['width','Rahmenbreite (mm)',300,10000],['height','Rahmenhöhe (mm)',400,4000],['depth','Rahmentiefe (mm)',165,1500],['fields','Felder',1,12],['reserve','Platzreserve Geräte (%)',0,60],['topHeight','Obere Zone (mm)',200,500],['fuseHeight','Sicherungszone (mm)',200,1600]]){if(['width','height','depth','fields'].includes(key)||conventional&&['topHeight','fuseHeight'].includes(key))continue;field(root,label,config[key],v=>{if(['width','fields'].includes(key))change(()=>{p.dispoConfig={...config,[key]:v};delete p.dispoConfig.fieldWidths;});else set(key,v);},{type:'number',min,max});}
+ if(conventional){const note=document.createElement('p');note.className='hint';note.textContent='Konventioneller Schrank · Apparateplatten 250 mm. Anschlussraum unter «Einbaumasse / Reserve» einstellen.';root.append(note);}
+ else field(root,'Plattenbreite',config.plateWidth,v=>set('plateWidth',Number(v)),{options:[[250,'250 mm'],[500,'500 mm'],[750,'750 mm']]});
  field(root,'Gruppenfarben in 2D / PDF',config.groupColors!==false,v=>set('groupColors',v),{type:'checkbox'});
- field(root,'500er-Platte: Mittelsteg',config.bridgeMode||'auto',v=>set('bridgeMode',v),{options:[['auto','Automatisch optimieren'],['keep','Mittelsteg behalten'],['remove','Mittelsteg entfernen']]});
+ if(!conventional)field(root,'500er-Platte: Mittelsteg',config.bridgeMode||'auto',v=>set('bridgeMode',v),{options:[['auto','Automatisch optimieren'],['keep','Mittelsteg behalten'],['remove','Mittelsteg entfernen']]});
  field(root,'Zählerplätze in 3D',config.meterState,v=>set('meterState',v),{options:[['prepared','Vorbereitet, ohne Zähler'],['installed','Zähler eingesetzt']]});
  field(root,'Rückwand PVC',config.rearPanel,v=>set('rearPanel',v),{type:'checkbox'});
  }if(p.type==='dispo')field(root,'Massstab 1 :',p.scale,v=>change(()=>setDispoScale(p,Number(v))),{options:[...new Set([1,2,5,7.5,10,20,50,100,p.scale])].sort((a,b)=>a-b).map(n=>[n,String(n).replace('.',',')])});field(root,'Raster anzeigen',p.grid,v=>change(()=>p.grid=v),{type:'checkbox'});if(p.type==='schema')field(root,'Sammelschienen L1 / L2 / L3 / N',p.bus,v=>change(()=>p.bus=v),{type:'checkbox'});if(p.type==='schema'){const previous=doc.pages.filter(q=>q.type==='schema'&&q!==p&&q.number<p.number).sort((a,b)=>b.number-a.number)[0];if(previous)inspectorButton(root,`Sammelschienen von Blatt ${previous.number} übernehmen`,()=>change(()=>inheritBus(doc,previous,p)));}const hint=document.createElement('p');hint.className='hint';hint.textContent='Element auswählen, um Kennzeichen, Abmessungen und weitere Eigenschaften zu bearbeiten.';root.append(hint);}
 }
-function showForm(title,fields,submit){$('dialogTitle').textContent=title;$('dialogError').textContent='';$('dialogFields').replaceChildren();$('formDialog').classList.toggle('site-settings-dialog',fields.some(f=>f.layout==='site-dimension'));const data={};for(const f of fields){data[f.key]=f.value??'';const input=field($('dialogFields'),f.label,f.value,v=>data[f.key]=v,f);input.dataset.key=f.key;if(f.layout)input.closest('label').classList.add(f.layout);if(f.key==='supportSpacing185')input.closest('label').hidden=data.buildSystem!=='vertigroup185';if(f.key==='buildSystem')input.addEventListener('change',()=>{const support=$('dialogFields').querySelector('[data-key="supportSpacing185"]');if(support)support.closest('label').hidden=input.value!=='vertigroup185';});}const cabinetFields=()=>{for(const [key,kind] of [['plinthHeight','standing'],['wallMount','wall']]){const input=$('dialogFields').querySelector(`[data-key="${key}"]`);if(input)input.closest('label').hidden=data.distributionType!==kind;}};cabinetFields();$('dialogFields').querySelector('[data-key="distributionType"]')?.addEventListener('change',cabinetFields);dialogSubmit=()=>{for(const input of $('dialogFields').querySelectorAll('[data-key]'))data[input.dataset.key]=input.type==='number'?Number(input.value):input.value;return submit(data);};$('formDialog').showModal();}
+function showForm(title,fields,submit){$('dialogTitle').textContent=title;$('dialogError').textContent='';$('dialogFields').replaceChildren();$('formDialog').classList.toggle('site-settings-dialog',fields.some(f=>f.layout==='site-dimension'));const data={};for(const f of fields){data[f.key]=f.value??'';const input=field($('dialogFields'),f.label,f.value,v=>data[f.key]=v,f);input.dataset.key=f.key;if(f.layout)input.closest('label').classList.add(f.layout);if(f.key==='supportSpacing185')input.closest('label').hidden=data.buildSystem!=='vertigroup185';if(f.key==='buildSystem')input.addEventListener('change',()=>{const support=$('dialogFields').querySelector('[data-key="supportSpacing185"]');if(support)support.closest('label').hidden=input.value!=='vertigroup185';});}const cabinetFields=()=>{for(const [key,kind] of [['plinthHeight','standing'],['cabinetTopHeight','standing'],['wallMount','wall']]){const input=$('dialogFields').querySelector(`[data-key="${key}"]`);if(input)input.closest('label').hidden=data.distributionType!==kind;}};cabinetFields();$('dialogFields').querySelector('[data-key="distributionType"]')?.addEventListener('change',cabinetFields);dialogSubmit=()=>{for(const input of $('dialogFields').querySelectorAll('[data-key]'))data[input.dataset.key]=input.type==='number'?Number(input.value):input.value;return submit(data);};$('formDialog').showModal();}
 $('dialogForm').onsubmit=async e=>{e.preventDefault();try{await dialogSubmit();$('formDialog').close();}catch(e){$('dialogError').textContent=e.message;}};$('closeDialog').onclick=()=>$('formDialog').close();
 $('newProject').onclick=()=>showForm('Neues CAD-Projekt',[{key:'name',label:'Projektname',value:''},{key:'order',label:'Auftragsnummer'},{key:'customer',label:'Kunde'},{key:'address',label:'Objektadresse'}],async data=>{if(!data.name.trim())throw Error('Bitte einen Projektnamen eingeben.');const d=addStandardPages({...project(data.name),...data});await database('save',d);docs.push(d);open(d);});
 $('demoProject').onclick=async()=>{try{const d=demo();await database('save',d);docs.push(d);open(d);}catch(e){toast(e.message)}};
@@ -221,7 +222,7 @@ function symbolList(){
 }
 
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261118-3');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261118-4');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
  for(const [id,key,label] of [['templateDomain','domain','Alle Fachbereiche'],['templateManufacturer','manufacturer','Alle Hersteller']]){const old=$(id).value,values=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>libraryFacets(t)[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'de'));$(id).innerHTML=`<option value="">${label}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');$(id).value=values.includes(old)?old:'';}
@@ -236,7 +237,7 @@ function renderTemplates(){
 function setLibraryScope(scope){libraryScope=scope;templateLimit=40;document.querySelectorAll('[data-scope]').forEach(b=>{b.classList.toggle('active',b.dataset.scope===scope);b.setAttribute('aria-pressed',b.dataset.scope===scope);});if(templateCatalog)renderTemplates();}
 document.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>setLibraryScope(b.dataset.scope));
 $('templateSearch').oninput=$('templateCategory').onchange=$('templateDomain').onchange=$('templateManufacturer').onchange=$('templateGroup').onchange=()=>{templateLimit=40;if(templateCatalog)renderTemplates();};$('moreTemplates').onclick=()=>{templateLimit+=40;renderTemplates();};
-$('templateList').onclick=async event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;librarySettings.favorites=librarySettings.favorites.includes(id)?librarySettings.favorites.filter(x=>x!==id):[...librarySettings.favorites,id];saveLibrarySettings();renderTemplates();return;}const b=event.target.closest('[data-template]');if(!b)return;const request=++templateRequest;b.disabled=true;try{const r=await fetch(`cad/templates/${b.dataset.template}.json?v=20261118-3`);if(!r.ok)throw Error('Vorlage nicht erreichbar');const template=validateTemplate(await r.json());await loadDetails();if(templateDetails[template.id])template.details=templateDetails[template.id];if(request!==templateRequest)return;activeTemplate=template;setTool('template');$('templateSelected').textContent=template.name;renderTemplates();$('templatePreview').innerHTML=templateMarkup(template,Math.min(170/template.width,120/template.height)*template.width,Math.min(170/template.width,120/template.height)*template.height);toast('Vorlage gewählt – auf dem Blatt platzieren. R dreht die Vorschau.');document.querySelector('.drawing-layout').classList.remove('show-left');}catch(e){toast(e.message)}finally{b.disabled=false;}};
+$('templateList').onclick=async event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;librarySettings.favorites=librarySettings.favorites.includes(id)?librarySettings.favorites.filter(x=>x!==id):[...librarySettings.favorites,id];saveLibrarySettings();renderTemplates();return;}const b=event.target.closest('[data-template]');if(!b)return;const request=++templateRequest;b.disabled=true;try{const r=await fetch(`cad/templates/${b.dataset.template}.json?v=20261118-4`);if(!r.ok)throw Error('Vorlage nicht erreichbar');const template=validateTemplate(await r.json());await loadDetails();if(templateDetails[template.id])template.details=templateDetails[template.id];if(request!==templateRequest)return;activeTemplate=template;setTool('template');$('templateSelected').textContent=template.name;renderTemplates();$('templatePreview').innerHTML=templateMarkup(template,Math.min(170/template.width,120/template.height)*template.width,Math.min(170/template.width,120/template.height)*template.height);toast('Vorlage gewählt – auf dem Blatt platzieren. R dreht die Vorschau.');document.querySelector('.drawing-layout').classList.remove('show-left');}catch(e){toast(e.message)}finally{b.disabled=false;}};
 
 $('symbolSearch').oninput=$('symbolGroup').onchange=()=>{symbolLimit=60;symbolList();};$('moreSymbols').onclick=()=>{symbolLimit+=60;symbolList();};$('symbolList').onclick=e=>{if(e.target.closest('[data-template]')){$('templateList').onclick(e);return;}const b=e.target.closest('[data-symbol]');if(b){if(current().type==='dispo'&&['cabinet','duct','rail'].includes(b.dataset.symbol))insertDispoPart(b.dataset.symbol);else setTool(b.dataset.symbol);document.querySelector('.drawing-layout').classList.remove('show-left');}};
 document.querySelectorAll('[data-left]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-left]').forEach(x=>x.classList.toggle('active',x===b));$('pagesPanel').hidden=b.dataset.left!=='pages';$('symbolsPanel').hidden=b.dataset.left!=='symbols';$('templatesPanel').hidden=b.dataset.left!=='templates';if(['templates','symbols'].includes(b.dataset.left))loadTemplates();});
@@ -333,7 +334,7 @@ $('view3D').onclick=()=>{try{openDispo3D(current(),id=>{selected=id;multi=[{kind
 $('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Drahtwerk-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
 
 const previewCache=new Map();
-const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261118-3`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
+const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261118-4`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
 new MutationObserver(()=>{for(const img of document.querySelectorAll('img[data-preview-id]:not([data-observed])')){img.dataset.observed='1';previewObserver.observe(img);}}).observe(document.body,{childList:true,subtree:true});
 
 const compareButton=document.createElement('button');compareButton.id='compareDispo';compareButton.textContent='Varianten vergleichen';$('autoDispo').after(compareButton);compareButton.onclick=()=>compareDispo().catch(e=>toast(e.message));

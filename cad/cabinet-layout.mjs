@@ -1,5 +1,5 @@
-import {fieldLayout} from './field-layout.mjs?v=20261118-3';
-import {systemLayout} from './system-layout.mjs?v=20261118-3';
+import {fieldLayout} from './field-layout.mjs?v=20261118-4';
+import {systemLayout} from './system-layout.mjs?v=20261118-4';
 // Public Almatec configurator, checked 2026-11-16. Custom reference cabinets
 // are not silently promoted to catalogue sizes. All dimensions are outer mm.
 export const anWidths=[400,500,600,700,750,800,850,900,1000,1100,1150,1200,1300,1400,1500,1550,1600,1700,1800,1900,2000];
@@ -9,6 +9,10 @@ export const isCabinet=c=>['standing','wall'].includes(c.distributionType);
 // Existing 250 mm mounting plates need a separate usable installation envelope.
 export const cabinetMargin=60;
 export const cabinetVerticalMargin=80;
+// UV1 reference: 800 mm enclosure with three 250 mm apparatus columns.
+// The 20 mm side allowance applies to this conventional, meter-free interior;
+// it is a planning envelope, not a universal manufacturer mounting dimension.
+export const conventionalCabinet= (ds,c)=>c.buildSystem==='standard'&&ds.some(d=>d.kind==='switch')&&ds.some(d=>d.incoming)&&!ds.some(d=>['meter','fuse','rse-fuse'].includes(d.kind)||d.measurementOwner||d.breakerSystem==='smissline'||d.frameStyle?.startsWith('transfer-')||d.source?.element==='incoming-supply');
 export const meterDoorClearance=190;
 const requiredDepth=ds=>Math.max(165,...ds.map(d=>d.depth||0))+(ds.some(d=>d.kind==='meter')?meterDoorClearance+20:50);
 function checkStandingHeight(c){
@@ -30,9 +34,10 @@ export function checkCabinet(c){
 export function cabinetLayout(devices,c){
  checkCabinet(c);
  const single=(ds,cfg)=>{
-  const bodyHeight=cfg.height-(cfg.distributionType==='standing'?cfg.plinthHeight||0:0),innerWidth=Math.floor((cfg.width-2*cabinetMargin-8)/250)*250+8;
+  const conventional=conventionalCabinet(ds,cfg),margin=conventional?20:cabinetMargin;
+  const bodyHeight=cfg.height-(cfg.distributionType==='standing'?cfg.plinthHeight||0:0),innerWidth=Math.floor((cfg.width-2*margin-8)/250)*250+8;
   if(innerWidth<258||cfg.depth<requiredDepth(ds))return {parts:[],placed:[],overflow:ds.length?ds:[{tag:'Innenraum'}]};
-  const l=systemLayout(ds,{...cfg,distributionType:'sbr',width:innerWidth,height:bodyHeight-2*cabinetVerticalMargin,depth:cfg.depth-50,fields:1,fieldWidths:undefined});
+  const l=systemLayout(ds,{...cfg,distributionType:'sbr',width:innerWidth,height:bodyHeight-2*cabinetVerticalMargin,depth:cfg.depth-50,fields:1,fieldWidths:undefined,...(conventional?{_cabinetConventional:true,topHeight:(cfg.cabinetTopHeight??800)+200,plateWidth:250,bridgeMode:'keep',cutCenterBridge:false}:{})});
   const dx=(cfg.width-innerWidth)/2,dy=cabinetVerticalMargin;
   return {...l,parts:l.parts.map(p=>({...p,x:p.x+dx,y:p.y+dy})),placed:l.placed.map(d=>({...d,x:d.x+dx,y:d.y+dy}))};
  };
@@ -52,7 +57,11 @@ export function cabinetSiteConfig(devices,c){
  for(let fields=1;fields<=Math.min(standing?10:12,Math.floor(c.maxWidth/400));fields++){
   const combinations=[];
   for(const w of widths){if(w*fields<=c.maxWidth)combinations.push(Array(fields).fill(w));if(fields===2)for(const b of widths)if(b!==w&&w+b<=c.maxWidth)combinations.push([w,b]);}
-  combinations.sort((a,b)=>a.reduce((s,n)=>s+n,0)-b.reduce((s,n)=>s+n,0)||Math.max(...a)-Math.max(...b));
+  // Prefer three apparatus columns in a full-height conventional cabinet when
+  // the installation permits it. Narrower cabinets remain available at tighter
+  // site limits, rather than stretching a small two-column build over 2 metres.
+  const preferred=standing&&conventionalCabinet(devices,c)&&maxW>=800?800:0;
+  combinations.sort((a,b)=>Number(a.some(w=>w<preferred))-Number(b.some(w=>w<preferred))||a.reduce((s,n)=>s+n,0)-b.reduce((s,n)=>s+n,0)||Math.max(...a)-Math.max(...b));
   for(const ws of combinations)for(const height of heights.filter(h=>h<=maxH)){
    const candidate={...c,construction:'drahtwerk',width:ws.reduce((s,w)=>s+w,0),fieldWidths:ws,fields,height,depth};
    try{if(!cabinetLayout(devices,candidate).overflow.length)return candidate;}catch(error){if(!/Zähler.*passen|Rahmen zu klein|Kein Platz/.test(error.message))throw error;}

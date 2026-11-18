@@ -1,17 +1,18 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261118-3';
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261118-3';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261118-3';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261118-3';
-import {joinDinRails} from './frame-layout.mjs?v=20261118-3';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261118-3';
-import {standardFrame} from './standard-render.mjs?v=20261118-3';
-import {frameMarkup} from './frame-render.mjs?v=20261118-3';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261118-3';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261118-3';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261118-3';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261118-3';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261118-3';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261118-3';
+import {manualInterior} from './dispo-parts.mjs?v=20261118-4';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261118-4';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261118-4';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261118-4';
+import {joinDinRails} from './frame-layout.mjs?v=20261118-4';
+import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261118-4';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261118-4';
+import {standardFrame} from './standard-render.mjs?v=20261118-4';
+import {frameMarkup} from './frame-render.mjs?v=20261118-4';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261118-4';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261118-4';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261118-4';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261118-4';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261118-4';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261118-4';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Highlight the drawn geometry, never the template's (possibly padded) viewBox.
 // Keep white masks, invisible hit targets and clipping paths visually unchanged.
@@ -42,6 +43,7 @@ export function cabinetDimensions(e,w,h,p){
 }
 export function elementMarkup(e,p,d,editor=false,groupSelect=false,selected=false){if(p.type==='dispo')groupSelect=true;e=meterView(e,p);const cut=continuationCut(e);const [w,h]=size(e,p),s=symbols[e.kind];let body='';
  if(manualInterior(e)){const m=manualInterior(e),f=W/420/p.scale,sockel=e.manualPart.plinth;body=`<rect width="${w}" height="${h}" fill="#f3f5f7"/><rect x="${m.left*f}" y="${m.top*f}" width="${(m.right-m.left)*f}" height="${(m.bottom-m.top)*f}" fill="white"/>`+(sockel?line(0,h-sockel*f,w,h-sockel*f):'')+cabinetDimensions(e,w,h,p);}
+ else if(e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-')){body=cabinetShell(e,W/420/p.scale)+cabinetDimensions(e,w,h,p);}
  else if(frameMarkup(e,w,h)!==null){body=frameMarkup(e,w,h);}
  else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,p.type==='schema'?tariffTextEdits(d,e):(e.textEdits||{}),editor&&!groupSelect,hits,e.textOffsets||{});}
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;
@@ -49,7 +51,7 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false,selected=fals
  else if(e.kind==='dimension'&&e.measure){const m=dimensionGeometry(e,p);body=path(m.path)+text(m.x,m.y,e.text||m.text,`text-anchor="middle" font-size="10" ${m.vertical?`transform="rotate(-90 ${m.x} ${m.y})"`:''}`);}
  else if(e.kind==='dimension')body=path(`M0 10V30 M${w} 10V30 M0 20H${w} M-4 24L4 16 M${w-4} 24L${w+4} 16`)+text(w/2,12,e.text||`${Math.round(w*(p.type==='dispo'?p.scale:1)*420/W)} mm`,'text-anchor="middle"');
  else{body=`<rect width="${w}" height="${h}" fill="${e.kind==='duct'?'#f2f4f6':'white'}"/>`;if(e.kind==='cabinet')body+=`<rect x="5" y="5" width="${Math.max(1,w-10)}" height="${Math.max(1,h-10)}"/>` +cabinetDimensions(e,w,h,p);if(e.kind==='rail')body+=line(0,h/3,w,h/3)+line(0,2*h/3,w,2*h/3);if(e.kind==='module')body+=line(0,h*.3,w,h*.3);if(e.kind==='duct'){if(h>w){for(let y=6;y<h;y+=9)body+=line(0,y,w*.3,y)+line(w*.7,y,w,y);}else for(let x=6;x<w;x+=9)body+=line(x,0,x,h*.3)+line(x,h*.7,x,h);}if(e.text&&e.kind!=='cabinet')body+=text(w/2,h/2,e.text,'text-anchor="middle" font-size="10"');}
- if(e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-')){const base=(e.plinthHeight||0)*W/420/p.scale;if(base)body+=line(0,h-base,w,h-base);}
+ if(e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-'))body+=cabinetPanels(e,W/420/p.scale);
  if(e.profile==='smissline'&&e.drawingLabel)body+=text(w/2,-5,e.drawingLabel,'font-size="7" fill="#364354" text-anchor="middle"');
  if(e.kind==='cabinet'&&p.type==='dispo'&&e.dispoStructure){const f=W/420/p.scale;body+=e.dispoStructure.filter(r=>r.plateType&&r.frameStyle?.startsWith('measurement:')).map(r=>`<rect x="${r.x*f}" y="${r.y*f}" width="${r.width*f}" height="${r.height*f}" fill="white" stroke="#182c42" stroke-width=".6"/>`).join('');body+=dispoDrawingRails(e).map(r=>(r.profile==='wire-basket'||r.profile==='wiring-duct'||['smissline-auxiliary','smissline-carrier'].includes(r.frameStyle)||r.profile==='smissline-stop')?`<g transform="translate(${r.x*f} ${r.y*f})" stroke="#899198" stroke-width=".45">${frameMarkup(r,r.width*f,r.height*f)}</g>`:`<g transform="translate(${r.x*f} ${r.y*f})" fill="none" stroke="#899198" stroke-width=".45"><rect width="${r.width*f}" height="${r.height*f}" fill="#fafafa"/>${text(3,r.height*f/2+2,r.drawingLabel||(r.profile==='AS35'?'DIN 35':r.profile==='copper'?'Cu':'Kamm'),'font-size="6" fill="#6b7278" stroke="none"')}</g>`).join('');}
  if(cut!==null){const id='meter-cut-'+e.id.replace(/[^a-zA-Z0-9_-]/g,'');body=`<defs><clipPath id="${id}"><rect x="-20" y="-20" width="${w+40}" height="${cut*h/e.template.viewHeight+20}"/></clipPath></defs><g clip-path="url(#${id})">${body}</g>`;}
@@ -107,8 +109,12 @@ export function dispoDrawingRails(c){
   if(r.kind==='duct'){rails.push({...r,drawingLabel:r.drawingLabel||'Kanal'});continue;}
   if(r.profile==='smissline-stop'){rails.push(r);continue;}
   if(r.profile==='AS35'&&['smissline-auxiliary','smissline-input','smissline-carrier'].includes(r.frameStyle)){rails.push(r);continue;}
+  if(r.frameStyle==='cabinet-terminal'){rails.push(r);continue;}
   if(r.profile==='AS50'){rails.push({...r,drawingLabel:'Galip'});continue;}
   if(r.kind!=='rail'||r.width<=r.height||r.frameStyle?.startsWith('incoming:'))continue;
+  // Cabinet front panels show their apertures; concealed mounting rails must
+  // not paint across the solid plate bridges. The full rails remain in 3D.
+  if(c.frameStyle?.startsWith('almatec-')&&slots.some(s=>r.y+r.height/2>=s.y&&r.y+r.height/2<=s.y+s.height&&r.x<s.x+s.width&&r.x+r.width>s.x))continue;
   if(['copper','comb'].includes(r.profile)){rails.push(r);continue;}
   if(r.profile!=='AS35')continue;
   if(r.frameStyle?.startsWith('measurement:')){rails.push(r);continue;}
