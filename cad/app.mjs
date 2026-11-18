@@ -1,38 +1,38 @@
-import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261118-1';
-import {openDispoParts} from './dispo-parts-ui.mjs?v=20261118-1';
-import {partNames,validateManualPart} from './dispo-parts.mjs?v=20261118-1';
-import {setDispoScale} from './dispo-scale.mjs?v=20261118-1';
-import {terminalAssembly,outgoingPorts,updateTerminal} from './schema-assembly.mjs?v=20261118-1';
-import {openContacts,openReports,openPrintSelection} from './schema-workflow-ui.mjs?v=20261118-1';
-import {updateFunction} from './references.mjs?v=20261118-1';
-import {snapMove,nearestDrawingPoint,makeDimension,parallelRoutes} from './drawing-tools.mjs?v=20261118-1';
-import {tariffInspector} from './tariff-ui.mjs?v=20261118-1';
-import {isRse,rseLegend,rsePhase,setRsePhase} from './rse.mjs?v=20261118-1';
-import {protectionKind} from './circuit-data.mjs?v=20261118-1';
-import {fuseSystems,fuseNames} from './fuse-systems.mjs?v=20261118-1';
-import {reconcilePageOrder} from './page-order.mjs?v=20261118-1';
-import {addStandardPages} from './model.mjs?v=20261118-1';
-import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261118-1';
-import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261118-1';
-import {drahtwerkDemo} from './dispo.mjs?v=20261118-1';
-import {defaultConfig} from './dispo.mjs?v=20261118-1';
-import {editAutomaticDispo,editSiteSettings,editManualSettings} from './dispo-ui.mjs?v=20261118-1';
-import {openDispo3D} from './dispo-3d.mjs?v=20261118-1';
-import {createTextClickTracker} from './text-click.mjs?v=20261118-1';
-import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261118-1';
-import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261118-1';
-import {installNavigation} from './navigation.mjs?v=20261118-1';
-import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261118-1';
-import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261118-1';
-import {filterLibrary,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261118-1';
-import {alignMacro,alignPage} from './alignment.mjs?v=20261118-1';
-import {MM,BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261118-1';
-import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261118-1';
-import {placement,placementMarkup,snapGuidesMarkup} from './placement.mjs?v=20261118-1';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261118-1';
-import {svgPage,glyph,esc} from './render.mjs?v=20261118-1';
-import {database} from './storage.mjs?v=20261118-1';
-import {pdf,download} from './export.mjs?v=20261118-1';
+import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261118-2';
+import {openDispoParts} from './dispo-parts-ui.mjs?v=20261118-2';
+import {partNames,validateManualPart} from './dispo-parts.mjs?v=20261118-2';
+import {setDispoScale} from './dispo-scale.mjs?v=20261118-2';
+import {terminalAssembly,outgoingPorts,updateTerminal} from './schema-assembly.mjs?v=20261118-2';
+import {openContacts,openReports,openPrintSelection} from './schema-workflow-ui.mjs?v=20261118-2';
+import {updateFunction} from './references.mjs?v=20261118-2';
+import {snapMove,nearestDrawingPoint,makeDimension,parallelRoutes} from './drawing-tools.mjs?v=20261118-2';
+import {tariffInspector} from './tariff-ui.mjs?v=20261118-2';
+import {isRse,rseLegend,rsePhase,setRsePhase} from './rse.mjs?v=20261118-2';
+import {protectionKind} from './circuit-data.mjs?v=20261118-2';
+import {fuseSystems,fuseNames} from './fuse-systems.mjs?v=20261118-2';
+import {reconcilePageOrder} from './page-order.mjs?v=20261118-2';
+import {addStandardPages} from './model.mjs?v=20261118-2';
+import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261118-2';
+import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261118-2';
+import {drahtwerkDemo} from './dispo.mjs?v=20261118-2';
+import {defaultConfig} from './dispo.mjs?v=20261118-2';
+import {editAutomaticDispo,editSiteSettings,editManualSettings} from './dispo-ui.mjs?v=20261118-2';
+import {openDispo3D} from './dispo-3d.mjs?v=20261118-2';
+import {createTextClickTracker} from './text-click.mjs?v=20261118-2';
+import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261118-2';
+import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261118-2';
+import {installNavigation} from './navigation.mjs?v=20261118-2';
+import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261118-2';
+import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261118-2';
+import {filterLibrary,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261118-2';
+import {alignMacro,alignPage} from './alignment.mjs?v=20261118-2';
+import {MM,BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261118-2';
+import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261118-2';
+import {placement,placementMarkup,snapGuidesMarkup} from './placement.mjs?v=20261118-2';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261118-2';
+import {svgPage,glyph,esc} from './render.mjs?v=20261118-2';
+import {database} from './storage.mjs?v=20261118-2';
+import {pdf,download} from './export.mjs?v=20261118-2';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null,connectionSelection=[];
@@ -46,7 +46,7 @@ let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
-async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261118-1').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
+async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261118-2').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=enrichedDetails(e.template.id,templateDetails[e.template.id]);}
 async function hydrateDetails(){try{await loadDetails();if(doc){doc.pages.forEach(p=>p.elements.forEach(attachDetails));render();}}catch(e){toast(e.message);}}
 function editTemplateText(e,key){
@@ -84,7 +84,10 @@ function open(d){linearStart=null;pendingAssembly=null;placementMetadata=null;ho
 function setTool(t){linearStart=null;pendingAssembly=null;placementMetadata=null;measurePoints=[];placementDimensions=null;snapGuides=null;textClicks.reset();if(t!=='template')activeTemplate=null;placementRotation=0;$('templateScale').value='100';tool=t;wire=null;selected=null;multi=[];render();}
 function render(){if(!doc)return;$('autoDispo').hidden=current().type!=='dispo';$('view3D').hidden=current().type!=='dispo';if($('siteSizeSettings'))$('siteSizeSettings').hidden=current().type!=='dispo';if(selectionPage!==pageId){if(pendingAssembly||twoPointPart())tool='select';linearStart=null;pendingAssembly=null;placementMetadata=null;multi=[];connectionSelection=[];selectionPage=pageId;}drawingOptions();$('projectTitle').textContent=doc.name;$('pageList').innerHTML=doc.pages.map(p=>`<button class="page-entry ${p.id===pageId?'current':''}" data-page="${p.id}"><span class="num">${p.number}</span><span><strong>${esc(p.title)}</strong><small>${{schema:'Schema',dispo:'Dispo',cover:'Deckblatt',index:'Verzeichnis'}[p.type]}</small></span></button>`).join('');$('pageCaption').innerHTML=doc.pages.map(p=>`<button data-page="${p.id}" class="${p.id===pageId?'active':''}" aria-current="${p.id===pageId?'page':'false'}">${p.number} · ${esc(p.title)}</button>`).join('');const tabs=$('pageCaption'),active=tabs.querySelector('[aria-current=page]');if(active){if(active.offsetLeft<tabs.scrollLeft)tabs.scrollLeft=active.offsetLeft;else if(active.offsetLeft+active.offsetWidth>tabs.scrollLeft+tabs.clientWidth)tabs.scrollLeft=active.offsetLeft+active.offsetWidth-tabs.clientWidth;}$('placementKeys').textContent=twoPointPart()?'Punkt 1 → Punkt 2 · Esc beenden':tool==='template'?'Klick platzieren · R drehen · Esc beenden':'Mausrad: Zoom · Mitteltaste ziehen: Ansicht';$('toolCaption').textContent=tool==='template'?activeTemplate?.name.replaceAll('_',' '):placementMetadata?.manualPart?partNames[placementMetadata.manualPart.type]+' platzieren':tool==='pan'?'Ansicht verschieben':tool==='select'?'Auswählen & verschieben':tool==='wire'?'Verbindung zeichnen':tool==='terminal-strip'?'Klemmen platzieren':pendingAssembly?.kind==='assigned-contact'?'Kontakt platzieren':(symbols[tool]?.name||tool)+' platzieren';$('undo').disabled=!undo.length;$('redo').disabled=!redo.length;for(const id of ['deleteElement','duplicateElement'])$(id).disabled=!selected;$('rotate').disabled=!symbols[tool]&&!current().elements.some(e=>e.id===selected);$('deletePage').disabled=doc.pages.length===1;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));drawPaper();inspector();$('deleteElement').disabled=!selected&&!multi.length;$('duplicateElement').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||!selected;$('rotate').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||(!symbols[tool]&&!current().elements.some(e=>e.id===selected));if(twoPointPart())$('rotate').disabled=true;}
 function syncSelection(){selected=multi.length===1&&['element','wire'].includes(multi[0].kind)?multi[0].id:null;}
-function paintSelection(){const svg=$('paper').querySelector('svg');if(!svg)return;let html='';for(const a of connectionSelection.filter(a=>a.page===pageId)){const pt=connectionPoint(doc,a);if(pt)html+=`<circle cx="${pt.x}" cy="${pt.y}" r="7" fill="#2584d030" stroke="#1767aa" stroke-width="1.5"/>`;}for(const item of multi){const b=selectionBounds(current(),item);if(b)html+=`<rect x="${b.left-3}" y="${b.top-3}" width="${Math.max(6,b.right-b.left+6)}" height="${Math.max(6,b.bottom-b.top+6)}" fill="#2584d015" stroke="#2584d0" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>`;}
+function paintSelection(){const svg=$('paper').querySelector('svg');if(!svg)return;let html='';for(const a of connectionSelection.filter(a=>a.page===pageId)){const pt=connectionPoint(doc,a);if(pt)html+=`<circle cx="${pt.x}" cy="${pt.y}" r="7" fill="#2584d030" stroke="#1767aa" stroke-width="1.5"/>`;}for(const item of multi){
+ if(item.kind==='line'){const e=current().elements.find(e=>e.id===item.id),l=e&&templateLines(e.template)[item.index];if(l)html+=`<polyline points="${linePoints(e,current(),l).map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="#2463eb" stroke-width="2" vector-effect="non-scaling-stroke"/>`;}
+ else if(item.kind==='text'){const b=selectionBounds(current(),item);if(b)html+=`<rect x="${b.left}" y="${b.top}" width="${Math.max(1,b.right-b.left)}" height="${Math.max(1,b.bottom-b.top)}" fill="#2584d015" stroke="#2584d0" stroke-width="1" vector-effect="non-scaling-stroke"/>`;}}
+
  if(drag?.marquee){const a=drag.start,b=drag.end||a;html+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${Math.abs(a.x-b.x)}" height="${Math.abs(a.y-b.y)}" fill="#2584d01c" stroke="#2584d0" stroke-width="1" stroke-dasharray="${b.x<a.x?'5 3':'none'}" vector-effect="non-scaling-stroke" pointer-events="none"/>`;}
  svg.insertAdjacentHTML('beforeend',`<g id="multiSelection" pointer-events="none">${html}</g>`);}
 function selectionTarget(target){if(current().type==='dispo'){const parent=target.closest('[data-element]');if(parent)return {kind:'element',id:parent.dataset.element};}const text=target.closest('[data-template-text]');if(text&&lineMode)return {kind:'text',id:text.closest('[data-element]').dataset.element,key:text.dataset.templateText};const line=target.closest('[data-template-line]');if(line&&lineMode){const [id,index]=line.dataset.templateLine.split(':');return {kind:'line',id,index:Number(index)};}const wire=target.closest('[data-wire]');if(wire)return {kind:'wire',id:wire.dataset.wire};const element=target.closest('[data-element]');return element?{kind:'element',id:element.dataset.element}:null;}
@@ -93,7 +96,7 @@ function startSelection(event,pt){const hit=selectionTarget(event.target),add=ev
  else if(add){multi=toggleSelection(multi,hit);syncSelection();render();return;}
  else{if(!multi.some(s=>selectionKey(s)===selectionKey(hit)))multi=[hit];syncSelection();drag={multiple:true,start:pt,last:pt,before:clone(doc),previous:clone(multi),moved:false,clickHit:hit,clickX:event.clientX,clickY:event.clientY};}
  $('paper').setPointerCapture(event.pointerId);render();}
-function drawPaper(){const p=current();$('paper').innerHTML=svgPage(doc,p,{editor:true,selected,lineMode});$('paper').dataset.tool=tool;$('paper').style.width=W*zoom+'px';$('paper').style.height=H*zoom+'px';$('zoomLabel').value=Math.round(zoom*100)+' %';$('sheetInfo').textContent=`A3 · 420 × 297 mm${p.type==='dispo'?' · 1:'+p.scale:''}`;$('elementCount').textContent=`${p.elements.length} Elemente · ${p.wires.length} Verbindungen${p.bus?' · '+p.elements.filter(e=>e.autoConnect&&e.rotation===0).reduce((n,e)=>n+(e.template?.ports?.length||0),0)+' Auto-Anschlüsse':''}`;$('wireActions').hidden=!wire;wirePreview();drawPlacement();paintSelection();if(snapGuides)$('paper').querySelector('svg')?.insertAdjacentHTML('beforeend',snapGuidesMarkup(snapGuides));}
+function drawPaper(){const p=current();$('paper').innerHTML=svgPage(doc,p,{editor:true,selected,selection:multi,lineMode});$('paper').dataset.tool=tool;$('paper').style.width=W*zoom+'px';$('paper').style.height=H*zoom+'px';$('zoomLabel').value=Math.round(zoom*100)+' %';$('sheetInfo').textContent=`A3 · 420 × 297 mm${p.type==='dispo'?' · 1:'+p.scale:''}`;$('elementCount').textContent=`${p.elements.length} Elemente · ${p.wires.length} Verbindungen${p.bus?' · '+p.elements.filter(e=>e.autoConnect&&e.rotation===0).reduce((n,e)=>n+(e.template?.ports?.length||0),0)+' Auto-Anschlüsse':''}`;$('wireActions').hidden=!wire;wirePreview();drawPlacement();paintSelection();if(snapGuides)$('paper').querySelector('svg')?.insertAdjacentHTML('beforeend',snapGuidesMarkup(snapGuides));}
 function placementOptions(){const percent=Number($('templateScale').value),scaled=tool==='template'&&activeTemplate?.category==='Schema';return {anchor:current()?.type==='dispo'?$('placementAnchor').value:undefined,clip:$('objectSnap').checked,tolerance:8/zoom,dimensions:scaled?{width:activeTemplate.width*percent/100,height:activeTemplate.height*percent/100}:placementDimensions};}
 function drawingPlacement(pt){
  if(!pt)return null;const p=current();
@@ -216,7 +219,7 @@ function symbolList(){
 }
 
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261118-1');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261118-2');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
  for(const [id,key,label] of [['templateDomain','domain','Alle Fachbereiche'],['templateManufacturer','manufacturer','Alle Hersteller']]){const old=$(id).value,values=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>libraryFacets(t)[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'de'));$(id).innerHTML=`<option value="">${label}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');$(id).value=values.includes(old)?old:'';}
@@ -231,7 +234,7 @@ function renderTemplates(){
 function setLibraryScope(scope){libraryScope=scope;templateLimit=40;document.querySelectorAll('[data-scope]').forEach(b=>{b.classList.toggle('active',b.dataset.scope===scope);b.setAttribute('aria-pressed',b.dataset.scope===scope);});if(templateCatalog)renderTemplates();}
 document.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>setLibraryScope(b.dataset.scope));
 $('templateSearch').oninput=$('templateCategory').onchange=$('templateDomain').onchange=$('templateManufacturer').onchange=$('templateGroup').onchange=()=>{templateLimit=40;if(templateCatalog)renderTemplates();};$('moreTemplates').onclick=()=>{templateLimit+=40;renderTemplates();};
-$('templateList').onclick=async event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;librarySettings.favorites=librarySettings.favorites.includes(id)?librarySettings.favorites.filter(x=>x!==id):[...librarySettings.favorites,id];saveLibrarySettings();renderTemplates();return;}const b=event.target.closest('[data-template]');if(!b)return;const request=++templateRequest;b.disabled=true;try{const r=await fetch(`cad/templates/${b.dataset.template}.json?v=20261118-1`);if(!r.ok)throw Error('Vorlage nicht erreichbar');const template=validateTemplate(await r.json());await loadDetails();if(templateDetails[template.id])template.details=templateDetails[template.id];if(request!==templateRequest)return;activeTemplate=template;setTool('template');$('templateSelected').textContent=template.name;renderTemplates();$('templatePreview').innerHTML=templateMarkup(template,Math.min(170/template.width,120/template.height)*template.width,Math.min(170/template.width,120/template.height)*template.height);toast('Vorlage gewählt – auf dem Blatt platzieren. R dreht die Vorschau.');document.querySelector('.drawing-layout').classList.remove('show-left');}catch(e){toast(e.message)}finally{b.disabled=false;}};
+$('templateList').onclick=async event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;librarySettings.favorites=librarySettings.favorites.includes(id)?librarySettings.favorites.filter(x=>x!==id):[...librarySettings.favorites,id];saveLibrarySettings();renderTemplates();return;}const b=event.target.closest('[data-template]');if(!b)return;const request=++templateRequest;b.disabled=true;try{const r=await fetch(`cad/templates/${b.dataset.template}.json?v=20261118-2`);if(!r.ok)throw Error('Vorlage nicht erreichbar');const template=validateTemplate(await r.json());await loadDetails();if(templateDetails[template.id])template.details=templateDetails[template.id];if(request!==templateRequest)return;activeTemplate=template;setTool('template');$('templateSelected').textContent=template.name;renderTemplates();$('templatePreview').innerHTML=templateMarkup(template,Math.min(170/template.width,120/template.height)*template.width,Math.min(170/template.width,120/template.height)*template.height);toast('Vorlage gewählt – auf dem Blatt platzieren. R dreht die Vorschau.');document.querySelector('.drawing-layout').classList.remove('show-left');}catch(e){toast(e.message)}finally{b.disabled=false;}};
 
 $('symbolSearch').oninput=$('symbolGroup').onchange=()=>{symbolLimit=60;symbolList();};$('moreSymbols').onclick=()=>{symbolLimit+=60;symbolList();};$('symbolList').onclick=e=>{if(e.target.closest('[data-template]')){$('templateList').onclick(e);return;}const b=e.target.closest('[data-symbol]');if(b){if(current().type==='dispo'&&['cabinet','duct','rail'].includes(b.dataset.symbol))insertDispoPart(b.dataset.symbol);else setTool(b.dataset.symbol);document.querySelector('.drawing-layout').classList.remove('show-left');}};
 document.querySelectorAll('[data-left]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-left]').forEach(x=>x.classList.toggle('active',x===b));$('pagesPanel').hidden=b.dataset.left!=='pages';$('symbolsPanel').hidden=b.dataset.left!=='symbols';$('templatesPanel').hidden=b.dataset.left!=='templates';if(['templates','symbols'].includes(b.dataset.left))loadTemplates();});
@@ -318,7 +321,7 @@ $('view3D').onclick=()=>{try{openDispo3D(current(),id=>{selected=id;multi=[{kind
 $('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Drahtwerk-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
 
 const previewCache=new Map();
-const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261118-1`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
+const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261118-2`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
 new MutationObserver(()=>{for(const img of document.querySelectorAll('img[data-preview-id]:not([data-observed])')){img.dataset.observed='1';previewObserver.observe(img);}}).observe(document.body,{childList:true,subtree:true});
 
 const sizeButton=document.createElement('button');sizeButton.id='siteSizeSettings';sizeButton.textContent='Einbaumasse / Reserve';sizeButton.title='Maximale Einbaumasse, Durchgang und Reserve-Zählerplätze';$('autoDispo').after(sizeButton);sizeButton.onclick=()=>{const target=current();if(target.type!=='dispo')return;editSiteSettings(target,showForm,config=>{change(()=>target.dispoConfig=config);toast('Einstellungen gespeichert. Mit «Aus Schema erzeugen» die Dispo neu berechnen.');});};
