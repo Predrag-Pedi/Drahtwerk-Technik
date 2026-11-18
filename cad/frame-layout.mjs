@@ -1,7 +1,7 @@
-import {apGeometry} from './rse.mjs?v=20261118-3';
-import {fuseLimits,copperFuse,fuseZoneHeight,placeCopperBanks} from './fuse-systems.mjs?v=20261118-3';
-import {fieldLayout} from './field-layout.mjs?v=20261118-3';
-import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261118-3';
+import {apGeometry} from './rse.mjs?v=20261118-4';
+import {fuseLimits,copperFuse,fuseZoneHeight,placeCopperBanks} from './fuse-systems.mjs?v=20261118-4';
+import {fieldLayout} from './field-layout.mjs?v=20261118-4';
+import {meterCells,feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261118-4';
 // Drahtwerk assembly grid. Confirmed plate envelope: 250/500/750 x 400 mm.
 // Profile cross-sections below are simplified envelopes, not manufacturing drawings.
 export const profiles={SP09048:{name:'SP 090.48',face:17,depth:99},SP45:{name:'SP 45.0',face:17,depth:45.2},EV165:{name:'EV 165',face:35,depth:150},SP165:{name:'SP 165 DIN',face:40,depth:165},AS35:{name:'AS 35.2',face:35,depth:15},BS25:{name:'BS 25.0',face:25,depth:15},AS50:{name:'AS 50.0',face:50,depth:15},ZS39:{name:'ZS 39.0',face:39,depth:22}};
@@ -47,7 +47,8 @@ export function frameLayout(devices,c){
  if(![250,500,750].includes(c.plateWidth))throw Error('Plattenbreite muss 250, 500 oder 750 mm sein.');
  const selected=devices.filter(d=>d.include!==false),ordinary=c.buildSystem==='standard'&&selected.some(d=>d.kind==='switch')&&selected.some(d=>d.incoming)&&!selected.some(d=>['meter','fuse','rse-fuse'].includes(d.kind)||d.measurementOwner||d.frameStyle?.startsWith('transfer-')||d.source?.element==='incoming-supply'),hasFuses=!ordinary&&(c._fuseZone||selected.some(d=>d.kind==='fuse'||d.kind==='rse-fuse'&&!d.measurementOwner||d.incoming||d.kind==='switch'&&d.height>110)),fuseHeight=c.fuseHeight||400;
  const customWidth=(c.width-8)%250!==0,usableWidth=customWidth?c.width-8:Math.floor((c.width-8)/250)*250,cols=Math.ceil(usableWidth/c.plateWidth),panelPitch=customWidth?usableWidth/cols:c.plateWidth;
- const leadingService=ordinary&&selected.some(d=>d.manufacturer==='hager')&&usableWidth>750&&usableWidth%250===0;
+ const cabinet=ordinary&&c._cabinetConventional;
+ const leadingService=!cabinet&&ordinary&&selected.some(d=>d.manufacturer==='hager')&&usableWidth>750&&usableWidth%250===0;
  const parts=[],placed=[],overflow=[],left=(c.width-usableWidth)/2,plateTop=c.topHeight||300,fuseY=c.height-20-(hasFuses?fuseHeight:0);
  const add=(kind,x,y,width,height,extra={})=>parts.push({kind,x,y,width,height,...extra});
  if(cols<1||fuseY<=plateTop)throw Error('Rahmen zu klein für die gewählten Platten und Zonen.');
@@ -58,14 +59,22 @@ export function frameLayout(devices,c){
  for(const x of [4,c.width-39])for(const y of [17,c.height-52])add('rail',x,y,35,35,{profile:'EV165',depth:150,mountZ:-160});
  for(let i=1;i<(leadingService?1+Math.ceil((usableWidth-250)/panelPitch):cols);i++)add('rail',left+(leadingService?250+(i-1)*panelPitch:i*panelPitch)-12.5,35,25,c.height-70,{profile:'BS25',depth:15,mountZ:-110});
  const bar=(profile,y)=>add('rail',40,y,c.width-80,profiles[profile].face,{profile,depth:profiles[profile].depth,mountZ:profile==='ZS39'?-22:-110});
- bar('AS50',30);bar('AS35',plateTop-145);bar('BS25',plateTop-85);add('duct',40,plateTop-75,c.width-80,60,{depth:60,mountZ:-100});
- add('plate',left,17,c.width-2*left,plateTop-17,{plateType:'cover',depth:3,mountZ:0});
+ const headerBottom=cabinet?plateTop-200:plateTop;
+ if(cabinet){
+  // Dedicated connection room: perimeter ducts, two terminal supports and
+  // a central Galip. The apparatus area starts below it, as in UV1 / UV2.
+  for(const y of [17,headerBottom-60])add('duct',left,y,usableWidth,60,{profile:'wiring-duct',drawingLabel:'Kanal',depth:60,mountZ:-100});
+  for(const x of [left,c.width-left-60])add('duct',x,77,60,headerBottom-137,{profile:'wiring-duct',drawingLabel:'Kanal',depth:60,mountZ:-100});
+  for(const y of [125,headerBottom-145])add('rail',left+60,y,usableWidth-120,35,{profile:'AS35',frameStyle:'cabinet-terminal',drawingLabel:'Klemmen',depth:15,mountZ:-110});
+  add('rail',left+60,headerBottom/2-25,usableWidth-120,50,{profile:'AS50',drawingLabel:'Galip',depth:15,mountZ:-110});
+ }else{bar('AS50',30);bar('AS35',plateTop-145);bar('BS25',plateTop-85);add('duct',40,plateTop-75,c.width-80,60,{depth:60,mountZ:-100});}
+ add('plate',left,17,c.width-2*left,headerBottom-17,{plateType:'cover',depth:3,mountZ:0});
  bar('ZS39',plateTop-22);bar('ZS39',fuseY-22);
  if(c.rearPanel)add('plate',4,17,c.width-8,c.height-34,{plateType:'rear',depth:3,mountZ:-c.depth});
  const rseFuses=selected.filter(d=>d.kind==='rse-fuse'&&!d.measurementOwner);
  const meters=selected.filter(d=>d.kind==='meter'),fuses=selected.filter(d=>d.kind==='fuse'),terminals=selected.filter(d=>d.kind==='terminal'&&d.incoming&&d.frameStyle!=='incoming-terminal'),inputs=selected.filter(d=>d.frameStyle==='incoming-terminal'),spds=selected.filter(d=>d.kind==='spd'),bottom=selected.filter(d=>!ordinary&&d.kind==='switch'&&d.height>110),measurement=selected.filter(d=>d.measurementOwner&&d.kind!=='meter'),regular=selected.filter(d=>!d.measurementOwner&&!['meter','fuse','rse-fuse','terminal','spd'].includes(d.kind)&&!bottom.includes(d)&&!(ordinary&&d.kind==='switch'));
  const meterCols=Math.floor((c.width-8)/250),meterLeft=(c.width-meterCols*250)/2;
- const apparatusHeight=ordinary&&regular.some(d=>d.manufacturer==='schneider')&&fuseY-plateTop>=525&&fuseY-plateTop<800?525:400;
+ const apparatusHeight=ordinary&&!cabinet&&regular.some(d=>d.manufacturer==='schneider')&&fuseY-plateTop>=525&&fuseY-plateTop<800?525:400;
  const meterPlan=meterCells(meters,meterCols,Math.min(3,Math.floor((fuseY-plateTop)/400))),meterRows=meterPlan.rows,meterTop=fuseY-meterRows*400,regularRows=Math.floor((meterTop-plateTop)/apparatusHeight),shortPanel=meterTop-plateTop-regularRows*apparatusHeight>=200;
  if(meterTop<plateTop)throw Error('Zu wenig Höhe für Zählerplätze und Messmodule.');
  const gap=meterTop-(plateTop+regularRows*apparatusHeight+(shortPanel?200:0));if(gap>0)add('plate',left,meterTop-gap,c.width-2*left,gap,{plateType:'cover',depth:3,mountZ:0});
@@ -95,15 +104,21 @@ export function frameLayout(devices,c){
    if(spds[i]){const d=spds[i];put(d,x+(250-d.width)/2,y+230,{mountZ:-70});add('rail',x+17,y+290,216,35,{profile:'AS35',depth:15,mountZ:-110});}
   }
  }
+ const serviceSlots=[];
+ if(cabinet){
+  for(const {x,pw} of panels){add('plate',x,headerBottom,pw,200,{plateType:'slots',depth:3,mountZ:0});for(const opening of plateOpenings(pw))serviceSlots.push({row:0,x:x+opening.x,y:headerBottom+60,width:opening.width,used:0});}
+  bar('ZS39',headerBottom-22);bar('AS35',headerBottom+67.5);
+ }
  if(ordinary){
   // The incoming terminal belongs to the top terminal rail, not to a meter
   // plate or a synthetic bottom supply bank. Main and SPD occupy apparatus rows.
   let right=c.width-40;
-  for(const d of inputs){const x=right-d.width,y=plateTop-110-d.height;if(x<40||y<17){overflow.push(d);continue;}put(d,x,y,{mountZ:-70,frameStyle:'conventional-input'});right=x-18;}
-  for(const d of [...selected.filter(d=>d.kind==='switch'),...spds]){const slot=slots.find(s=>s.row===0&&s.used+d.width<=s.width&&d.height<=160);if(!slot){overflow.push(d);continue;}put(d,slot.x+slot.used,slot.y+25-dinBodyCenter(d),{mountZ:-70,frameStyle:'conventional-apparatus'});slot.used+=d.width+18;}
+  if(cabinet)right=c.width-left-78;
+  for(const d of inputs){const x=right-d.width,y=cabinet?headerBottom-145+17.5-dinBodyCenter(d):plateTop-110-d.height;if(x<(cabinet?left+60:40)||y<17){overflow.push(d);continue;}put(d,x,y,{mountZ:-70,frameStyle:'conventional-input'});right=x-18;}
+  for(const d of [...selected.filter(d=>d.kind==='switch'),...spds]){const slot=(cabinet?serviceSlots:slots).find(s=>s.row===0&&s.used+d.width<=s.width&&d.height<=160);if(!slot){overflow.push(d);continue;}put(d,slot.x+slot.used,slot.y+25-dinBodyCenter(d),{mountZ:-70,frameStyle:'conventional-apparatus'});slot.used+=d.width+18;}
  }
  // Keep the area beneath incoming apparatus out of the outgoing reserve.
- if(ordinary){const serviceEnd=Math.max(0,...slots.filter(s=>s.used>0).map(s=>s.x+s.used));for(const s of slots){s.serviceInset=Math.max(0,Math.min(s.width,serviceEnd-s.x));s.used=Math.max(s.used,s.serviceInset);}}
+ if(ordinary&&!cabinet){const serviceEnd=Math.max(0,...slots.filter(s=>s.used>0).map(s=>s.x+s.used));for(const s of slots){s.serviceInset=Math.max(0,Math.min(s.width,serviceEnd-s.x));s.used=Math.max(s.used,s.serviceInset);}}
  const usableSlots=slots.filter(s=>!inputPanels.has(panelKey(s)));slots.splice(0,slots.length,...usableSlots);
  // Independent single meter outlets need no shared phase comb. Stack them
  // in a narrow column, leaving the rest of each rail available to other groups.
@@ -133,7 +148,7 @@ export function frameLayout(devices,c){
  }
  for(const g of connections.values())if(g.width>0)add('rail',g.x,g.y,g.width,10,{profile:g.profile,depth:3,mountZ:-35});
  // Close the unused portions of each front opening with removable blanking strips.
- for(const s of [...slots,...reserveSlots]){const free=s.width-s.used;if(free>0)add('plate',s.x+s.used,s.y,free,46,{plateType:'blank',depth:3,mountZ:3});}
+ for(const s of [...slots,...reserveSlots,...serviceSlots]){const free=s.width-s.used;if(free>0)add('plate',s.x+s.used,s.y,free,46,{plateType:'blank',depth:3,mountZ:3});}
  for(const [d,cell] of meterPlan.cells){const col=cell%meterCols,row=Math.floor(cell/meterCols),x=meterLeft+col*250,y=meterTop+row*400;if(d.width>210||d.height>350){overflow.push(d);continue;}add('plate',x,y,250,400,{plateType:'meter',depth:3,mountZ:0});put(d,x+(250-d.width)/2,y+45,{mountZ:3,meterState:c.meterState||'prepared'});
  if(d.measurementOwner){const my=y+400,style='measurement:'+d.measurementOwner;add('plate',x,my,250,400,{plateType:'cover',frameStyle:style,depth:3,mountZ:0});for(const sy of [60,185,310])add('rail',x+17,my+sy+7.5,216,35,{profile:'AS35',frameStyle:style,depth:15,mountZ:-110});const group=measurement.filter(q=>q.measurementOwner===d.measurementOwner),ct=group.filter(q=>q.kind==='transformer'),ctWidth=ct.reduce((n,q)=>n+q.width,0);
  const ap=[...group.filter(q=>q.kind==='rse-fuse'),...group.filter(q=>q.kind==='voltage-fuse')],apWidth=ap.reduce((n,q)=>n+apGeometry(q).width,0);

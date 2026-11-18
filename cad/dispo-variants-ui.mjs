@@ -1,5 +1,5 @@
-import {dispoVariants,cachedDispoBuild,calculateDispoVariant} from './dispo-variants.mjs?v=20261118-3';
-import {svgPage} from './render.mjs?v=20261118-3';
+import {dispoVariants,cachedDispoBuild,calculateDispoVariant} from './dispo-variants.mjs?v=20261118-4';
+import {svgPage} from './render.mjs?v=20261118-4';
 
 const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 export function openDispoVariants({doc,page,onApply,initialError=''}){
