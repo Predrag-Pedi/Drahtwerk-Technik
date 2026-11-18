@@ -37,12 +37,33 @@
       "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
     },
     {
+      "name": "Elektra Genossenschaft Baldingen",
+      "files": [
+        "EW/Elektra Genossenschaft Baldingen/WV-CH_2025_zusaetzliche_Bestimmungen_01.06.2026_Index_0.pdf"
+      ],
+      "info": ""
+    },
+    {
+      "name": "Elektrizitäts-Genossenschaft Siggenthal",
+      "files": [
+        "EW/Elektrizitäts-Genossenschaft Siggenthal/WV-CH_2025_zusaetzliche_Bestimmungen_01.06.2026_Index_0.pdf"
+      ],
+      "info": ""
+    },
+    {
       "name": "Energie Uster",
       "files": [
         "EW/Energie Uster/EnergieUster_SB_WV2021_20250327.pdf",
         "EW/Energie Uster/Zählersteckklemmen.pdf"
       ],
       "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
+    },
+    {
+      "name": "Energie Wettingen",
+      "files": [
+        "EW/Energie Wettingen/WV-CH_2025_zusaetzliche_Bestimmungen_01.06.2026_Index_0.pdf"
+      ],
+      "info": ""
     },
     {
       "name": "Eniwa AG",
@@ -64,6 +85,20 @@
         "EW/EW Höfe/2025-12-12_Werkvorschriften-CH-2025_Spezielle_Bestimmungen_EWH_2026.pdf"
       ],
       "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
+    },
+    {
+      "name": "EW Killwangen",
+      "files": [
+        "EW/EW Killwangen/WV-CH_2025_zusaetzliche_Bestimmungen_01.06.2026_Index_0.pdf"
+      ],
+      "info": ""
+    },
+    {
+      "name": "EW Mellingen",
+      "files": [
+        "EW/EW Mellingen/WV-CH_2025_zusaetzliche_Bestimmungen_01.06.2026_Index_0.pdf"
+      ],
+      "info": ""
     },
     {
       "name": "EW Neuenhof",
@@ -180,6 +215,13 @@
         "EW/Primeo/PE_FS_Montage_Zaehler_Anschlussklemmen_d_2024.pdf"
       ],
       "info": "Zählerplatte:\nZSK:\nZFA:\nTarif:"
+    },
+    {
+      "name": "Regionalwerke AG Baden",
+      "files": [
+        "EW/Regionalwerke AG Baden/WV-CH_2025_zusaetzliche_Bestimmungen_01.06.2026_Index_0.pdf"
+      ],
+      "info": ""
     },
     {
       "name": "SAK St. Gallen",
