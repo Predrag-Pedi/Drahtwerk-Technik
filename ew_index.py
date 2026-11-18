@@ -2,10 +2,13 @@ from pathlib import Path
 import json
 
 root = Path(__file__).resolve().parent
-names = json.loads((root / 'ew-ordner.json').read_text(encoding='utf-8'))
+ew_root = root / 'EW'
+configured_names = json.loads((root / 'ew-ordner.json').read_text(encoding='utf-8'))
+names = set(configured_names)
+names.update(folder.name for folder in ew_root.iterdir() if folder.is_dir() and not folder.name.startswith('.'))
 folders = []
-for name in names:
-    folder = root / 'EW' / name
+for name in sorted(names, key=lambda name: (name.casefold(), name)):
+    folder = ew_root / name
     files = sorted(
         (p.relative_to(root).as_posix() for p in folder.rglob('*')
          if p.is_file() and p.suffix.lower() == '.pdf'),
