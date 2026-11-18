@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261118-2';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-2';
+import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261118-3';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261118-3';
 // Only a proven capacity failure may offer a reduction; never change the
 // saved page or reserve until the complete alternative has been approved.
 export async function editAutomaticDispo(doc,p,apply,confirmReduction=()=>false,build=null){
@@ -29,15 +29,16 @@ export function editSiteSettings(p,showForm,apply){
  const c={...defaultConfig(),...p.dispoConfig};
  showForm('Einbaumasse / Reserve',[
   {key:'distributionType',label:'Verteilungsart',value:c.distributionType,options:Object.entries(distributionTypes).map(([key,label])=>[key,key==='wall'?label+' – Vermessung ausstehend':key!=='field'?label:label+' – noch nicht konfiguriert'])},
-  ...[['maxWidth','Max. Einbaubreite gesamt (mm)',c.maxWidth||c.width,10000],['maxHeight','Max. Einbauhöhe (mm)',c.maxHeight||c.height,4000],['maxDepth','Max. Einbautiefe (mm, 0 = offen)',c.maxDepth||0,1500],['passageWidth','Durchgangsbreite, aufrecht (mm, 0 = offen)',c.passageWidth||0,10000],['passageHeight','Durchgangshöhe, aufrecht (mm, 0 = offen)',c.passageHeight||0,4000],['passageDepth','Max. Transporttiefe (mm, 0 = offen)',c.passageDepth||0,1500]].map(([key,label,value,max])=>({key,label,value,type:'number',min:0,max,layout:'site-dimension'})),
+  ...[['maxWidth','Max. Einbaubreite gesamt (mm)',c.maxWidth||c.width,10000],['maxHeight','Max. Gesamthöhe inkl. Sockel (mm)',c.maxHeight||c.height,4000],['maxDepth','Max. Einbautiefe (mm, 0 = offen)',c.maxDepth||0,1500],['passageWidth','Durchgangsbreite, aufrecht (mm, 0 = offen)',c.passageWidth||0,10000],['passageHeight','Durchgangshöhe, aufrecht (mm, 0 = offen)',c.passageHeight||0,4000],['passageDepth','Max. Transporttiefe (mm, 0 = offen)',c.passageDepth||0,1500]].map(([key,label,value,max])=>({key,label,value,type:'number',min:0,max,layout:'site-dimension'})),
   {key:'reserveMeters',label:'Reserve-Zählerplätze gesamt (inkl. Schema)',value:c.reserveMeters||0,type:'number',min:0,max:120,layout:'site-wide'},
   {key:'buildSystem',label:'Aufbausystem',value:c.buildSystem||'standard',options:[['standard','Standard'],['smissline','Smissline'],['silas60','60 mm · Silas'],['vertigroup185','185 mm · Vertigroup']],layout:'site-wide'},
+  {key:'systemScope',label:'Gerätesysteme in der Dispo',value:c.systemScope||'individual',options:[['individual','Einzeleinstellungen aus Schema berücksichtigen'],['all','Gewähltes Aufbausystem für die ganze Dispo']],layout:'site-wide'},
   {key:'smisslineDuctWidth',label:'Gitterbahnbreite bei Smissline',value:c.smisslineDuctWidth||200,options:[[200,'200 mm'],[300,'300 mm']],layout:'site-wide'},
-  {key:'plinthHeight',label:'AN-Sockelhöhe (in Gesamthöhe enthalten)',value:c.plinthHeight||0,options:[[0,'Ohne Sockel'],[100,'100 mm'],[200,'200 mm']],layout:'site-wide'},
+  {key:'plinthHeight',label:'AN-Standschrank: Korpus + Sockel',value:c.plinthHeight||0,options:[[0,'Ohne Sockel · Gesamthöhe 2000 mm'],[100,'100 mm Sockel · Gesamthöhe 2100 mm'],[200,'200 mm Sockel · Gesamthöhe 2200 mm']],layout:'site-wide'},
   {key:'wallMount',label:'Wandschrank',value:c.wallMount||'ap',options:[['ap','AP · Aufputz'],['up','UP · Unterputz']],layout:'site-wide'},
   {key:'supportSpacing185',label:'Max. Trägerabstand Vertigroup 185 mm (max. 1000 mm)',value:c.supportSpacing185,type:'number',min:56,max:1000,layout:'site-wide'}
  ],data=>{
-  const next=validateDispoConfig({...c,smisslineDuctWidth:Number(data.smisslineDuctWidth??c.smisslineDuctWidth??200),plinthHeight:Number(data.plinthHeight??c.plinthHeight??0),wallMount:data.wallMount??c.wallMount,buildSystem:data.buildSystem??c.buildSystem,distributionType:data.distributionType??c.distributionType,supportSpacing185:Number(data.supportSpacing185??c.supportSpacing185),autoSize:true,...Object.fromEntries(['maxWidth','maxHeight','maxDepth','passageWidth','passageHeight','passageDepth','reserveMeters'].map(k=>[k,Number(data[k]??c[k]??0)]))});
+  const next=validateDispoConfig({...c,systemScope:data.buildSystem!==undefined&&data.buildSystem!==c.buildSystem?'all':data.systemScope??c.systemScope,smisslineDuctWidth:Number(data.smisslineDuctWidth??c.smisslineDuctWidth??200),plinthHeight:Number(data.plinthHeight??c.plinthHeight??0),wallMount:data.wallMount??c.wallMount,buildSystem:data.buildSystem??c.buildSystem,distributionType:data.distributionType??c.distributionType,supportSpacing185:Number(data.supportSpacing185??c.supportSpacing185),autoSize:true,...Object.fromEntries(['maxWidth','maxHeight','maxDepth','passageWidth','passageHeight','passageDepth','reserveMeters'].map(k=>[k,Number(data[k]??c[k]??0)]))});
   if(next.autoSize&&(next.maxWidth<258||next.maxHeight<400))throw Error('Für die automatische Berechnung Einbaubreite ab 258 mm und Einbauhöhe ab 400 mm eingeben.');
   apply(next);
  });

@@ -1,17 +1,17 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261118-2';
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261118-2';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261118-2';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261118-2';
-import {joinDinRails} from './frame-layout.mjs?v=20261118-2';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261118-2';
-import {standardFrame} from './standard-render.mjs?v=20261118-2';
-import {frameMarkup} from './frame-render.mjs?v=20261118-2';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261118-2';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261118-2';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261118-2';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261118-2';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261118-2';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261118-2';
+import {manualInterior} from './dispo-parts.mjs?v=20261118-3';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261118-3';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261118-3';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261118-3';
+import {joinDinRails} from './frame-layout.mjs?v=20261118-3';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261118-3';
+import {standardFrame} from './standard-render.mjs?v=20261118-3';
+import {frameMarkup} from './frame-render.mjs?v=20261118-3';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261118-3';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261118-3';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261118-3';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261118-3';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261118-3';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261118-3';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Highlight the drawn geometry, never the template's (possibly padded) viewBox.
 // Keep white masks, invisible hit targets and clipping paths visually unchanged.
@@ -68,10 +68,10 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false,selected=fals
  const source=p.type==='dispo'&&e.dispoSource&&d.pages.find(q=>q.id===e.dispoSource.page)?.elements.some(q=>q.id===e.dispoSource.element)?pdfTarget(d,e.dispoSource.page):'';
  return connections+`<g ${source} data-element="${esc(e.id)}" ${editor&&e.template&&!groupSelect?'pointer-events="none"':''} transform="translate(${e.x} ${e.y}) rotate(${e.rotation} ${w/2} ${h/2})" ${e.dashed?'stroke-dasharray="5 4"':''}>${!e.template||editor&&groupSelect?`<rect x="-4" y="-4" width="${w+8}" height="${(cut!==null?cut*h/e.template.viewHeight+24:h)+8}" fill="transparent" stroke="none"/>`:''}${body}</g>`;
 }
-export function svgPage(d,p,{editor=false,selected=null,selection=[],grid=true,lineMode=true}={}){
+export function svgPage(d,p,{editor=false,selected=null,selection=[],grid=true,lineMode=true,frame=true}={}){
  const chosenIds=new Set(editor?[selected,...selection.filter(s=>s.kind==='element'||s.kind==='wire').map(s=>s.id)]:[]);
  let body='';if(editor&&grid&&p.grid)body+='<defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r=".65" fill="#b6c5d5"/></pattern></defs><rect x="40" y="40" width="1120" height="750" fill="url(#grid)" stroke="none"/>';
- body+=standardFrame(d,p);
+ if(frame)body+=standardFrame(d,p);
  if(p.type==='schema'&&p.bus)for(let n=0;n<4;n++){const by=Object.values(BUS)[n];body+=`<g ${n===3?'stroke-dasharray="8 5"':''}>${line(60,by,1140,by)}</g>`+text(45,by-4,['L1','L2','L3','N'][n],'font-size="10"');}
  const wireMarkup=w=>{const pts=wirePoints(p,w);return `<g data-wire="${esc(w.id)}"><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" stroke="transparent" stroke-width="12" fill="none"/><polyline points="${pts.map(pt=>pt.x+','+pt.y).join(' ')}" fill="none" stroke="${chosenIds.has(w.id)?'#2463eb':w.stroke||'#182c42'}" stroke-width="${w.strokeWidth||1.4}" ${w.dashed?'stroke-dasharray="7 5"':''}/>${w.label?text(pts[0].x+5,pts[0].y-7,w.label):''}</g>`;};
  body+=p.wires.filter(w=>!w.direct).map(wireMarkup).join('');

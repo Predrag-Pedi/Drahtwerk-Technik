@@ -1,7 +1,7 @@
-import {templateSize} from './template.mjs?v=20261118-2';
-import {localPoint} from './geometry.mjs?v=20261118-2';
-import {functionBmk,referenceLocation} from './references.mjs?v=20261118-2';
-import {rseLegend} from './rse.mjs?v=20261118-2';
+import {templateSize} from './template.mjs?v=20261118-3';
+import {localPoint} from './geometry.mjs?v=20261118-3';
+import {functionBmk,referenceLocation} from './references.mjs?v=20261118-3';
+import {rseLegend} from './rse.mjs?v=20261118-3';
 // Audited text anchors in the original 200_Messung macros. Never infer
 // tariff connections from power ports, proximity, or a printed page number.
 const inputs={'tl-0007':[17,18,19,20,21,22],'tl-0011':[17,18,19,20,21,22],'tl-0012':[21,22,23,24,25,26],'tl-0013':[5,6,7,8,9,10]};
