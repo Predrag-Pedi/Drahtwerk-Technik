@@ -6,8 +6,8 @@ import {siteConfig,reserveMeters,isReserveMeter} from './site-layout.mjs?v=20261
 import {horizontalCT} from './ct-template.mjs?v=20261119-7';
 import {updateIncomingRails,updateSupplyBlocks} from './dispo-move.mjs?v=20261119-7';
 import {validateTemplate} from './template.mjs?v=20261119-7';
-import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261119-7';
-import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261119-7';
+import {generateDispo,assertConfiguredDistribution,defaultConfig,schemaDevices,validateDispoConfig} from './dispo.mjs?v=20261119-9';
+import {templateAssembly,assemblyKey} from './dispo-templates.mjs?v=20261119-9';
 // Original TinLine library families. No nearest-size substitute for unknown equipment.
 export function automaticTemplateId(d){
  if(['ls','fils'].includes(d.kind)&&d.breakerSystem&&d.breakerSystem==='uniway')throw Error(`${d.tag}: ${d.breakerSystem==='smissline'?'Smissline':'Uniway'} ist gewählt; die automatische Disposition für dieses System ist noch nicht konfiguriert.`);

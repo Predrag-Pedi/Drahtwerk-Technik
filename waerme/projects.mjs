@@ -1,8 +1,9 @@
+import {serverMode,listRecords,readRecord,writeRecord} from '../platform/client.mjs';
 /* Storage boundary for saved calculations. A future server adapter can keep this API. */
 const DB='drahtwerk-waerme-projects';
 async function open(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{r.result.createObjectStore('projects',{keyPath:'id'});r.result.createObjectStore('summaries',{keyPath:'id'});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('Bitte andere geöffnete Wärmeberechnungsfenster schliessen.'));});}
 async function transaction(stores,mode,run){const db=await open();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(stores,mode);let value;try{run(tx,v=>{value=v;});}catch(e){tx.abort();reject(e);return;}tx.oncomplete=()=>resolve(value);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Speichern abgebrochen.'));});}finally{db.close();}}
-export const projectRepository={
+export const projectRepository=serverMode?{list:async()=>(await listRecords('heat')).map(r=>{const {snapshot,...summary}=r.value;return summary;}).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)),load:id=>readRecord('heat',id),save:record=>writeRecord('heat',record.id,record)}:{
  list:()=>transaction(['summaries'],'readonly',(tx,done)=>{const r=tx.objectStore('summaries').getAll();r.onsuccess=()=>done(r.result.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)));}),
  load:id=>transaction(['projects'],'readonly',(tx,done)=>{const r=tx.objectStore('projects').get(id);r.onsuccess=()=>done(r.result);}),
  save:record=>transaction(['projects','summaries'],'readwrite',tx=>{tx.objectStore('projects').put(record);const {snapshot,...summary}=record;tx.objectStore('summaries').put(summary);})

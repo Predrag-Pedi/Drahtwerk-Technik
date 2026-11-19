@@ -1,5 +1,5 @@
 import {MM,DRAW,bounds} from './geometry.mjs?v=20261119-7';
-import {createElement,snap,size} from './model.mjs?v=20261119-7';
+import {createElement,snap,size} from './model.mjs?v=20261119-9';
 import {snapBox} from './drawing-tools.mjs?v=20261119-7';
 import {partSpec} from './dispo-parts.mjs?v=20261119-7';
 

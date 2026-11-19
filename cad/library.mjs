@@ -1,4 +1,4 @@
-export const libraryName=s=>String(s).replace(/^(?:\d{2,3}[_ -]|[A-Z]\d{1,4}[_ ]|[A-Z]\d(?=[A-ZÄÖÜ])|\d{2}(?=[A-WYZa-wyzÄÖÜ]))/,'').replaceAll('_',' ').replaceAll('&amp;','&').replace(/Schuetzen/gi,'Schütze').trim();
+export const libraryName=s=>String(s).replace(/TinLine/gi,'').replace(/^(?:\d{2,3}[_ -]|[A-Z]\d{1,4}[_ ]|[A-Z]\d(?=[A-ZÄÖÜ])|\d{2}(?=[A-WYZa-wyzÄÖÜ]))/,'').replaceAll('_',' ').replaceAll('&amp;','&').replace(/Schuetzen/gi,'Schütze').trim();
 // Curated current-only families. Source IDs and files remain valid in old projects.
 export const macroFamilies=[
  ['tl-0021','tl-0022','tl-0023','tl-0024'],

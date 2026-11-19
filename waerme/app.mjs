@@ -1,12 +1,12 @@
-import {assertSnapshot} from './projects.mjs?v=20261110-8';
-import {exportReportPdf} from './report-pdf.mjs?v=20261110-8';
-import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261110-8';
-import {needsOcr,createOcrReader} from './ocr.mjs?v=20261110-8';
-import {drawingItems,drawingLines} from './drawing.mjs?v=20261110-8';
-import {buildPortfolio} from './portfolio.mjs?v=20261110-8';
-import {templateStore} from './storage.mjs?v=20261110-8';
-import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261110-8';
-import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261110-8';
+import {assertSnapshot} from './projects.mjs?v=20261119-9';
+import {exportReportPdf} from './report-pdf.mjs?v=20261119-9';
+import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261119-9';
+import {needsOcr,createOcrReader} from './ocr.mjs?v=20261119-9';
+import {drawingItems,drawingLines} from './drawing.mjs?v=20261119-9';
+import {buildPortfolio} from './portfolio.mjs?v=20261119-9';
+import {templateStore} from './storage.mjs?v=20261119-9';
+import {SHEETS,maxPv,candidates,suggestArticle,DEVICE_KINDS,parsePages,validateFields,defaultIcp,peakCurrent,applySurcharge,unassignedUnitLoss,exportFilename} from './core.mjs?v=20261119-9';
+import {readWorkbook,exportWorkbook} from './workbook.mjs?v=20261119-9';
 const $=id=>document.getElementById(id),state={buffer:null,book:null,devices:[],fields:[newField()],warnings:[],busy:false,icpManual:false};
 function newField(){return{type:'SBR',b:null,h:null,t:null,percent:50,surchargePercent:0,mode:'devices',manual:null};}
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -133,7 +133,7 @@ async function runExport(all){if(!state.book||state.busy)return;saveActive();try
   try{const pdf=await exportReportPdf(blob,JSZip),pdfName=exportFilename(data[i].project,usedNames,true);zip.file(pdfName,pdf);download(pdf,pdfName,!all);}
   catch(e){pdfErrors.push((data[i].project.name||'Anlage')+': '+e.message);}
  }
- download(await zip.generateAsync({type:'blob'}),all?'Drahtwerk_Waerme_Anlagen.zip':firstName.replace(/\.xlsx$/,'.zip'),all);
+ download(await zip.generateAsync({type:'blob'}),all?'Waerme_Anlagen.zip':firstName.replace(/\.xlsx$/,'.zip'),all);
  status(pdfErrors.length?'Excel erstellt. PDF konnte nicht vollständig erstellt werden: '+pdfErrors.join(' · '):(all?'ZIP-Download angefordert.':'Excel- und PDF-Downloads angefordert.')+' Die Dateien bleiben unten erneut abrufbar. Falls der Browser nachfragt, mehrere Downloads für diese Website erlauben.',pdfErrors.length>0);
  }catch(e){status(e.message,true);}finally{state.busy=false;update();}}
 $('projectForm').addEventListener('submit',e=>{e.preventDefault();runExport(false);});$('exportAll').onclick=()=>runExport(true);

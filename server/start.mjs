@@ -1,0 +1,11 @@
+import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
+import {openDatabase} from './db.mjs';
+import {createApp} from './app.mjs';
+const root=fileURLToPath(new URL('..',import.meta.url)),port=Number(process.env.PORT||4173),host=process.env.HOST||'127.0.0.1';
+const codespaceOrigin=process.env.CODESPACE_NAME&&process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN?`https://${process.env.CODESPACE_NAME}-${port}.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`:null;
+const origin=process.env.APP_ORIGIN||codespaceOrigin||`http://127.0.0.1:${port}`;
+if(process.env.NODE_ENV==='production'&&!origin.startsWith('https://'))throw Error('APP_ORIGIN muss in Produktion HTTPS verwenden.');
+const db=openDatabase(process.env.DATABASE_PATH||resolve(root,'runtime/platform.sqlite'));
+const app=createApp({db,root,origin});app.listen(port,host,()=>console.log(`Firmenportal: ${origin} · ${db.prepare('SELECT COUNT(*) n FROM users').get().n?'Benutzer vorhanden':'Entwicklerkonto mit npm run admin:init anlegen'}`));
+for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>app.close(()=>{db.close();process.exit(0);}));
