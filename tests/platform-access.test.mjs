@@ -80,7 +80,7 @@ test('company platform enforces identity, tenant boundaries, licences and concur
   // Permission updates revoke other sessions; a new fixture session observes fresh rights.
   const session=db.prepare('SELECT * FROM sessions WHERE user_id=?').get(admin.userId),sid=token();const {digest}=await import('../server/security.mjs');db.prepare('INSERT INTO sessions VALUES (?,?,?,?,?,?)').run(digest(sid),member.userId,c1.id,'test-csrf',now+3600000,now);member={cookie:'test-session='+sid,csrf:'test-csrf',userId:member.userId,companyId:c1.id};
   assert.equal((await request('/api/records/cad','GET',undefined,member)).status,200);assert.equal((await request('/api/records/cad/same','PUT',{revision:2,value:{}},member)).status,403);
-  assert.equal((await request('/api/company/users/'+admin.userId,'PATCH',{role:'member',enabled:true,permissions:perms},admin)).status,409);
+  assert.equal((await request('/api/company/users/'+admin.userId,'PATCH',{role:'member',enabled:true,permissions:perms},admin)).status,403);
  });
  await t.test('licence expiry, module access and seat limits are enforced server-side',async()=>{
   assert.equal((await request('/api/admin/companies','POST',{...companyBody('Alpha'),id:c1.id,planId:'basis'},dev)).status,200);
@@ -105,5 +105,5 @@ test('company platform enforces identity, tenant boundaries, licences and concur
   now+=9*3600000;assert.equal((await request('/api/session','GET',undefined,dev)).status,401);
   assert.equal(db.prepare('SELECT COUNT(*) n FROM records').get().n,8);
  });
- }finally{await new Promise(r=>server.close(r));db.close();const reopened=openDatabase(path);assert.equal(reopened.prepare('SELECT COUNT(*) n FROM companies').get().n,2);reopened.close();rmSync(dir,{recursive:true,force:true});}
+ }finally{await new Promise(r=>server.close(r));db.close();const reopened=openDatabase(path);assert.equal(reopened.prepare('SELECT COUNT(*) n FROM companies').get().n,3);reopened.close();rmSync(dir,{recursive:true,force:true});}
 });

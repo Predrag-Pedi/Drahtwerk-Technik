@@ -1,14 +1,16 @@
 import {emptyProfile} from './model.mjs';
 export const serverMode=globalThis.__companyMode===true;
 export let account=null;
+export const publicPage=()=>typeof location!=='undefined'&&['/','/home.html','/login.html'].includes(location.pathname);
 export async function api(path,{method='GET',body}={}){
  const response=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...(body!==undefined?{'Content-Type':'application/json'}:{}),...(account?{'X-CSRF-Token':account.csrf,'X-Company-Id':account.company?.id||'','X-User-Id':account.user.id}:{})},...(body!==undefined?{body:JSON.stringify(body)}:{})});
- const result=await response.json();if(!response.ok){const e=Object.assign(Error(result.error||'Anfrage fehlgeschlagen.'),{status:response.status});if(response.status===401&&path!=='/login'&&typeof document!=='undefined'&&!location.pathname.endsWith('/login.html')){document.dispatchEvent(new CustomEvent('account-expired'));location.replace('/login.html');}throw e;}return result;
+ const result=await response.json();if(!response.ok){const e=Object.assign(Error(result.error||'Anfrage fehlgeschlagen.'),{status:response.status});if(response.status===401&&path!=='/login'&&typeof document!=='undefined'&&!publicPage()){document.dispatchEvent(new CustomEvent('account-expired'));location.replace('/login.html');}throw e;}return result;
 }
 export async function refreshAccount(){account=await api('/session');return account;}
 if(serverMode){try{await refreshAccount();}catch(e){if(e.status!==401)throw e;}}
 export const companyProfile=()=>({...emptyProfile(),...(account?.company?.profile||{})});
 export const can=(module,write=false)=>!serverMode||Boolean(account?.company&&['write',...(!write?['read']:[])].includes(account.permissions?.[module]));
+export const canTool=(tool,write=false)=>tool==='technical'?['wires','copper','smissline'].some(k=>can(k,write)):can(tool,write);
 export const localScope=()=>serverMode?`company:${account?.company?.id||'none'}:user:${account?.user?.id||'none'}:`:'';
 export const savedLabel=()=>serverMode?'Im Betrieb gespeichert':'In diesem Browser gespeichert';
 export function addressLines(p=companyProfile()){return [p.name,p.street,[p.postcode,p.city].filter(Boolean).join(' '),p.country].filter(Boolean);}

@@ -1,4 +1,8 @@
 export const modules={workshop:'Werkstatt & EW',cad:'Schema & Dispo',offers:'Offerten',heat:'Wärmeberechnung'};
+export const workshopTools={rails:'Schienenrechner',ew:'EW-Vorschriften',wireColors:'Drahtfarben',wires:'Litzenquerschnitte',copper:'Kupferschienen',smissline:'ABB Smissline',spacing:'Aufbauabstände'};
+export const permissionLabels={...workshopTools,cad:modules.cad,offers:modules.offers,heat:modules.heat};
+export const permissionKeys=['workshop',...Object.keys(permissionLabels)];
+export const licenseModule=key=>Object.hasOwn(workshopTools,key)?'workshop':key;
 export const initialPlans=[
  {id:'basis',name:'Basis',modules:['workshop'],seats:3},
  {id:'planung',name:'Planung',modules:['workshop','cad'],seats:5},
@@ -8,5 +12,16 @@ export const profileFields={name:'Firmenname auf Dokumenten',street:'Strasse / N
 export const emptyProfile=()=>Object.fromEntries([...Object.keys(profileFields),'logo'].map(k=>[k,'']));
 export const swissDay=(date=new Date())=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Zurich'}).format(date);
 export function licenseActive(company,day=swissDay()){return Boolean(company?.enabled&&company.startsOn<=day&&company.endsOn>=day);}
-export function permissionsFor(user,company,plan){return Object.fromEntries(Object.keys(modules).map(k=>[k,user.role==='developer'?'write':licenseActive(company)&&plan?.modules.includes(k)?user.permissions?.[k]||'none':'none']));}
+export function permissionsFor(user,company,plan){
+ const result=Object.fromEntries(permissionKeys.map(k=>{const parent=licenseModule(k);return [k,user.role==='developer'?'write':licenseActive(company)&&plan?.modules.includes(parent)?user.permissions?.[k]??(parent==='workshop'?user.permissions?.workshop:'none')??'none':'none'];}));
+ result.workshop=Object.keys(workshopTools).some(k=>result[k]==='write')?'write':Object.keys(workshopTools).some(k=>result[k]==='read')?'read':'none';return result;
+}
+export function pageTool(path,hash=''){
+ if(/^(schienenrechner\.html)/.test(path))return 'rails';
+ if(/^(EW\/|ew\/|ew\.html|ew-.*\.json)/.test(path))return 'ew';
+ if(/^(drahtfarben\.(html|txt))/.test(path))return 'wireColors';
+ if(/^(Aufbauabstaende\/|aufbauabstaende\.html|aufbau-.*\.json)/.test(path))return 'spacing';
+ if(path==='technik.html')return ({'#litzen':'wires','#kupfer':'copper','#abb':'smissline'})[hash]||'technical';
+ return pageModule(path);
+}
 export function pageModule(path){if(/^(cad(?:\/|\.html))/.test(path))return 'cad';if(/^(offerten(?:\/|\.html))/.test(path))return 'offers';if(/^(waerme\/|waermeberechnung\.html)/.test(path))return 'heat';if(/^(EW\/|ew\/|Aufbauabstaende\/|(?:technik|ew|schienenrechner|drahtfarben|aufbauabstaende)\.html|(?:ew|aufbau)-.*\.json)/.test(path))return 'workshop';return null;}

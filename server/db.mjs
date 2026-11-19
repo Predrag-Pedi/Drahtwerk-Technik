@@ -1,7 +1,7 @@
 import {DatabaseSync} from 'node:sqlite';
 import {mkdirSync,chmodSync} from 'node:fs';
 import {dirname} from 'node:path';
-import {initialPlans} from '../platform/model.mjs';
+import {initialPlans,emptyProfile} from '../platform/model.mjs';
 export function openDatabase(path){
  if(path!==':memory:')mkdirSync(dirname(path),{recursive:true,mode:0o700});
  const db=new DatabaseSync(path,{timeout:5000});if(path!==':memory:')chmodSync(path,0o600);
@@ -20,5 +20,13 @@ export function openDatabase(path){
 export const rows=(db,table)=>db.prepare(`SELECT * FROM ${table}`).all(); // table is internal, never request data
 export const object=(db,table,id)=>{const r=db.prepare(`SELECT data FROM ${table} WHERE id=?`).get(id);return r?JSON.parse(r.data):null;};
 export const saveObject=(db,table,value)=>db.prepare(`INSERT INTO ${table}(id,data) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data`).run(value.id,JSON.stringify(value));
-export const publicUser=u=>u&&({id:u.id,companyId:u.company_id,email:u.email,name:u.name,role:u.role,permissions:JSON.parse(u.permissions),enabled:Boolean(u.enabled),mustChangePassword:Boolean(u.must_change),createdAt:u.created_at});
+export const publicUser=u=>u&&({id:u.id,companyId:u.company_id,login:u.email,username:u.email.includes('@')?'':u.email,email:u.email.includes('@')?u.email:'',name:u.name,role:u.role,permissions:JSON.parse(u.permissions),enabled:Boolean(u.enabled),mustChangePassword:Boolean(u.must_change),createdAt:u.created_at});
 export function audit(db,actor,company,action,target=''){db.prepare('INSERT INTO audit(at,actor,company_id,action,target) VALUES (?,?,?,?,?)').run(new Date().toISOString(),actor,company,action,target);}
+
+// A separate tenant lets a developer use every tool immediately without choosing a customer.
+export function developerWorkspace(db,user){
+ const id='developer-'+user.id;
+ let company=object(db,'companies',id);
+ if(!company){company={id,name:'Entwickler-Arbeitsplatz',internalWorkspace:true,ownerId:user.id,planId:'komplett',startsOn:'2000-01-01',endsOn:'9999-12-31',enabled:true,seats:1,profile:emptyProfile()};saveObject(db,'companies',company);}
+ return company;
+}
