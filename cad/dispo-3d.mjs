@@ -1,12 +1,12 @@
-import {cableEntryBoxes} from './cable-entry-3d.mjs?v=20261118-7';
-import {createDoorMotion} from './door-motion.mjs?v=20261118-7';
-import {cabinetOptions,cabinetField,ralColors} from './cabinet-options.mjs?v=20261118-7';
-import {boxWorldPoint,doorMotionBounds} from './box-transform.mjs?v=20261118-7';
-import {manualInterior} from './dispo-parts.mjs?v=20261118-7';
-import {joinDinRails} from './frame-layout.mjs?v=20261118-7';
-import {createGpuRenderer} from './dispo-gpu.mjs?v=20261118-7';
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261118-7';
-import {frameBoxes} from './frame-render.mjs?v=20261118-7';
+import {cableEntryBoxes} from './cable-entry-3d.mjs?v=20261119-1';
+import {createDoorMotion} from './door-motion.mjs?v=20261119-1';
+import {cabinetOptions,cabinetField,ralColors} from './cabinet-options.mjs?v=20261119-1';
+import {boxWorldPoint,doorMotionBounds} from './box-transform.mjs?v=20261119-1';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-1';
+import {joinDinRails} from './frame-layout.mjs?v=20261119-1';
+import {createGpuRenderer} from './dispo-gpu.mjs?v=20261119-1';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261119-1';
+import {frameBoxes} from './frame-render.mjs?v=20261119-1';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p,doorAngles={}){
  const factor=420*p.scale/1200,boxes=[];
@@ -84,7 +84,7 @@ export function openDispo3D(p,onSelect){
    const [a,b,c]=ids.map(i=>f.points[i]),den=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]);if(Math.abs(den)<.001)continue;
    const left=Math.max(0,Math.floor(Math.min(a[0],b[0],c[0]))),right=Math.min(width-1,Math.ceil(Math.max(a[0],b[0],c[0]))),top=Math.max(0,Math.floor(Math.min(a[1],b[1],c[1]))),bottom=Math.min(height-1,Math.ceil(Math.max(a[1],b[1],c[1])));
    for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){const u=((b[1]-c[1])*(x-c[0])+(c[0]-b[0])*(y-c[1]))/den,v=((c[1]-a[1])*(x-c[0])+(a[0]-c[0])*(y-c[1]))/den,w=1-u-v;if(u<0||v<0||w<0)continue;const z=u*a[2]+v*b[2]+w*c[2],index=y*width+x;if(z<depth[index])continue;depth[index]=z;hits[index]=objectIndex;
-    let edge=false;for(let j=0;f.b.shape!=='meterTube'&&j<f.points.length;j++){const q=f.points[j],t=f.points[(j+1)%f.points.length],length=Math.hypot(t[0]-q[0],t[1]-q[1]);if(length&&Math.abs((t[0]-q[0])*(q[1]-y)-(q[0]-x)*(t[1]-q[1]))/length<.65)edge=true;}
+    let edge=false;for(let j=0;!f.b.shape&&j<f.points.length;j++){const q=f.points[j],t=f.points[(j+1)%f.points.length],length=Math.hypot(t[0]-q[0],t[1]-q[1]);if(length&&Math.abs((t[0]-q[0])*(q[1]-y)-(q[0]-x)*(t[1]-q[1]))/length<.65)edge=true;}
     const shade=f.shade??(edge?.65:f.front?1:.86);for(let k=0;k<3;k++)pixels.data[index*4+k]=rgb[k]*shade;
    }
   }}

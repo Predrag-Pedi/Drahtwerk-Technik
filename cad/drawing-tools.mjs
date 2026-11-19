@@ -1,6 +1,6 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261118-7';
-import {MM,DRAW,bounds,localPoint} from './geometry.mjs?v=20261118-7';
-import {size,createElement} from './model.mjs?v=20261118-7';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-1';
+import {MM,DRAW,bounds,localPoint} from './geometry.mjs?v=20261119-1';
+import {size,createElement} from './model.mjs?v=20261119-1';
 
 const drawable=e=>['cabinet','plate','rail','duct','module'].includes(e.kind)||e.kind==='template'&&e.template?.category==='Dispo';
 export const elementBox=(e,p)=>bounds(e,...size(e,p));

@@ -1,18 +1,18 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261118-7';
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261118-7';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261118-7';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261118-7';
-import {joinDinRails} from './frame-layout.mjs?v=20261118-7';
-import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261118-7';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261118-7';
-import {standardFrame} from './standard-render.mjs?v=20261118-7';
-import {frameMarkup} from './frame-render.mjs?v=20261118-7';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261118-7';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261118-7';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261118-7';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261118-7';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261118-7';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261118-7';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-1';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261119-1';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261119-1';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-1';
+import {joinDinRails} from './frame-layout.mjs?v=20261119-1';
+import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-1';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261119-1';
+import {standardFrame} from './standard-render.mjs?v=20261119-1';
+import {frameMarkup} from './frame-render.mjs?v=20261119-1';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-1';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261119-1';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-1';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-1';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261119-1';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-1';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Highlight the drawn geometry, never the template's (possibly padded) viewBox.
 // Keep white masks, invisible hit targets and clipping paths visually unchanged.
@@ -109,7 +109,7 @@ export function dispoDrawingRails(c){
   if(r.kind==='duct'){rails.push({...r,drawingLabel:r.drawingLabel||'Kanal'});continue;}
   if(r.profile==='smissline-stop'){rails.push(r);continue;}
   if(r.profile==='AS35'&&['smissline-auxiliary','smissline-input','smissline-carrier'].includes(r.frameStyle)){rails.push(r);continue;}
-  if(r.frameStyle==='cabinet-terminal'){rails.push(r);continue;}
+  if(r.frameStyle==='cabinet-terminal'||r.frameStyle?.startsWith('incoming:')||r.frameStyle?.startsWith('incoming-spd:')){rails.push(r);continue;}
   if(r.profile==='AS50'){rails.push({...r,drawingLabel:'Galip'});continue;}
   if(r.kind!=='rail'||r.width<=r.height||r.frameStyle?.startsWith('incoming:'))continue;
   // Cabinet front panels show their apertures; concealed mounting rails must

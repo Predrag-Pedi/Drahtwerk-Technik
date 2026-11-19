@@ -2,12 +2,21 @@
 // default diameter is 40 mm; paired length is the specified 740 mm.
 export function boxMesh(b){
  if(b.shape==='entryPerforated'){
-  const vertices=[],surfaces=[],nx=Math.min(16,Math.max(2,Math.floor(b.w/24))),nz=Math.min(8,Math.max(2,Math.floor(b.d/24))),cw=b.w/nx,cd=b.d/nz;
+  const vertices=[],surfaces=[],nx=Math.min(40,Math.max(2,Math.ceil(b.w/32))),nz=Math.min(16,Math.max(2,Math.ceil(b.d/32))),cw=b.w/nx,cd=b.d/nz,n=16,radius=Math.min(cw,cd)*.25;
+  // Circular holes with equal diameter in both axes. The flat sheet has no
+  // internal side walls or cell seams; only hole walls and the outer perimeter.
   for(let x=0;x<nx;x++)for(let z=0;z<nz;z++){
-   const start=vertices.length,x0=x*cw,z0=z*cd,mx=cw*.23,mz=cd*.23;
-   for(const y of [0,b.h])for(const ring of [0,1])for(const [px,pz]of [[x0+ring*mx,z0+ring*mz],[x0+cw-ring*mx,z0+ring*mz],[x0+cw-ring*mx,z0+cd-ring*mz],[x0+ring*mx,z0+cd-ring*mz]])vertices.push([px,y,pz]);
-   for(let k=0;k<4;k++){const j=(k+1)%4;for(const face of [[k,j,j+4,k+4],[k+8,k+12,j+12,j+8],[k,k+8,j+8,j],[k+4,j+4,j+12,k+12]])surfaces.push(face.map(i=>start+i));}
+   const start=vertices.length,cx=(x+.5)*cw,cz=(z+.5)*cd;
+   for(const y of [0,b.h])for(const inner of [false,true])for(let i=0;i<n;i++){const a=i*2*Math.PI/n,co=Math.cos(a),si=Math.sin(a),square=1/Math.max(Math.abs(co),Math.abs(si));vertices.push([cx+co*(inner?radius:cw/2*square),y,cz+si*(inner?radius:cd/2*square)]);}
+   for(let i=0;i<n;i++){const j=(i+1)%n;for(const face of [[i,j,j+n,i+n],[i+2*n,i+3*n,j+3*n,j+2*n],[i+n,j+n,j+3*n,i+3*n]])surfaces.push(face.map(k=>start+k));
+    const a=vertices[start+i],b0=vertices[start+j];if([0,b.w].some(v=>Math.abs(a[0]-v)<1e-7&&Math.abs(b0[0]-v)<1e-7)||[0,b.d].some(v=>Math.abs(a[2]-v)<1e-7&&Math.abs(b0[2]-v)<1e-7))surfaces.push([i,i+2*n,j+2*n,j].map(k=>start+k));
+   }
   }return {vertices,surfaces};
+ }
+ if(b.shape==='entryPanel'){
+  const bevel=Math.min(.8,b.h/3,b.w/8,b.d/8),vertices=[];
+  for(const [y,inset]of [[0,bevel],[bevel,0],[b.h,0]])for(const [x,z]of [[inset,inset],[b.w-inset,inset],[b.w-inset,b.d-inset],[inset,b.d-inset]])vertices.push([x,y,z]);
+  return {vertices,surfaces:[[0,3,2,1],[8,9,10,11],...Array.from({length:8},(_,i)=>{const row=Math.floor(i/4)*4,k=i%4,j=(k+1)%4;return [row+k,row+j,row+j+4,row+k+4];})]};
  }
  if(b.shape==='meterTube'){
   const vertices=[],surfaces=[],n=24,r=b.w/2,t=2,ys=[0,b.h*(b.cutout==='lower'?.7:.2),b.h*(b.cutout==='lower'?.8:.3),b.h];
