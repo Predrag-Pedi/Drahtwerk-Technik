@@ -23,3 +23,7 @@ Die Oberfläche wurde mit einer isolierten, bereits angemeldeten Test-Sitzung un
 ## Noch nicht bereitgestellt
 
 Kein Kundenserver, kein produktives Betreiberkonto, kein Codespace und keine Zahlungsabwicklung wurden eingerichtet. Die Codespaces-Konfiguration und die Anleitung stehen in `docs/FIRMENPORTAL.md`. Der Betrieb auf GitHub Pages bleibt die lokale Einzelplatzversion. Der kommerzielle Serverbetrieb benötigt eigenes HTTPS-Hosting, Sicherungen und ein Sicherheitsreview. Keine Kundendaten, Zugangsdaten, Datenbanken oder Browserbilder sind Teil dieses Pull Requests.
+
+## Ergänzung: gemeinsame GitHub-Testphase
+
+Automatischer Codespaces-Start und Wiederstart ergänzt. Die Portfreigabe wird nicht automatisch geändert; es werden keine Konten angelegt. Eigene Konten bleiben über den vorhandenen Login verpflichtend. Die Anleitung unterscheidet Besitzerzugriff, Organisationszugriff und öffentliche Loginseite mit geschützter Anwendung. Erneuter Plattformlauf: 19 Tests bestanden, einschliesslich HTTPS-/Origin-Konfiguration und inaktivem Codespaces-Hook ausserhalb Codespaces. Die gesamte Suite umfasst nun 645 Tests. Ein tatsächlicher Codespace und eine Mitarbeiterfreigabe wurden weiterhin nicht eingerichtet.

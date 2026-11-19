@@ -26,7 +26,7 @@ export function createApp({db,root,origin,secure=origin.startsWith('https:'),clo
   try{
    if(req.headers.host!==allowed.host)fail(400,'Unbekannter Host.');
    const url=new URL(req.url,origin),path=decodeURIComponent(url.pathname),method=req.method;
-   if(path==='/health'&&method==='GET')return json(res,{ok:true});
+   if(path==='/health'&&method==='GET')return json(res,{ok:true,service:'company-planning-platform'});
    if(path==='/platform/runtime.js'&&method==='GET'){res.setHeader('Content-Type','text/javascript');return res.end('globalThis.__companyMode=true;');}
    if(path.startsWith('/api/')){
     if(!['GET','POST','PUT','PATCH','DELETE'].includes(method))fail(405,'Methode nicht erlaubt.');
