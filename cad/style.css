@@ -123,3 +123,22 @@
 .cabinet-config-success{color:#167144}.cabinet-config-preview h3{margin-top:0}
 
 .entry-summary{display:flex;flex-wrap:wrap;gap:4px 20px;max-height:62px;overflow:auto;margin:0 0 8px;color:#486175;font-size:12px}.entry-summary span{display:block}
+
+/* Macro controls are part of the library, never a floating dialog. */
+.macro-sidebar{padding:12px;margin:10px 0 16px;background:#fff;border:1px solid #b8cce6;border-radius:6px;box-shadow:0 2px 8px #183d6510}
+.macro-heading{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;color:#55708e;font-size:12px;font-weight:700}
+#editor .macro-heading button{font-size:12px;padding:4px 6px;min-height:28px}
+.macro-sidebar>[data-macro-title]{display:block;font-size:14px;line-height:1.4;overflow-wrap:anywhere;color:#193b5f}
+.macro-config{display:grid;grid-template-columns:minmax(60px,1fr) minmax(125px,1.5fr);gap:12px;align-items:start;margin:12px 0}
+[data-macro-preview]{display:flex;justify-content:center;overflow:hidden;max-height:155px;padding:3px}
+.macro-field{display:block;font-size:13px;color:#526d88;margin-bottom:8px}
+#editor .macro-field input{margin-top:4px;font-size:14px;padding:6px 8px;min-height:32px}
+.macro-sidebar details{font-size:13px;margin:10px 0;color:#526d88}
+.macro-sidebar summary{cursor:pointer;padding:5px 0}
+[data-macro-extra]{max-height:230px;overflow:auto;margin-top:8px}
+.macro-label{display:block;font-size:13px;font-weight:600;margin:12px 0 7px}
+.macro-path-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+#editor .macro-path-grid button{padding:6px;min-height:36px;font-size:14px;border-color:#bdd0ec;background:#edf4ff;color:#185ac5}
+#editor [data-macro-manual]{width:100%;font-size:14px;margin-top:10px;min-height:36px}
+[data-macro-status]{font-size:12px;line-height:1.5;margin:8px 0 0;color:#526d88}
+[data-macro-status].macro-error{color:#a13535}
