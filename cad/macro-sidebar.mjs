@@ -1,11 +1,11 @@
-import {protectionPicker} from './protection-picker.mjs?v=20261119-6';
-import {protectionFields} from './protection-fields.mjs?v=20261119-6';
-import {terminalBands} from './terminal-markers.mjs?v=20261119-6';
-import {templateFit} from './template-fit.mjs?v=20261119-6';
-import {isSchemaMacro,macroAtPath} from './macro-workflow.mjs?v=20261119-6';
-import {macroFields,macroBindings,outgoingFields,createMacroDraft,setMacroValue,terminalForCable,numericValue,sectionForCurrent,initializeMacroArticles,validateMacroArticles} from './macro-config.mjs?v=20261119-6';
-import {templateMarkup} from './template.mjs?v=20261119-6';
-import {libraryName,libraryFacets,searchText} from './library.mjs?v=20261119-6';
+import {protectionPicker} from './protection-picker.mjs?v=20261119-7';
+import {protectionFields} from './protection-fields.mjs?v=20261119-7';
+import {terminalBands} from './terminal-markers.mjs?v=20261119-7';
+import {templateFit} from './template-fit.mjs?v=20261119-7';
+import {isSchemaMacro,macroAtPath} from './macro-workflow.mjs?v=20261119-7';
+import {macroFields,macroBindings,outgoingFields,createMacroDraft,setMacroValue,terminalForCable,numericValue,sectionForCurrent,initializeMacroArticles,validateMacroArticles} from './macro-config.mjs?v=20261119-7';
+import {templateMarkup} from './template.mjs?v=20261119-7';
+import {templateName,libraryName,libraryFacets,searchText} from './library.mjs?v=20261119-7';
 
 // All choices are drafts until inserted. Each placement receives a fresh copy.
 export function macroSidebar(root,{manual,place,changed,currentPage,choose,getPercent,setPercent}){
@@ -84,7 +84,7 @@ export function macroSidebar(root,{manual,place,changed,currentPage,choose,getPe
  return {
   select(t){
    if(template)drafts.set(template.id,{draft:structuredClone(draft),percent:getPercent()});template=t;const saved=drafts.get(t.id);draft=initializeMacroArticles(t,createMacroDraft(t,saved?.draft));fields=macroFields(t);bindings=macroBindings(t);setPercent(saved?.percent||100);
-   fieldSearch.value='';$('[data-macro-more]').open=false;$('.macro-scroll').scrollTop=0;$('[data-macro-terminal-label]').hidden=!terminalBands(t).length;root.hidden=false;title.textContent=libraryName(t.name);$('[data-macro-meta]').textContent=libraryFacets(t).group;
+   fieldSearch.value='';$('[data-macro-more]').open=false;$('.macro-scroll').scrollTop=0;$('[data-macro-terminal-label]').hidden=!terminalBands(t).length;root.hidden=false;title.textContent=templateName(t);$('[data-macro-meta]').textContent=libraryFacets(t).group;
    $('[data-macro-reset]').hidden=!fields.length&&!terminalBands(t).length;build();showStatus(isSchemaMacro(t)?'Werte wählen und Strompfad anklicken.':'Mit der Maus platzieren.');update();
   },update,
   sideFor(t){return t?.id===template?.id?draft.side:'original';},

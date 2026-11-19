@@ -12,7 +12,7 @@ const details=JSON.parse(fs.readFileSync(new URL('../cad/template-details.json',
 const template=id=>{const t=JSON.parse(fs.readFileSync(new URL(`../cad/templates/${id}.json`,import.meta.url)));return {...t,details:structuredClone(details[id]||t.details)};};
 test('catalogue stores source-backed article tuples, including uncommon currents and distinct fault-current types',()=>{
  assert.equal(new Set(protectionArticles.map(a=>a.id)).size,protectionArticles.length);assert.ok(protectionArticles.length>=600);
- for(const a of protectionArticles){assert.ok(a.current>0&&a.article&&a.source&&a.eldas,a.id);assert.match(a.poles,/^[1-4]P(?:\+N)?$/);if(a.kind==='fi'){assert.equal(a.curve,undefined);assert.equal(a.icn,undefined);}else assert.match(a.curve,/^[BCD]$/);if(a.kind!=='ls')assert.ok(a.residual>0&&a.rcdType);}
+ for(const a of protectionArticles){assert.ok(a.current>0&&a.article&&a.source&&(a.eldas||a.manufacturer==='abb'||['eaton','siemens'].includes(a.manufacturer)),a.id);assert.match(a.poles,/^[1-4]P(?:\+N)?$/);if(a.kind==='fi'){assert.equal(a.curve,undefined);assert.equal(a.icn,undefined);}else assert.match(a.curve,/^[BCDEKZ]$/);if(a.kind!=='ls')assert.ok(a.residual>0&&a.rcdType);}
  const h=articleById('hager:ACA913C');assert.deepEqual([h.current,h.curve,h.residual,h.rcdType,h.icn],[13,'C',10,'A',6]);
  assert.equal(articleById('hager:CPA640C').selective,true);assert.equal(articleById('schneider:A9R31480').current,80); // live feature, not erroneous 63 A list caption
  assert.equal(articleById('schneider:A9P54732').icu,10);assert.equal(articleById('schneider:A9P54732').icn,6);
@@ -21,7 +21,7 @@ test('catalogue stores source-backed article tuples, including uncommon currents
 test('FI, FI/LS and LS have independent legal combinations; 3P+N and protected 4P are not interchangeable',()=>{
  const fi=protectionFields(template('tl-0195'))[0],fils=protectionFields(template('tl-0032'))[0],ls=protectionFields(template('tl-0025'))[0];
  assert.deepEqual([fi.kind,fils.kind,ls.kind],['fi','fils','ls']);assert.ok(!compatibleArticles(fi).some(a=>a.current===13));
- assert.ok(!compatibleArticles(fils).some(a=>a.current===63||a.curve==='D'));assert.ok(compatibleArticles(ls).some(a=>a.current===32&&a.curve==='D'));
+ assert.ok(!compatibleArticles(fils).some(a=>a.current===63||a.curve==='Z'));assert.ok(compatibleArticles(ls).some(a=>a.current===32&&a.curve==='D'));
  const three=protectionFields(template('tl-0028'))[0];assert.ok(!compatibleArticles(three).some(a=>a.id==='hager:ADM463C'));
  assert.ok(!matchingArticles(template('tl-0032'),fils,{t4:'32A',t5:'10mA',t6:'D',t7:'A'}).length);
 });
@@ -54,4 +54,25 @@ test('all original macros can be inspected without inventing a match for unsuppo
  const catalog=JSON.parse(fs.readFileSync(new URL('../cad/templates/catalog.json',import.meta.url)));let covered=0,unmatched=0;
  for(const item of catalog.items.filter(t=>t.category==='Schema'&&/^Makros\//.test(t.source))){const t=template(item.id),d=initializeMacroArticles(t,createMacroDraft(t));for(const p of protectionFields(t)){covered++;if(d.articles[p.key])assert.ok(matchingArticles(t,p,d.values).some(a=>a.id===d.articles[p.key]),item.name);else unmatched++;}}
  assert.ok(covered>40);assert.ok(unmatched<20);
+});
+test('new drafts are neutral and explicit manufacturer binding can be removed without losing electrical values',()=>{
+ const t=template('tl-0032'),d=initializeMacroArticles(t,createMacroDraft(t)),e={template:t};assert.equal(d.manufacturerBound['4F1'],false);applyMacroDraft(e,d);
+ assert.equal(articleForFunction(e,'4F1'),null);assert.equal(e.functions['4F1'].manufacturer,'auto');assert.ok(e.functions['4F1'].protectionSpecId);
+ selectMacroArticle(t,d,'4F1','hager:ADA920C');applyMacroDraft(e,d);assert.equal(articleForFunction(e,'4F1').article,'ADA920C');
+ selectMacroArticle(t,d,'4F1','hager:ADA920C',{bind:false});applyMacroDraft(e,d);assert.equal(e.functions['4F1'].protectionArticleId,undefined);assert.equal(e.functions['4F1'].manufacturer,'auto');assert.equal(e.textEdits.t4,'20A');
+ const doc=project();doc.pages[1].elements.push(macroAtPath(doc.pages[1],t,1,{draft:d}));const restored=validateProject(JSON.parse(JSON.stringify(doc)));assert.equal(restored.pages[1].elements[0].functions['4F1'].protectionSpecId,'hager:ADA920C');
+ const rows=reportRows(restored,'devices');assert.ok(!rows.some(row=>row.includes('ADA920C')));
+});
+test('neutral FI clears a previously selected SKU field and preserves manual cable text',()=>{
+ const t=template('tl-0196'),d=initializeMacroArticles(t,createMacroDraft(t)),e={template:t};selectMacroArticle(t,d,'F','schneider:A9R25463');applyMacroDraft(e,d);assert.equal(e.textEdits.t14,'A9R25463');
+ selectMacroArticle(t,d,'F','schneider:A9R25463',{bind:false});applyMacroDraft(e,d);assert.equal(e.textEdits.t14,'');assert.equal(e.textEdits.t11,'63A');assert.equal(e.functions.F.protectionArticleId,undefined);
+});
+test('additional video variants have exact manufacturer evidence and retain their polarity',()=>{
+ for(const curve of ['K','Z'])assert.ok(compatibleArticles({kind:'ls',poles:'1P+N'}).some(a=>a.curve===curve));
+ assert.equal(articleById('hager:HTN620E').curve,'E');assert.equal(articleById('hager:HTN620E').poles,'3P+N');
+ assert.ok(compatibleArticles({kind:'fils',poles:'1P+N'}).some(a=>a.current===4));
+ assert.ok(compatibleArticles({kind:'fils',poles:'1P+N'}).some(a=>a.rcdType==='F'));
+ assert.equal(articleById('eaton:168276').curve,'D');assert.equal(articleById('hager:AEX466C').residual,100);
+ assert.equal(articleById('schneider:A9Z61440').rcdType,'B-SI');assert.equal(articleById('schneider:A9Z51440').rcdType,'B-EV');
+ assert.ok(compatibleArticles({kind:'fi',poles:'3P+N'}).some(a=>a.rcdType==='F'));
 });

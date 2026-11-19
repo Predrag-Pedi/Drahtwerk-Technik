@@ -1,5 +1,5 @@
-import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261119-6';
-import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261119-6';
+import {defaultConfig,validateDispoConfig,distributionTypes} from './dispo.mjs?v=20261119-7';
+import {buildAutomaticDispo} from './dispo-auto.mjs?v=20261119-7';
 // Only a proven capacity failure may offer a reduction; never change the
 // saved page or reserve until the complete alternative has been approved.
 export async function editAutomaticDispo(doc,p,apply,confirmReduction=()=>false,build=null){

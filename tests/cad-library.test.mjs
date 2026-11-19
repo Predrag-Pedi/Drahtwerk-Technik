@@ -26,3 +26,15 @@ test('macro category excludes individual symbols and name hits rank above folder
  assert.deepEqual(filterLibrary(list,{category:'Makro',query:'LS'}).map(t=>t.id),['b','a']);
  assert.deepEqual(filterLibrary(list,{category:'Dispo',query:'LS'}).map(t=>t.id),['c']);
 });
+test('current-only macro duplicates collapse while aliases, favourites and recent entries stay searchable',async()=>{
+ const fs=await import('node:fs'),{groupedTemplates,templateName,canonicalTemplateId}=await import('../cad/library.mjs');
+ const catalog=JSON.parse(fs.readFileSync(new URL('../cad/templates/catalog.json',import.meta.url))).items,grouped=groupedTemplates(catalog);
+ assert.equal(grouped.length,catalog.length-9);assert.equal(canonicalTemplateId('tl-0035'),'tl-0032');
+ const family=grouped.find(t=>t.id==='tl-0028');assert.equal(family.name,'FI LS 3LNPE');assert.equal(family.aliases.length,4);
+ assert.ok(!grouped.some(t=>t.id==='tl-0031'));assert.ok(grouped.some(t=>t.id==='tl-0033'));assert.ok(grouped.some(t=>t.id==='tl-0104'));
+ assert.equal(templateName(catalog.find(t=>t.id==='tl-0035')),'FI LS L1NPE');
+ assert.deepEqual(filterLibrary(catalog,{query:'FI LS L1NPE 16A',category:'Makro'}).map(t=>t.id),['tl-0032']);
+ assert.deepEqual(filterLibrary(catalog,{scope:'favorites',favorites:['tl-0035']}).map(t=>t.id),['tl-0032']);
+ assert.deepEqual(filterLibrary(catalog,{scope:'recent',recent:['tl-0036','tl-0035','tl-0032']}).map(t=>t.id),['tl-0033','tl-0032']);
+ assert.equal(catalog.find(t=>t.id==='tl-0035').name,'531_FI_LS_L1NPE_16A');
+});

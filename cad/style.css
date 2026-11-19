@@ -235,3 +235,6 @@
 #editor :is(#macroSidebar,#inspector) .macro-article .macro-choice-row button[aria-pressed=true]{background:#e3eeff;color:#154fb1;border-color:#447ee9;box-shadow:inset 0 0 0 1px #447ee9}
 #editor .macro-article-details .macro-field{display:block;margin:0}
 #editor .macro-article-details select{max-width:100%;white-space:normal}
+#editor .macro-manufacturer-toggle{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;margin:3px 0}
+#editor .macro-manufacturer-toggle input{width:16px;height:16px;min-height:0;margin:0;accent-color:#2463eb}
+#editor :is(#macroSidebar,#inspector) .macro-article .macro-choice-row button:disabled{opacity:.45;cursor:not-allowed;background:#f2f4f7;box-shadow:none}

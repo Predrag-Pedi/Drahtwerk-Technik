@@ -1,6 +1,6 @@
-import {protectionFields} from './protection-fields.mjs?v=20261119-6';
-import {articleById,compatibleArticles,matchingArticles,preferredArticle,articleValue} from './protection-catalog.mjs?v=20261119-6';
-import {functionData} from './references.mjs?v=20261119-6';
+import {protectionFields} from './protection-fields.mjs?v=20261119-7';
+import {articleById,compatibleArticles,matchingArticles,preferredArticle,articleValue} from './protection-catalog.mjs?v=20261119-7';
+import {functionData} from './references.mjs?v=20261119-7';
 
 // Drahtwerk's supplied table, not a general ampacity calculation. No
 // interpolation for ratings absent from that table (e.g. 50 A or 400 A).
@@ -86,7 +86,9 @@ export function applyMacroValues(e,values={}){
 export function applyMacroDraft(e,draft){
  validateMacroArticles(e.template,draft);
  applyMacroValues(e,draft.values);
- for(const [key,id]of Object.entries(draft.articles||{})){if(!id)continue;const a=articleById(id);e.functions??={};e.functions[key]={...functionData(e,key),protectionArticleId:id,manufacturer:a.manufacturer};}
+ for(const [key,id]of Object.entries(draft.articles||{})){if(!id)continue;const a=articleById(id);e.functions??={};const data={...functionData(e,key)};delete data.protectionArticleId;delete data.protectionSpecId;
+  if(draft.manufacturerBound?.[key]!==false){data.protectionArticleId=id;data.manufacturer=a.manufacturer;}
+  else {data.protectionSpecId=id;data.manufacturer='auto';}e.functions[key]=data;}
  for(const {key,textKey} of outgoingFields(e.template)){
   const name=draft.names[key]??'';if(typeof name!=='string'||name.length>200)throw Error('Abgangname darf höchstens 200 Zeichen enthalten.');
   if(!name&&!textKey)continue;
@@ -111,19 +113,22 @@ export function extraTerminalSections(e){
 
 // Only the catalogue-aware UI opts drafts into strict article validation. Old
 // projects stay readable and do not acquire a manufacturer/article silently.
-export function selectMacroArticle(t,draft,key,id){
+export function selectMacroArticle(t,draft,key,id,{bind=true}={}){
  const profile=protectionFields(t).find(p=>p.key===key),a=articleById(id);
  if(!profile||!a||!compatibleArticles(profile).some(x=>x.id===id))throw Error('Artikel passt nicht zur Geräteart oder Polzahl der Vorlage.');
- draft.articles??={};draft.articles[key]=id;
- for(const [field,textKey]of Object.entries(profile.fields)){const value=articleValue(a,field);if(value!=='')draft.values[textKey]=String(value);}
+ draft.articles??={};draft.articles[key]=id;draft.manufacturerBound??={};draft.manufacturerBound[key]=bind;
+ for(const [field,textKey]of Object.entries(profile.fields)){
+  if(!bind&&['article','voltage'].includes(field)){draft.values[textKey]=field==='article'?'':t.details.texts.find(x=>x.key===textKey)?.text||'';continue;}
+  const value=articleValue(a,field);if(value!=='')draft.values[textKey]=String(value);
+ }
  return syncMacroCables(t,draft);
 }
 export function initializeMacroArticles(t,draft){
- draft.articles??={};
+ draft.articles??={};draft.manufacturerBound??={};
  for(const p of protectionFields(t)){
   if(draft.articles[p.key]&&matchingArticles(t,p,draft.values).some(a=>a.id===draft.articles[p.key]))continue;
   const a=preferredArticle(matchingArticles(t,p,draft.values),{series:'Clario iC40',manufacturer:/Hager/i.test(t.name)?'hager':'schneider',current:13,curve:'C',residual:30,rcdType:'A',selective:false});
-  if(a)selectMacroArticle(t,draft,p.key,a.id);else draft.articles[p.key]='';
+  if(a)selectMacroArticle(t,draft,p.key,a.id,{bind:false});else {draft.articles[p.key]='';draft.manufacturerBound[p.key]=false;}
  }
  return draft;
 }

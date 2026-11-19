@@ -1,5 +1,5 @@
-import {size} from './model.mjs?v=20261119-6';
-import {DRAW} from './geometry.mjs?v=20261119-6';
+import {size} from './model.mjs?v=20261119-7';
+import {DRAW} from './geometry.mjs?v=20261119-7';
 
 // A schema graphic may be resized explicitly; a physical part keeps its mm.
 export function templateFit(t,page,percent=100){
