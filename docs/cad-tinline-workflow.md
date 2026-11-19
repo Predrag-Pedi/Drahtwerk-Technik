@@ -28,3 +28,13 @@ Die vollständige Testausführung weist einen bereits auf dem Ausgangsstand vorh
 ## Grenzen
 
 Die neuen Assistenten ergänzen die vorhandenen Zeichenfunktionen; sie ersetzen keine vollständige TinLine-Installation. Keine automatische Kontaktbestückung aus Herstellerartikeln, kein ETS-Import, keine XLSX-Ausgabe, keine elektrische Prüfung, keine assoziative Bemassung und kein automatisches Auftrennen bestehender Leitungen durch eingesetzte Geräte. Bereits in Originalmakros eingebettete Klemmen werden nicht in native Klemmengruppen umgewandelt. PDF-Zeichnungsseiten bleiben gerastert, SVG bleibt vektorbasiert.
+
+## Makros in der linken Seitenleiste (19.11.2026)
+
+Die vorhandene Bibliothek bleibt die Quelle. Schema-Makros werden im Bereich «Makros / Vorlagen» ausgewählt und direkt dort konfiguriert. Originaltexte wie Strom, Charakteristik, Fehlerstrom, Kabel und Querschnitt sind vor der Platzierung editierbar; weitere Texte liegen in einem aufklappbaren Abschnitt. Jede Einfügung erhält eigene Textwerte, verwendet die vorhandenen automatischen Kennzeichen und bleibt mit den bisherigen Bearbeitungs- und Exportfunktionen kompatibel.
+
+Pfadtasten 0–9 richten die erste Gerätefunktion auf den gewählten Pfad aus. Die Zeichnung wird nicht verkleinert, der Seitenmassstab nicht geändert. Zu grosse Makros und Überschneidungen mit vorhandenen Vorlagen werden gemeldet; die freie Mausplatzierung bleibt verfügbar. Die Auswahl bleibt nach Einfügen, Rückgängig und Werkzeugwechsel in der Seitenleiste. Es öffnet sich kein Makrodialog. «Vorlage wechseln» führt direkt zur Suche.
+
+Die Umstellung betrifft die Bedienung der integrierten Zeichnungen. Eingebettete Abgangsklemmen bleiben in ihrer Originalgeometrie; eine echte Umschaltung oben/unten ist damit noch nicht umgesetzt. Keine automatische Prüfung, ob ein geänderter Nennstrom zum gewählten Kabelquerschnitt passt.
+
+Validierung: 415 CAD-Tests bestanden, darunter neue Prüfungen für Pfadzuordnung, vollständige LS-/WZU-Makros, getrennte Werte je Einfügung, Speichern/Import/Kopie, SVG, Blattgrenzen und kollisionsfreie Platzierung. Browserprüfung mit LS-Abgängen auf Pfad 2/4 (25 A und 63 A), Zähler/WZU auf Pfad 7, Rückgängig/Wiederholen, Kollisionsmeldung und freie Mausplatzierung mit 40 A auf Pfad 0.
