@@ -145,8 +145,6 @@
 
 #editor .macro-field select{margin-top:4px;min-height:34px;width:100%}
 .macro-field small{display:block;font-size:11px;margin-top:5px;line-height:1.45}
-[data-macro-fit]{width:100%;margin:0 0 10px}
-[data-macro-size]{max-width:110px}
 
 /* Keep discovery and placement in the same pane, with independent content scrolling. */
 #editor .left-panel{display:flex;flex-direction:column;overflow:hidden;min-height:0}
@@ -185,7 +183,6 @@
 [data-macro-fields] .macro-field-wide{grid-column:1/-1}
 #macroSidebar .macro-field{font-size:12px;margin-bottom:10px}
 #macroSidebar .macro-field input{font-size:13px}
-#macroSidebar .macro-sizing{margin:6px 0}
 #macroSidebar [data-macro-more]{border-top:1px solid #e1e7ee;margin:8px 0 0;padding-top:4px}
 [data-macro-field-search]{font-size:12px;margin:5px 0 8px}
 [data-macro-extra]{max-height:none;overflow:visible}
@@ -200,3 +197,29 @@
 .text-edit-panel .text-edit-actions button{flex:1;padding:7px 5px}
 #paper [data-template-text],#paper [data-element-text]{cursor:text}
 @media(max-width:850px){#editor .left-panel{display:none}#editor .drawing-layout.show-left .left-panel{display:flex}}
+
+/* Compact choices for the values used on every outgoing circuit. */
+#macroSidebar [data-macro-fields]{display:flex;flex-direction:column;gap:8px}
+#macroSidebar .macro-overview{margin-bottom:9px}
+#macroSidebar [data-macro-preview]{height:48px}
+#macroSidebar [data-macro-names] .macro-field{margin-bottom:8px}
+#macroSidebar .macro-field input{min-height:28px;padding:4px 7px}
+#macroSidebar .macro-choices{position:relative;min-width:0;margin:0;padding:0;border:0}
+#macroSidebar .macro-choices legend{padding:0;margin-bottom:4px;font-size:12px;color:#526d88}
+#macroSidebar .macro-choice-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+#editor #macroSidebar .macro-choice-row button{min-width:0;min-height:28px;padding:4px 5px;font-size:12px;font-weight:600;background:#f7f9fc;border-color:#d4dfec;color:#34506c}
+#editor #macroSidebar .macro-choice-row button[aria-pressed=true]{background:#e3eeff;color:#154fb1;border-color:#447ee9;box-shadow:inset 0 0 0 1px #447ee9}
+#macroSidebar .macro-choice-row:has(>button:nth-child(3):last-child){grid-template-columns:repeat(3,minmax(0,1fr))}
+#macroSidebar .macro-other-values{margin:0}
+#macroSidebar .macro-other-values[open]{margin-top:6px}
+#macroSidebar .macro-other-values>summary{position:absolute;right:0;top:-21px}
+#macroSidebar .macro-other-values summary{font-size:11px;padding:2px 0;color:#526d88}
+#macroSidebar .macro-other-values .macro-field{margin-top:6px;margin-bottom:0}
+#macroSidebar .macro-cable .macro-field{margin-bottom:4px}
+.macro-cable-info{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-size:12px}
+.macro-cable-info output{font-weight:600;flex:1;color:#294b6e}
+#editor .macro-cable-info button{min-height:24px;padding:2px 7px;font-size:11px}
+.macro-cable-info small{width:100%;font-size:11px;line-height:1.4;color:#6b7e93}
+#macroSidebar [data-macro-terminal-label]{margin-top:10px}
+#macroSidebar [data-macro-terminal-label] .macro-label{font-weight:400;color:#526d88}
+#macroSidebar [data-macro-notice]{margin:0 0 8px;font-size:11px;line-height:1.4;color:#79531c}

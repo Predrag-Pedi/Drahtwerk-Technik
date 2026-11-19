@@ -1,7 +1,7 @@
-import {isRse} from './rse.mjs?v=20261119-4';
-import {findFunction} from './references.mjs?v=20261119-4';
-import {localCircuitName} from './circuit-data.mjs?v=20261119-4';
-import {meterParentFor} from './alignment.mjs?v=20261119-4';
+import {isRse} from './rse.mjs?v=20261119-5';
+import {findFunction} from './references.mjs?v=20261119-5';
+import {localCircuitName} from './circuit-data.mjs?v=20261119-5';
+import {meterParentFor} from './alignment.mjs?v=20261119-5';
 const palette=['#1556b0','#7b2cbf','#008078','#c04a00','#00823b','#b51f54','#68521a','#42556b','#9d398e','#766800','#00668c','#974237'];
 const normal=name=>String(name||'').trim().toLocaleLowerCase('de');
 const named=name=>{const k=normal(name);return k&&!/^(reserve|zählerabgänge)$/.test(k)?k:'';};
