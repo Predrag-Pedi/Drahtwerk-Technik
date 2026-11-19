@@ -1,9 +1,9 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261119-1';
-import {snapDispo} from './drawing-tools.mjs?v=20261119-1';
-import {alignMacro} from './alignment.mjs?v=20261119-1';
-import {DRAW,BUS,MM,bounds} from './geometry.mjs?v=20261119-1';
-import {createElement,snap,symbols,size} from './model.mjs?v=20261119-1';
-import {elementMarkup} from './render.mjs?v=20261119-1';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-3';
+import {snapDispo} from './drawing-tools.mjs?v=20261119-3';
+import {alignMacro} from './alignment.mjs?v=20261119-3';
+import {DRAW,BUS,MM,bounds} from './geometry.mjs?v=20261119-3';
+import {createElement,snap,symbols,size} from './model.mjs?v=20261119-3';
+import {elementMarkup} from './render.mjs?v=20261119-3';
 export function placement(page,kind,point,grid=true,rotation=0,template=null,autoConnect=true,options={}){
  if(!point||!symbols[kind]||point.x<DRAW.left||point.x>DRAW.right||point.y<DRAW.top||point.y>DRAW.bottom)return null;
  if(kind==='template'&&!template)return null;
@@ -35,7 +35,7 @@ export function placement(page,kind,point,grid=true,rotation=0,template=null,aut
   }
   let guides=snapDispo(e,page,options.tolerance??10);if(insideBounds){const b=insideBounds,own=bounds(e,...size(e,page)),dx=Math.max(0,b.left-own.left)-Math.max(0,own.right-b.right),dy=Math.max(0,b.top-own.top)-Math.max(0,own.bottom-b.bottom);if(dx||dy){e.x+=dx;e.y+=dy;guides=null;}}if(guides)Object.defineProperty(e,'snapGuides',{value:guides,enumerable:false});
  }
- const box=bounds(e,...size(e,page));if(box.left<DRAW.left||box.right>DRAW.right||box.top<DRAW.top||box.bottom>DRAW.bottom)return null;
+ const box=bounds(e,...size(e,page));if(box.left<DRAW.left-1e-6||box.right>DRAW.right+1e-6||box.top<DRAW.top-1e-6||box.bottom>DRAW.bottom+1e-6)return null;
  if(anchor)Object.defineProperty(e,'insertionPoint',{value:{x:box.left+(box.right-box.left)*anchor[0],y:box.top+(box.bottom-box.top)*anchor[1]},enumerable:false});
  return e;
 }

@@ -142,3 +142,8 @@
 #editor [data-macro-manual]{width:100%;font-size:14px;margin-top:10px;min-height:36px}
 [data-macro-status]{font-size:12px;line-height:1.5;margin:8px 0 0;color:#526d88}
 [data-macro-status].macro-error{color:#a13535}
+
+#editor .macro-field select{margin-top:4px;min-height:34px;width:100%}
+.macro-field small{display:block;font-size:11px;margin-top:5px;line-height:1.45}
+[data-macro-fit]{width:100%;margin:0 0 10px}
+[data-macro-size]{max-width:110px}
