@@ -1,7 +1,7 @@
-import {MM,DRAW,bounds} from './geometry.mjs?v=20261119-3';
-import {createElement,snap,size} from './model.mjs?v=20261119-3';
-import {snapBox} from './drawing-tools.mjs?v=20261119-3';
-import {partSpec} from './dispo-parts.mjs?v=20261119-3';
+import {MM,DRAW,bounds} from './geometry.mjs?v=20261119-4';
+import {createElement,snap,size} from './model.mjs?v=20261119-4';
+import {snapBox} from './drawing-tools.mjs?v=20261119-4';
+import {partSpec} from './dispo-parts.mjs?v=20261119-4';
 
 // Snap the picked point, never translate the finished part away from its start.
 export function linearPartPoint(p,point,{grid=true,objectSnap=true,tolerance=8}={}){

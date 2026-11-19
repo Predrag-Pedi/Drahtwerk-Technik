@@ -1,7 +1,7 @@
-import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-3';
-import {placement} from './placement.mjs?v=20261119-3';
-import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-3';
-import {size} from './model.mjs?v=20261119-3';
+import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-4';
+import {placement} from './placement.mjs?v=20261119-4';
+import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-4';
+import {size} from './model.mjs?v=20261119-4';
 
 export const isSchemaMacro=t=>t?.category==='Schema'&&/^Makros\//i.test(t.source||'');
 // Original text keys are retained: edits use the same rendering, export and

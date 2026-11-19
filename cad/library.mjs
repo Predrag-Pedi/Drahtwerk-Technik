@@ -17,10 +17,16 @@ export function libraryFacets(t){
  if(['KNX','Gebäudeautomation'].includes(domain))group=[['Jalousie- & Storenaktoren',/jalousie|storen|rollladen|beschattung/],['Dimmaktoren & Lichtregelung',/dimm|dali|lichtreg/],['Heizungsaktoren & Raumregelung',/heiz|raumreg|raumtemp/],['Binäreingänge',/binär|binary/],['Analoge Ein- & Ausgänge',/analog/],['Schaltaktoren',/schaltaktor|schalt.?ausgang/],['Spannungsversorgung',/spannungsversorg|netzteil/],['Schnittstellen & Koppler',/schnittstelle|koppler|interface|gateway|router/],['Sensoren & Melder',/sensor|melder|wetter/],['Taster & Bedienung',/taster|bedien|display|touch/]].find(([,r])=>r.test(lower))?.[0]||'Weitere Geräte';
  return {domain,manufacturer,group};
 }
+// Treat keyboard spellings and technical separators alike (FI/LS = FI_LS,
+// Zaehler = Zähler). Name matches precede incidental folder-name matches.
+export const searchText=value=>String(value||'').toLocaleLowerCase('de').replace(/ä|ae/g,'a').replace(/ö|oe/g,'o').replace(/ü|ue/g,'u').replaceAll('ß','ss').replaceAll('²','2').replace(/[^a-z0-9]+/g,' ').trim();
+export function libraryCategory(t,category){return !category||category==='Makro'&&t.category==='Schema'&&/^Makros\//i.test(t.source||'')||t.category===category;}
 export function filterLibrary(items,{query='',category='',group='',domain='',manufacturer='',scope='all',favorites=[],recent=[]}={}){
- const words=query.trim().toLocaleLowerCase('de').split(/\s+/).filter(Boolean);
- const result=items.filter(t=>{const f=libraryFacets(t);return (!category||t.category===category)&&(!group||f.group===group||t.group===group)&&(!domain||f.domain===domain)&&(!manufacturer||f.manufacturer===manufacturer)&&(scope!=='favorites'||favorites.includes(t.id))&&(scope!=='recent'||recent.includes(t.id))&&words.every(w=>`${t.name} ${t.group} ${t.source} ${f.domain} ${f.group} ${f.manufacturer}`.toLocaleLowerCase('de').includes(w));});
- return scope==='recent'?result.sort((a,b)=>recent.indexOf(a.id)-recent.indexOf(b.id)):result;
+ const words=searchText(query).split(/\s+/).filter(Boolean),compact=value=>value.replaceAll(' ','');
+ const matches=value=>{const text=searchText(value),joined=compact(text);return words.every(w=>text.includes(w)||joined.includes(w));};
+ const result=items.filter(t=>{const f=libraryFacets(t);return libraryCategory(t,category)&&(!group||f.group===group||t.group===group)&&(!domain||f.domain===domain)&&(!manufacturer||f.manufacturer===manufacturer)&&(scope!=='favorites'||favorites.includes(t.id))&&(scope!=='recent'||recent.includes(t.id))&&matches(`${t.name} ${t.group} ${t.source} ${f.domain} ${f.group} ${f.manufacturer}`);});
+ if(scope==='recent')return result.sort((a,b)=>recent.indexOf(a.id)-recent.indexOf(b.id));
+ return words.length?result.sort((a,b)=>Number(matches(b.name))-Number(matches(a.name))):result;
 }
 export function rememberTemplate(recent,id){return [id,...recent.filter(x=>x!==id)].slice(0,24);}
 export function readLibrarySettings(storage){try{const v=JSON.parse(storage.getItem('cad-library-settings')||'{}');return {favorites:Array.isArray(v.favorites)?v.favorites.filter(x=>typeof x==='string').slice(0,2000):[],recent:Array.isArray(v.recent)?v.recent.filter(x=>typeof x==='string').slice(0,24):[]};}catch{return {favorites:[],recent:[]};}}

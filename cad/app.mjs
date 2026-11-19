@@ -1,43 +1,44 @@
-import {applyTerminalSide,terminalBands,terminalSideOptions} from './terminal-markers.mjs?v=20261119-3';
-import {templateFit} from './template-fit.mjs?v=20261119-3';
-import {macroSidebar} from './macro-sidebar.mjs?v=20261119-3';
-import {applyMacroValues,macroAtPath,isSchemaMacro} from './macro-workflow.mjs?v=20261119-3';
-import {openDispoVariants} from './dispo-variants-ui.mjs?v=20261119-3';
-import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261119-3';
-import {openDispoParts} from './dispo-parts-ui.mjs?v=20261119-3';
-import {partNames,validateManualPart} from './dispo-parts.mjs?v=20261119-3';
-import {setDispoScale} from './dispo-scale.mjs?v=20261119-3';
-import {terminalAssembly,outgoingPorts,updateTerminal} from './schema-assembly.mjs?v=20261119-3';
-import {openContacts,openReports,openPrintSelection} from './schema-workflow-ui.mjs?v=20261119-3';
-import {updateFunction} from './references.mjs?v=20261119-3';
-import {snapMove,nearestDrawingPoint,makeDimension,parallelRoutes} from './drawing-tools.mjs?v=20261119-3';
-import {tariffInspector} from './tariff-ui.mjs?v=20261119-3';
-import {isRse,rseLegend,rsePhase,setRsePhase} from './rse.mjs?v=20261119-3';
-import {protectionKind} from './circuit-data.mjs?v=20261119-3';
-import {fuseSystems,fuseNames} from './fuse-systems.mjs?v=20261119-3';
-import {reconcilePageOrder} from './page-order.mjs?v=20261119-3';
-import {addStandardPages} from './model.mjs?v=20261119-3';
-import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261119-3';
-import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261119-3';
-import {drahtwerkDemo} from './dispo.mjs?v=20261119-3';
-import {defaultConfig} from './dispo.mjs?v=20261119-3';
-import {editSiteSettings,editManualSettings} from './dispo-ui.mjs?v=20261119-3';
-import {openDispo3D} from './dispo-3d.mjs?v=20261119-3';
-import {createTextClickTracker} from './text-click.mjs?v=20261119-3';
-import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261119-3';
-import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261119-3';
-import {installNavigation} from './navigation.mjs?v=20261119-3';
-import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261119-3';
-import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261119-3';
-import {filterLibrary,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261119-3';
-import {alignMacro,alignPage} from './alignment.mjs?v=20261119-3';
-import {MM,BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261119-3';
-import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261119-3';
-import {placement,placementMarkup,snapGuidesMarkup} from './placement.mjs?v=20261119-3';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261119-3';
-import {svgPage,glyph,esc} from './render.mjs?v=20261119-3';
-import {database} from './storage.mjs?v=20261119-3';
-import {pdf,download} from './export.mjs?v=20261119-3';
+import {drawingText,applyDrawingText} from './text-edit.mjs?v=20261119-4';
+import {applyTerminalSide,terminalBands,terminalSideOptions} from './terminal-markers.mjs?v=20261119-4';
+import {templateFit} from './template-fit.mjs?v=20261119-4';
+import {macroSidebar} from './macro-sidebar.mjs?v=20261119-4';
+import {applyMacroValues,macroAtPath,isSchemaMacro} from './macro-workflow.mjs?v=20261119-4';
+import {openDispoVariants} from './dispo-variants-ui.mjs?v=20261119-4';
+import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261119-4';
+import {openDispoParts} from './dispo-parts-ui.mjs?v=20261119-4';
+import {partNames,validateManualPart} from './dispo-parts.mjs?v=20261119-4';
+import {setDispoScale} from './dispo-scale.mjs?v=20261119-4';
+import {terminalAssembly,outgoingPorts,updateTerminal} from './schema-assembly.mjs?v=20261119-4';
+import {openContacts,openReports,openPrintSelection} from './schema-workflow-ui.mjs?v=20261119-4';
+import {updateFunction} from './references.mjs?v=20261119-4';
+import {snapMove,nearestDrawingPoint,makeDimension,parallelRoutes} from './drawing-tools.mjs?v=20261119-4';
+import {tariffInspector} from './tariff-ui.mjs?v=20261119-4';
+import {isRse,rseLegend,rsePhase,setRsePhase} from './rse.mjs?v=20261119-4';
+import {protectionKind} from './circuit-data.mjs?v=20261119-4';
+import {fuseSystems,fuseNames} from './fuse-systems.mjs?v=20261119-4';
+import {reconcilePageOrder} from './page-order.mjs?v=20261119-4';
+import {addStandardPages} from './model.mjs?v=20261119-4';
+import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261119-4';
+import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261119-4';
+import {drahtwerkDemo} from './dispo.mjs?v=20261119-4';
+import {defaultConfig} from './dispo.mjs?v=20261119-4';
+import {editSiteSettings,editManualSettings} from './dispo-ui.mjs?v=20261119-4';
+import {openDispo3D} from './dispo-3d.mjs?v=20261119-4';
+import {createTextClickTracker} from './text-click.mjs?v=20261119-4';
+import {selectionKey,toggleSelection,selectionBounds,selectable,selectRectangle,materializeLines,moveSelection,deleteSelection} from './selection.mjs?v=20261119-4';
+import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,createContinuationInputs,connect,inheritBus,linked,otherEnd,referenceText,endpointKey} from './continuations.mjs?v=20261119-4';
+import {installNavigation} from './navigation.mjs?v=20261119-4';
+import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261119-4';
+import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261119-4';
+import {filterLibrary,libraryCategory,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261119-4';
+import {alignMacro,alignPage} from './alignment.mjs?v=20261119-4';
+import {MM,BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261119-4';
+import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261119-4';
+import {placement,placementMarkup,snapGuidesMarkup} from './placement.mjs?v=20261119-4';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261119-4';
+import {svgPage,glyph,esc} from './render.mjs?v=20261119-4';
+import {database} from './storage.mjs?v=20261119-4';
+import {pdf,download} from './export.mjs?v=20261119-4';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null,connectionSelection=[];
@@ -51,14 +52,25 @@ let libraryScope='all',symbolLimit=60;
 const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
 function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
-async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261119-3').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
+async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261119-4').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=enrichedDetails(e.template.id,templateDetails[e.template.id]);}
 async function hydrateDetails(){try{await loadDetails();if(doc){doc.pages.forEach(p=>p.elements.forEach(attachDetails));render();}}catch(e){toast(e.message);}}
 function editTemplateText(e,key){
- const bmk=key.startsWith('bmk:'),id=bmk?key.slice(4):key,l=e.template.details?.texts.find(l=>l.key===key);
- if(!bmk&&!l)return;const value=bmk?functionBmk(doc,current(),e,id):e.textEdits?.[key]??l.text;
- showForm(bmk?'Kennzeichen bearbeiten':'Vorlagentext bearbeiten',[{key:'text',label:bmk?'Kennzeichen (leer = automatisch)':'Text (z. B. C16 oder 25 A)',value,type:'textarea'},{key:'mode',label:'Übernehmen',value:'edit',options:[['edit','Eigenen Text verwenden'],['reset','Original / Automatik wiederherstellen']]}],data=>change(()=>{if(bmk){e.functions??={};e.functions[id]={...functionData(e,id),bmk:data.mode==='reset'?'':data.text};}else{e.textEdits??={};if(data.mode==='reset')delete e.textEdits[key];else e.textEdits[key]=data.text;}}));
+ const p=current(),spec=drawingText(doc,p,e,key);if(!spec)return;
+ const root=$('inspector');root.replaceChildren();const box=document.createElement('section');box.className='text-edit-panel';box.setAttribute('aria-label',spec.title);root.append(box);
+ const title=document.createElement('h2');title.className='inspector-title';title.textContent=spec.title;box.append(title);
+ const label=document.createElement('label');label.textContent=spec.title;const input=document.createElement('textarea');input.value=spec.value;input.maxLength=spec.maxLength||2000;label.append(input);box.append(label);
+ const hint=document.createElement('p');hint.className='hint';hint.textContent=(spec.hint?spec.hint+' ':'')+'Strg / Cmd + Enter übernimmt · Esc bricht ab.';box.append(hint);
+ const actions=document.createElement('div');actions.className='text-edit-actions';box.append(actions);
+ const apply=(reset=false)=>{if(current()?.id!==p.id||!p.elements.includes(e))return;change(()=>applyDrawingText(doc,p,e,key,input.value,{reset}));};
+ inspectorButton(actions,'Übernehmen',()=>apply()).className='primary';inspectorButton(actions,'Abbrechen',()=>inspector());
+ if(spec.reset)inspectorButton(box,spec.reset,()=>apply(true));
+ input.onkeydown=event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();inspector();}else if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();apply();}};
+ document.querySelector('.drawing-layout').classList.remove('hide-properties','focus-drawing');document.querySelector('.drawing-layout').classList.add('show-right');root.parentElement.scrollTop=0;input.focus();input.select();
 }
+// Text editing is independent of the selection mode. A drag still moves the
+// whole macro in normal mode; only a second stationary click opens this editor.
+function textTarget(target){const text=target.closest('[data-template-text],[data-element-text]'),element=target.closest('[data-element]');if(!element)return null;const e=current().elements.find(e=>e.id===element.dataset.element);const key=text?.dataset.templateText||text?.dataset.elementText||(e?.kind==='text'?'field:text':null);return key?{kind:'text',id:element.dataset.element,key}:null;}
 function showConnection(a,add=false,keep=false){
  if(!keep){if(add&&connectionSelection.every(b=>b.page===a.page)){const key=endpointKey(a);connectionSelection=connectionSelection.some(b=>endpointKey(b)===key)?connectionSelection.filter(b=>endpointKey(b)!==key):[...connectionSelection,a];}else connectionSelection=[a];}
  if(!connectionSelection.length){render();return;}a=connectionSelection[0];
@@ -85,9 +97,9 @@ function remember(){undo.push(clone(doc));if(undo.length>60)undo.shift();redo=[]
 function change(fn){remember();const before=undo.at(-1);try{fn();reconcilePageOrder(doc,before);}catch(error){doc=undo.pop();throw error;}save();render();}
 function history(direction){linearStart=null;hoverPoint=null;const from=direction==='undo'?undo:redo,to=direction==='undo'?redo:undo;if(!from.length)return;to.push(clone(doc));doc=from.pop();if(!current())pageId=doc.pages[0].id;selected=null;multi=[];wire=null;save();render();}
 function home(){const q=$('projectSearch').value.toLowerCase();$('projectCount').textContent=docs.length;const shown=docs.filter(d=>`${d.name} ${d.order} ${d.address}`.toLowerCase().includes(q)).sort((a,b)=>b.updated-a.updated);$('projectList').innerHTML=shown.length?shown.map(d=>`<div class="project-row"><span class="project-mark" aria-hidden="true">▱</span><button class="project-open" data-open="${esc(d.id)}"><strong>${esc(d.name)}</strong><small>${d.pages.length} Seiten · ${esc(d.address||'Noch keine Objektadresse')}</small></button><span class="project-number">${esc(d.order||'Ohne Auftragsnummer')}</span><button data-remove="${esc(d.id)}" class="danger" aria-label="${esc(d.name)} löschen">Löschen</button></div>`).join(''):'<div class="empty"><h3>Platz für deine nächste Zeichnung.</h3><p>Erstelle ein Projekt oder öffne das Beispiel, um den Editor kennenzulernen.</p></div>';}
-function open(d){++templateRequest;macros.clear();activeTemplate=null;linearStart=null;pendingAssembly=null;placementMetadata=null;hoverPoint=null;placementRotation=0;$('saveState').textContent='In diesem Browser gespeichert';doc=clone(d);if(doc.pages.some((p,i)=>i&&p.number<doc.pages[i-1].number)){reconcilePageOrder(doc,d,{repair:true});save();}pageId=(doc.pages.find(p=>/^disposition$/i.test(p.title.trim()))||doc.pages.find(p=>p.type==='dispo')||doc.pages[0]).id;selected=null;multi=[];tool='select';undo=[];redo=[];wire=null;$('cadHome').hidden=true;$('editor').hidden=false;loadTemplates();hydrateDetails();render();requestAnimationFrame(()=>{try{libraryWidth(Number(localStorage.getItem('cad-library-width'))||320);}catch{libraryWidth(320);}fit();});}
+function open(d){++templateRequest;macros.clear();libraryView('browse');$('resumeMacro').hidden=true;activeTemplate=null;linearStart=null;pendingAssembly=null;placementMetadata=null;hoverPoint=null;placementRotation=0;$('saveState').textContent='In diesem Browser gespeichert';doc=clone(d);if(doc.pages.some((p,i)=>i&&p.number<doc.pages[i-1].number)){reconcilePageOrder(doc,d,{repair:true});save();}pageId=(doc.pages.find(p=>/^disposition$/i.test(p.title.trim()))||doc.pages.find(p=>p.type==='dispo')||doc.pages[0]).id;selected=null;multi=[];tool='select';undo=[];redo=[];wire=null;$('cadHome').hidden=true;$('editor').hidden=false;if(!templateCatalog)$('templateCategory').value=current().type==='dispo'?'Dispo':'Makro';loadTemplates();hydrateDetails();render();requestAnimationFrame(()=>{try{libraryWidth(Number(localStorage.getItem('cad-library-width'))||320);}catch{libraryWidth(320);}fit();});}
 function setTool(t){linearStart=null;pendingAssembly=null;placementMetadata=null;measurePoints=[];placementDimensions=null;snapGuides=null;textClicks.reset();if(t!=='template')activeTemplate=null;placementRotation=0;$('templateScale').value='100';tool=t;wire=null;selected=null;multi=[];render();}
-function render(){if(!doc)return;$('view3D').hidden=current().type!=='dispo';if($('compareDispo'))$('compareDispo').hidden=current().type!=='dispo';if($('siteSizeSettings'))$('siteSizeSettings').hidden=current().type!=='dispo';if(selectionPage!==pageId){if(pendingAssembly||twoPointPart())tool='select';linearStart=null;pendingAssembly=null;placementMetadata=null;multi=[];connectionSelection=[];selectionPage=pageId;}drawingOptions();macros.update();$('projectTitle').textContent=doc.name;$('pageList').innerHTML=doc.pages.map(p=>`<button class="page-entry ${p.id===pageId?'current':''}" data-page="${p.id}"><span class="num">${p.number}</span><span><strong>${esc(p.title)}</strong><small>${{schema:'Schema',dispo:'Dispo',cover:'Deckblatt',index:'Verzeichnis'}[p.type]}</small></span></button>`).join('');$('pageCaption').innerHTML=doc.pages.map(p=>`<button data-page="${p.id}" class="${p.id===pageId?'active':''}" aria-current="${p.id===pageId?'page':'false'}">${p.number} · ${esc(p.title)}</button>`).join('');const tabs=$('pageCaption'),active=tabs.querySelector('[aria-current=page]');if(active){if(active.offsetLeft<tabs.scrollLeft)tabs.scrollLeft=active.offsetLeft;else if(active.offsetLeft+active.offsetWidth>tabs.scrollLeft+tabs.clientWidth)tabs.scrollLeft=active.offsetLeft+active.offsetWidth-tabs.clientWidth;}$('placementKeys').textContent=twoPointPart()?'Punkt 1 → Punkt 2 · Esc beenden':tool==='template'?'Klick platzieren · R drehen · Esc beenden':'Mausrad: Zoom · Mitteltaste ziehen: Ansicht';$('toolCaption').textContent=tool==='template'?activeTemplate?.name.replaceAll('_',' '):placementMetadata?.manualPart?partNames[placementMetadata.manualPart.type]+' platzieren':tool==='pan'?'Ansicht verschieben':tool==='select'?'Auswählen & verschieben':tool==='wire'?'Verbindung zeichnen':tool==='terminal-strip'?'Klemmen platzieren':pendingAssembly?.kind==='assigned-contact'?'Kontakt platzieren':(symbols[tool]?.name||tool)+' platzieren';$('undo').disabled=!undo.length;$('redo').disabled=!redo.length;for(const id of ['deleteElement','duplicateElement'])$(id).disabled=!selected;$('rotate').disabled=!symbols[tool]&&!current().elements.some(e=>e.id===selected);$('deletePage').disabled=doc.pages.length===1;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));drawPaper();inspector();$('deleteElement').disabled=!selected&&!multi.length;$('duplicateElement').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||!selected;$('rotate').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||(!symbols[tool]&&!current().elements.some(e=>e.id===selected));if(twoPointPart())$('rotate').disabled=true;}
+function render(){if(!doc)return;$('view3D').hidden=current().type!=='dispo';if($('compareDispo'))$('compareDispo').hidden=current().type!=='dispo';if($('siteSizeSettings'))$('siteSizeSettings').hidden=current().type!=='dispo';if(selectionPage!==pageId){if(pendingAssembly||twoPointPart())tool='select';linearStart=null;pendingAssembly=null;placementMetadata=null;multi=[];connectionSelection=[];selectionPage=pageId;}drawingOptions();macros.update();$('projectTitle').textContent=doc.name;$('pageList').innerHTML=doc.pages.map(p=>`<button class="page-entry ${p.id===pageId?'current':''}" data-page="${p.id}"><span class="num">${p.number}</span><span><strong>${esc(p.title)}</strong><small>${{schema:'Schema',dispo:'Dispo',cover:'Deckblatt',index:'Verzeichnis'}[p.type]}</small></span></button>`).join('');$('pageCaption').innerHTML=doc.pages.map(p=>`<button data-page="${p.id}" class="${p.id===pageId?'active':''}" aria-current="${p.id===pageId?'page':'false'}">${p.number} · ${esc(p.title)}</button>`).join('');const tabs=$('pageCaption'),active=tabs.querySelector('[aria-current=page]');if(active){if(active.offsetLeft<tabs.scrollLeft)tabs.scrollLeft=active.offsetLeft;else if(active.offsetLeft+active.offsetWidth>tabs.scrollLeft+tabs.clientWidth)tabs.scrollLeft=active.offsetLeft+active.offsetWidth-tabs.clientWidth;}$('placementKeys').textContent=twoPointPart()?'Punkt 1 → Punkt 2 · Esc beenden':tool==='template'?'Klick platzieren · R drehen · Esc beenden':'Mausrad: Zoom · Mitteltaste ziehen: Ansicht';$('toolCaption').textContent=tool==='template'?activeTemplate?.name.replaceAll('_',' '):placementMetadata?.manualPart?partNames[placementMetadata.manualPart.type]+' platzieren':tool==='pan'?'Ansicht verschieben':tool==='select'?'Auswählen · Doppelklick auf BMK / Text zum Bearbeiten':tool==='wire'?'Verbindung zeichnen':tool==='terminal-strip'?'Klemmen platzieren':pendingAssembly?.kind==='assigned-contact'?'Kontakt platzieren':(symbols[tool]?.name||tool)+' platzieren';$('undo').disabled=!undo.length;$('redo').disabled=!redo.length;for(const id of ['deleteElement','duplicateElement'])$(id).disabled=!selected;$('rotate').disabled=!symbols[tool]&&!current().elements.some(e=>e.id===selected);$('deletePage').disabled=doc.pages.length===1;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));drawPaper();inspector();$('deleteElement').disabled=!selected&&!multi.length;$('duplicateElement').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||!selected;$('rotate').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||(!symbols[tool]&&!current().elements.some(e=>e.id===selected));if(twoPointPart())$('rotate').disabled=true;}
 function syncSelection(){selected=multi.length===1&&['element','wire'].includes(multi[0].kind)?multi[0].id:null;}
 function paintSelection(){const svg=$('paper').querySelector('svg');if(!svg)return;let html='';for(const a of connectionSelection.filter(a=>a.page===pageId)){const pt=connectionPoint(doc,a);if(pt)html+=`<circle cx="${pt.x}" cy="${pt.y}" r="7" fill="#2584d030" stroke="#1767aa" stroke-width="1.5"/>`;}for(const item of multi){
  if(item.kind==='line'){const e=current().elements.find(e=>e.id===item.id),l=e&&templateLines(e.template)[item.index];if(l)html+=`<polyline points="${linePoints(e,current(),l).map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="#2463eb" stroke-width="2" vector-effect="non-scaling-stroke"/>`;}
@@ -99,7 +111,7 @@ function selectionTarget(target){if(current().type==='dispo'){const parent=targe
 function startSelection(event,pt){const hit=selectionTarget(event.target),add=event.ctrlKey||event.metaKey||event.shiftKey;event.preventDefault();if(add||!hit)textClicks.reset();
  if(!hit){drag={marquee:true,start:pt,end:pt,base:add?[...multi]:[],before:clone(doc),previous:[...multi]};if(!add)multi=[];syncSelection();}
  else if(add){multi=toggleSelection(multi,hit);syncSelection();render();return;}
- else{if(!multi.some(s=>selectionKey(s)===selectionKey(hit)))multi=[hit];syncSelection();drag={multiple:true,start:pt,last:pt,before:clone(doc),previous:clone(multi),moved:false,clickHit:hit,clickX:event.clientX,clickY:event.clientY};}
+ else{if(!multi.some(s=>selectionKey(s)===selectionKey(hit)))multi=[hit];syncSelection();drag={multiple:true,start:pt,last:pt,before:clone(doc),previous:clone(multi),moved:false,clickHit:hit,clickText:textTarget(event.target),clickX:event.clientX,clickY:event.clientY};}
  $('paper').setPointerCapture(event.pointerId);render();}
 function drawPaper(){const p=current();$('paper').innerHTML=svgPage(doc,p,{editor:true,selected,selection:multi,lineMode});$('paper').dataset.tool=tool;$('paper').style.width=W*zoom+'px';$('paper').style.height=H*zoom+'px';$('zoomLabel').value=Math.round(zoom*100)+' %';$('sheetInfo').textContent=`A3 · 420 × 297 mm${p.type==='dispo'?' · 1:'+p.scale:''}`;$('elementCount').textContent=`${p.elements.length} Elemente · ${p.wires.length} Verbindungen${p.bus?' · '+p.elements.filter(e=>e.autoConnect&&e.rotation===0).reduce((n,e)=>n+(e.template?.ports?.length||0),0)+' Auto-Anschlüsse':''}`;$('wireActions').hidden=!wire;wirePreview();drawPlacement();paintSelection();if(snapGuides)$('paper').querySelector('svg')?.insertAdjacentHTML('beforeend',snapGuidesMarkup(snapGuides));}
 function placementOptions(){const percent=Number($('templateScale').value),scaled=tool==='template'&&activeTemplate?.category==='Schema';return {anchor:current()?.type==='dispo'?$('placementAnchor').value:undefined,clip:$('objectSnap').checked,tolerance:8/zoom,dimensions:scaled?{width:activeTemplate.width*percent/100,height:activeTemplate.height*percent/100}:placementDimensions};}
@@ -108,7 +120,7 @@ const macros=macroSidebar($('macroSidebar'),{
  getPercent:()=>Number($('templateScale').value),
  setPercent(value){$('templateScale').value=String(value);drawPlacement();},
  setPageScale(value){change(()=>setDispoScale(current(),value));},
- choose(){$('templateSearch').focus();$('templateSearch').select();$('templateSearch').scrollIntoView({block:'center'});},
+ choose(){libraryView('browse');$('templateSearch').focus();$('templateSearch').select();},
  manual(t){activeTemplate=t;const scale=$('templateScale').value;setTool('template');$('templateScale').value=scale;macros.update();document.querySelector('.drawing-layout').classList.remove('show-left');},
  changed(t){if(activeTemplate?.id===t.id)drawPlacement();},
  place(t,path,values){const e=macroAtPath(current(),t,path,{values,percent:Number($('templateScale').value),autoConnect:$('autoConnect').checked,terminalSide:macros.sideFor(t)});change(()=>{current().elements.push(clone(e));selected=e.id;multi=[];hoverPoint=null;tool='select';});librarySettings.recent=rememberTemplate(librarySettings.recent,t.id);saveLibrarySettings();renderTemplates();return `Auf Pfad ${path} eingesetzt. Nächsten Pfad wählen oder Makro wechseln.`;}
@@ -237,22 +249,34 @@ function symbolList(){
 }
 
 
-async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261119-3');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
+let libraryScroll=0;
+function libraryView(mode){
+ const browsing=mode==='browse';
+ if(!browsing)libraryScroll=$('libraryResults').scrollTop;
+ $('libraryBrowse').hidden=!browsing;$('macroSidebar').hidden=browsing;
+ $('resumeMacro').hidden=!browsing||!$('macroSidebar').querySelector('[data-macro-title]').textContent;
+ if(browsing){$('libraryResults').scrollTop=libraryScroll;if(tool==='template'){tool='select';hoverPoint=null;if(doc)render();}}
+}
+$('resumeMacro').onclick=()=>libraryView('macro');
+$('toggleLibraryFilters').onclick=()=>{const hidden=!$('libraryFilters').hidden;$('libraryFilters').hidden=hidden;$('toggleLibraryFilters').setAttribute('aria-expanded',String(!hidden));};
+function clearLibraryFilters(){for(const id of ['templateSearch','templateCategory','templateDomain','templateManufacturer','templateGroup'])$(id).value='';setLibraryScope('all');}
+$('clearLibraryFilters').onclick=clearLibraryFilters;
+async function loadTemplates(){if(templateCatalog){renderTemplates();symbolList();return;}$('templateStatus').textContent='Vorlagen werden geladen …';try{const r=await fetch('cad/templates/catalog.json?v=20261119-4');if(!r.ok)throw Error('Vorlagenbibliothek nicht erreichbar');templateCatalog=await r.json();renderTemplates();symbolList();}catch(e){$('templateStatus').textContent=e.message;$('symbolStatus').textContent=e.message;}}
 function renderTemplates(){
  const category=$('templateCategory').value,previous=$('templateGroup').value;
- for(const [id,key,label] of [['templateDomain','domain','Alle Fachbereiche'],['templateManufacturer','manufacturer','Alle Hersteller']]){const old=$(id).value,values=[...new Set(templateCatalog.items.filter(t=>!category||t.category===category).map(t=>libraryFacets(t)[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'de'));$(id).innerHTML=`<option value="">${label}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');$(id).value=values.includes(old)?old:'';}
+ for(const [id,key,label] of [['templateDomain','domain','Alle Fachbereiche'],['templateManufacturer','manufacturer','Alle Hersteller']]){const old=$(id).value,values=[...new Set(templateCatalog.items.filter(t=>libraryCategory(t,category)).map(t=>libraryFacets(t)[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'de'));$(id).innerHTML=`<option value="">${label}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');$(id).value=values.includes(old)?old:'';}
  const groups=[...new Set(filterLibrary(templateCatalog.items,{category,domain:$('templateDomain').value,manufacturer:$('templateManufacturer').value}).map(t=>libraryFacets(t).group))].sort((a,b)=>libraryName(a).localeCompare(libraryName(b),'de'));
  $('templateGroup').innerHTML='<option value="">Alle Gruppen</option>'+groups.map(g=>`<option value="${esc(g)}">${esc(libraryName(g))}</option>`).join('');$('templateGroup').value=groups.includes(previous)?previous:'';
  const items=filterLibrary(templateCatalog.items,{query:$('templateSearch').value,category,domain:$('templateDomain').value,manufacturer:$('templateManufacturer').value,group:$('templateGroup').value,scope:libraryScope,...librarySettings});
- $('templateStatus').textContent=`${items.length} Vorlagen · ${Math.min(items.length,templateLimit)} angezeigt`;
+ $('templateStatus').textContent=`${items.length} Treffer · ${Math.min(items.length,templateLimit)} angezeigt`;const filterCount=['templateDomain','templateManufacturer','templateGroup'].filter(id=>$(id).value).length;$('toggleLibraryFilters').textContent=filterCount?`Filter (${filterCount})`:'Filter';$('clearLibraryFilters').hidden=!filterCount&&!$('templateSearch').value&&libraryScope==='all';
  $('templateList').innerHTML=items.slice(0,templateLimit).map(t=>`<div class="template-tile"><button class="favorite-toggle" data-favorite="${esc(t.id)}" aria-label="${esc(t.name)} als Favorit" aria-pressed="${librarySettings.favorites.includes(t.id)}" title="Favorit merken">${librarySettings.favorites.includes(t.id)?'★':'☆'}</button><button class="template-card ${activeTemplate?.id===t.id?'active':''}" data-template="${esc(t.id)}" title="${esc(t.name)}"><span class="template-picture"><img src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27/%3E" data-preview-id="${esc(t.id)}" loading="lazy" alt="Vorschau ${esc(t.name)}"></span><strong>${esc(libraryName(t.name))}</strong><small>${esc(libraryFacets(t).group)}${libraryFacets(t).manufacturer?' · '+esc(libraryFacets(t).manufacturer):''} · ${t.width} × ${t.height} mm</small><span class="template-badge">${t.supplyPorts?'↳ Sammelschienen · ':''}${t.liveLabels?'Autom. Kennzeichen':esc(t.category)}</span></button></div>`).join('')||`<div class="library-empty"><strong>${libraryScope==='favorites'?'Noch keine passenden Favoriten':libraryScope==='recent'?'Noch keine passenden Vorlagen verwendet':'Keine passende Vorlage'}</strong><p>${libraryScope==='favorites'?'Mit ☆ auf einer Vorlage legst du sie hier ab.':'Suche oder Filter ändern. Unter «Alle» findest du die gesamte Bibliothek.'}</p><button id="resetLibrary">Alle Vorlagen anzeigen</button></div>`;
  $('moreTemplates').hidden=items.length<=templateLimit;
- $('resetLibrary')?.addEventListener('click',()=>{$('templateSearch').value='';$('templateCategory').value='';$('templateGroup').value='';$('templateDomain').value='';$('templateManufacturer').value='';setLibraryScope('all');});
+ $('resetLibrary')?.addEventListener('click',clearLibraryFilters);
 }
-function setLibraryScope(scope){libraryScope=scope;templateLimit=40;document.querySelectorAll('[data-scope]').forEach(b=>{b.classList.toggle('active',b.dataset.scope===scope);b.setAttribute('aria-pressed',b.dataset.scope===scope);});if(templateCatalog)renderTemplates();}
+function setLibraryScope(scope){++templateRequest;libraryScope=scope;templateLimit=40;libraryView('browse');$('libraryResults').scrollTop=0;document.querySelectorAll('[data-scope]').forEach(b=>{b.classList.toggle('active',b.dataset.scope===scope);b.setAttribute('aria-pressed',b.dataset.scope===scope);});if(templateCatalog)renderTemplates();}
 document.querySelectorAll('[data-scope]').forEach(b=>b.onclick=()=>setLibraryScope(b.dataset.scope));
-$('templateSearch').oninput=$('templateCategory').onchange=$('templateDomain').onchange=$('templateManufacturer').onchange=$('templateGroup').onchange=()=>{templateLimit=40;if(templateCatalog)renderTemplates();};$('moreTemplates').onclick=()=>{templateLimit+=40;renderTemplates();};
-$('templateList').onclick=async event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;librarySettings.favorites=librarySettings.favorites.includes(id)?librarySettings.favorites.filter(x=>x!==id):[...librarySettings.favorites,id];saveLibrarySettings();renderTemplates();return;}const b=event.target.closest('[data-template]');if(!b)return;const request=++templateRequest;b.disabled=true;try{const r=await fetch(`cad/templates/${b.dataset.template}.json?v=20261119-3`);if(!r.ok)throw Error('Vorlage nicht erreichbar');const template=validateTemplate(await r.json());await loadDetails();if(templateDetails[template.id])template.details=enrichedDetails(template.id,templateDetails[template.id]);if(request!==templateRequest)return;activeTemplate=template;setTool('template');macros.select(template);if(isSchemaMacro(template)){tool='select';hoverPoint=null;document.querySelector('[data-left=templates]').click();}renderTemplates();render();$('macroSidebar').scrollIntoView({block:'start'});if(!isSchemaMacro(template))document.querySelector('.drawing-layout').classList.remove('show-left');}catch(e){toast(e.message)}finally{b.disabled=false;}};
+$('templateSearch').oninput=$('templateCategory').onchange=$('templateDomain').onchange=$('templateManufacturer').onchange=$('templateGroup').onchange=()=>{++templateRequest;templateLimit=40;libraryView('browse');if(templateCatalog)renderTemplates();$('libraryResults').scrollTop=0;};$('moreTemplates').onclick=()=>{templateLimit+=40;renderTemplates();};
+$('templateList').onclick=async event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;librarySettings.favorites=librarySettings.favorites.includes(id)?librarySettings.favorites.filter(x=>x!==id):[...librarySettings.favorites,id];saveLibrarySettings();renderTemplates();return;}const b=event.target.closest('[data-template]');if(!b)return;const request=++templateRequest;b.disabled=true;try{const r=await fetch(`cad/templates/${b.dataset.template}.json?v=20261119-4`);if(!r.ok)throw Error('Vorlage nicht erreichbar');const template=validateTemplate(await r.json());await loadDetails();if(templateDetails[template.id])template.details=enrichedDetails(template.id,templateDetails[template.id]);if(request!==templateRequest)return;const previousPercent=Number($('templateScale').value);activeTemplate=template;setTool('template');$('templateScale').value=previousPercent;macros.select(template);if(isSchemaMacro(template)){tool='select';hoverPoint=null;document.querySelector('[data-left=templates]').click();}librarySettings.recent=rememberTemplate(librarySettings.recent,template.id);saveLibrarySettings();renderTemplates();render();libraryView('macro');$('resumeMacro').textContent='Zur Vorlage: '+libraryName(template.name)+' →';if(!isSchemaMacro(template))document.querySelector('.drawing-layout').classList.remove('show-left');}catch(e){toast(e.message)}finally{b.disabled=false;}};
 
 $('symbolSearch').oninput=$('symbolGroup').onchange=()=>{symbolLimit=60;symbolList();};$('moreSymbols').onclick=()=>{symbolLimit+=60;symbolList();};$('symbolList').onclick=e=>{if(e.target.closest('[data-template]')){$('templateList').onclick(e);return;}const b=e.target.closest('[data-symbol]');if(b){if(current().type==='dispo'&&['cabinet','duct','rail'].includes(b.dataset.symbol))insertDispoPart(b.dataset.symbol);else setTool(b.dataset.symbol);document.querySelector('.drawing-layout').classList.remove('show-left');}};
 document.querySelectorAll('[data-left]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-left]').forEach(x=>x.classList.toggle('active',x===b));$('pagesPanel').hidden=b.dataset.left!=='pages';$('symbolsPanel').hidden=b.dataset.left!=='symbols';$('templatesPanel').hidden=b.dataset.left!=='templates';if(['templates','symbols'].includes(b.dataset.left))loadTemplates();});
@@ -291,15 +315,14 @@ $('paper').onpointerdown=event=>{if(event.button!==0||tool==='pan')return;const 
 $('paper').onpointermove=event=>{if(navigation.isPanning()||tool==='pan')return;const pt=point(event);hoverPoint=twoPointPart()?linearPointer(event):tool==='dimension'?measurePoint(event):pt;$('cursorPosition').textContent=`Pfad ${pathAt(pt.x)} · X ${Math.round(pt.x)} · Y ${Math.round(pt.y)}`;if(drag?.autoPort!==undefined){const phase=Object.keys(BUS).find(k=>Math.abs(BUS[k]-pt.y)<7);if(phase){const e=current().elements.find(e=>e.id===drag.id);e.autoPhases??={};e.autoPhases[drag.autoPort]=phase;drag.moved=true;drawPaper();}return;}if(drag?.marquee){drag.end=pt;drawPaper();return;}if(drag?.multiple){const before=drag.before.pages.find(p=>p.id===pageId),desired=$('objectSnap').checked&&!event.altKey?snapMove(current(),before,multi,pt.x-drag.start.x,pt.y-drag.start.y,8/zoom):{dx:pt.x-drag.start.x,dy:pt.y-drag.start.y};const dx=desired.dx-(drag.applied?.dx||0),dy=desired.dy-(drag.applied?.dy||0);snapGuides=desired.guides||null;if(dx||dy){if(!drag.moved){try{multi=materializeLines(current(),multi,uid);}catch(error){endDrag(true);toast(error.message);return;}}try{moveSelection(current(),multi,dx,dy);}catch(error){endDrag(true);toast(error.message);return;}drag.last=pt;drag.applied=desired;drag.moved=true;syncSelection();drawPaper();}return;}if(drag?.wire){const w=current().wires.find(w=>w.id===drag.wire);if(drag.handle!==undefined){const i=drag.handle===0?0:w.points.length-1,ref=drag.handle===0?'from':'to',hit=nearest(pt,w.id);w.points[i]=hit?{x:hit.x,y:hit.y}:{x:pt.x,y:pt.y};w[ref]=hit?.ref||null;}else{w.points=drag.points.map(q=>({x:q.x+pt.x-drag.start.x,y:q.y+pt.y-drag.start.y}));w.from=w.to=null;}drag.moved=true;drawPaper();}else if(drag){const e=current().elements.find(e=>e.id===drag.id);e.x=Math.max(30,Math.min(1140,drag.x+pt.x-drag.start.x));e.y=Math.max(40,Math.min(DRAW.bottom,drag.y+pt.y-drag.start.y));if(e.kind==='template'){const [w,h]=size(e,current()),b=bounds(e,w,h);e.x+=Math.max(0,DRAW.left-b.left)-Math.max(0,b.right-DRAW.right);e.y+=Math.max(0,DRAW.top-b.top)-Math.max(0,b.bottom-DRAW.bottom);}if(e.x!==drag.x||e.y!==drag.y)drag.moved=true;drawPaper();}else if(wire)wirePreview(nearest(pt)||pt);else drawPlacement();};
 function endDrag(cancel=false){snapGuides=null;if(!drag)return;if(drag.marquee){if(cancel)multi=drag.previous;else{const added=selectRectangle(current(),drag.start,drag.end,lineMode);multi=[...new Map([...drag.base,...added].map(s=>[selectionKey(s),s])).values()];}drag=null;syncSelection();render();return;}if(drag.multiple){if(cancel){doc=drag.before;multi=drag.previous;}else if(drag.moved){try{swapDispoDrop(current(),drag.before.pages.find(p=>p.id===pageId),multi);if(current().type==='schema'&&multi.length===1&&multi[0].kind==='element'){const e=current().elements.find(e=>e.id===multi[0].id);if(e)alignMacro(e,current(),80);}}catch(error){doc=drag.before;drag=null;toast(error.message);render();return;}undo.push(drag.before);if(undo.length>60)undo.shift();redo=[];save();}drag=null;syncSelection();render();return;}if(cancel){doc=drag.before;}else if(drag.moved){if(!drag.wire&&drag.autoPort===undefined&&$('autoConnect').checked){const e=current().elements.find(e=>e.id===selected);if(e)alignMacro(e,current());}undo.push(drag.before);if(undo.length>60)undo.shift();redo=[];save();}drag=null;render();}
 function finishSelectionPointer(event){
- const pending=drag,hit=pending?.clickHit;
+ const pending=drag,hit=pending?.clickText;
  const e=hit?current().elements.find(e=>e.id===hit.id):null;
- const editable=tool==='select'&&(hit?.kind==='text'||hit?.kind==='element'&&e?.kind==='text');
+ const editable=tool==='select'&&e&&hit?.kind==='text';
  const key=editable?JSON.stringify([pageId,hit.kind,hit.id,hit.key]):'';
  const moved=!pending||pending.moved||Math.hypot(event.clientX-pending.clickX,event.clientY-pending.clickY)>6;
  endDrag();
  if(!textClicks.tap({key,x:event.clientX,y:event.clientY,time:event.timeStamp,moved,modified:event.ctrlKey||event.metaKey||event.shiftKey}))return;
- if(hit.kind==='text')editTemplateText(e,hit.key);
- else showForm('Text bearbeiten',[{key:'text',label:'Text',type:'textarea',value:e.text}],data=>change(()=>e.text=data.text));
+ editTemplateText(e,hit.key);
 }
 $('paper').onpointerup=finishSelectionPointer;
 $('paper').onpointercancel=()=>{linearStart=null;textClicks.reset();endDrag(true);if(twoPointPart()){drawingOptions();drawPlacement();}};
@@ -349,7 +372,7 @@ $('view3D').onclick=()=>{try{openDispo3D(current(),id=>{selected=id;multi=[{kind
 $('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Drahtwerk-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
 
 const previewCache=new Map();
-const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261119-3`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
+const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261119-4`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
 new MutationObserver(()=>{for(const img of document.querySelectorAll('img[data-preview-id]:not([data-observed])')){img.dataset.observed='1';previewObserver.observe(img);}}).observe(document.body,{childList:true,subtree:true});
 
 const compareButton=$('compareDispo');compareButton.onclick=async()=>{if(compareButton.disabled)return;compareButton.disabled=true;try{await compareDispo();}catch(e){toast(e.message);}finally{compareButton.disabled=false;}};
