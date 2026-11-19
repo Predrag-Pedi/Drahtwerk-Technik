@@ -1,6 +1,6 @@
-import {protectionKind} from './circuit-data.mjs?v=20261119-4';
-import {pathAt,localPoint} from './geometry.mjs?v=20261119-4';
-import {templateLabels,templateSize} from './template.mjs?v=20261119-4';
+import {protectionKind} from './circuit-data.mjs?v=20261119-5';
+import {pathAt,localPoint} from './geometry.mjs?v=20261119-5';
+import {templateLabels,templateSize} from './template.mjs?v=20261119-5';
 export function functionKeys(e){return e.template?[...new Set((e.template.labels||[]).map(l=>l.key))]:['$'];}
 export function functionData(e,key='$'){
  const stored=e.functions?.[key]||{};
@@ -60,6 +60,7 @@ export function updateFunction(doc,contact,patch){
  if(data.role==='contact')data.terminals=terminalPins(data.terminals).join('–');
  if(data.role==='contact'&&data.owner)checkContactAssignment(doc,contact,findFunction(doc,data.owner),data);
  contact.element.functions??={};contact.element.functions[contact.key]=data;
+ if(Object.hasOwn(patch,'description')&&data.descriptionTextKey&&contact.element.template?.details?.texts.some(t=>t.key===data.descriptionTextKey)){contact.element.textEdits??={};contact.element.textEdits[data.descriptionTextKey]=data.description;}
 }
 export function assignContact(doc,contact,owner,slotId){
  if(contact.data.role!=='contact'||owner&&owner.data.role!=='coil')throw Error('Kontakt und Schützspule auswählen.');
@@ -71,7 +72,7 @@ export function assignContact(doc,contact,owner,slotId){
  contact.element.functions??={};contact.element.functions[contact.key]=value;
 }
 export function validateFunctions(raw,keys,fail){if(raw===undefined)return undefined;if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).length>3000)fail();const result={};const str=(v,max=200)=>typeof v==='string'&&v.length<=max?v:fail();
- for(const [key,f] of Object.entries(raw)){if(!keys.includes(key)||!f||!['none','coil','contact'].includes(f.role))fail();const item={role:f.role};if(f.contactSlots!==undefined){if(f.role!=='coil')fail();try{item.contactSlots=validateContactSlots(f.contactSlots);}catch{fail();}}for(const name of ['smisslineHK','smisslineNeutral'])if(f[name]!==undefined){if(typeof f[name]!=='boolean')fail();item[name]=f[name];}if(f.smisslineFeedCurrent!==undefined){if(!Number.isFinite(f.smisslineFeedCurrent)||f.smisslineFeedCurrent<0||f.smisslineFeedCurrent>1600)fail();item.smisslineFeedCurrent=f.smisslineFeedCurrent;}for(const [key,values]of [['fuseSystem',['conventional','silas60','vertigroup185']],['fuseSize',['auto','DII','DIII','NH000','NH00','NH1','NH2','NH3']],['breakerSystem',['conventional','smissline','uniway']],['manufacturer',['auto','schneider','hager']],['lsMode',['allpole','individual']]])if(f[key]!==undefined){if(!values.includes(f[key]))fail();item[key]=f[key];}for(const name of ['smisslineFeedFrom','description','circuitName','bmk','terminals','referenceOverride','mirrorReferenceOverride'])if(f[name]!==undefined)item[name]=str(f[name]);if(f.contactType!==undefined){if(!['NO','NC','CO'].includes(f.contactType))fail();item.contactType=f.contactType;}if(f.autoBmk!==undefined)item.autoBmk=f.autoBmk===true;if(f.owner!==undefined)item.owner={page:str(f.owner.page,100),element:str(f.owner.element,100),key:str(f.owner.key)};for(const name of ['mirrorX','mirrorY'])if(f[name]!==undefined){if(!Number.isFinite(f[name])||Math.abs(f[name])>3000)fail();item[name]=f[name];}result[key]=item;}return result;
+ for(const [key,f] of Object.entries(raw)){if(!keys.includes(key)||!f||!['none','coil','contact'].includes(f.role))fail();const item={role:f.role};if(f.terminalSection!==undefined){if(![2.5,4,6,10,16,25,35,50,70,95,120,150,185,240,300].includes(f.terminalSection))fail();item.terminalSection=f.terminalSection;}if(f.descriptionTextKey!==undefined)item.descriptionTextKey=str(f.descriptionTextKey,100);if(f.contactSlots!==undefined){if(f.role!=='coil')fail();try{item.contactSlots=validateContactSlots(f.contactSlots);}catch{fail();}}for(const name of ['smisslineHK','smisslineNeutral'])if(f[name]!==undefined){if(typeof f[name]!=='boolean')fail();item[name]=f[name];}if(f.smisslineFeedCurrent!==undefined){if(!Number.isFinite(f.smisslineFeedCurrent)||f.smisslineFeedCurrent<0||f.smisslineFeedCurrent>1600)fail();item.smisslineFeedCurrent=f.smisslineFeedCurrent;}for(const [key,values]of [['fuseSystem',['conventional','silas60','vertigroup185']],['fuseSize',['auto','DII','DIII','NH000','NH00','NH1','NH2','NH3']],['breakerSystem',['conventional','smissline','uniway']],['manufacturer',['auto','schneider','hager']],['lsMode',['allpole','individual']]])if(f[key]!==undefined){if(!values.includes(f[key]))fail();item[key]=f[key];}for(const name of ['smisslineFeedFrom','description','circuitName','bmk','terminals','referenceOverride','mirrorReferenceOverride'])if(f[name]!==undefined)item[name]=str(f[name]);if(f.contactType!==undefined){if(!['NO','NC','CO'].includes(f.contactType))fail();item.contactType=f.contactType;}if(f.autoBmk!==undefined)item.autoBmk=f.autoBmk===true;if(f.owner!==undefined)item.owner={page:str(f.owner.page,100),element:str(f.owner.element,100),key:str(f.owner.key)};for(const name of ['mirrorX','mirrorY'])if(f[name]!==undefined){if(!Number.isFinite(f[name])||Math.abs(f[name])>3000)fail();item[name]=f[name];}result[key]=item;}return result;
 }
 
 export function hasLsSettings(e,key='$'){return ['ls','fils'].includes(protectionKind(e,key));}

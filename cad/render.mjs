@@ -1,18 +1,19 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261119-4';
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261119-4';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261119-4';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-4';
-import {joinDinRails} from './frame-layout.mjs?v=20261119-4';
-import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-4';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261119-4';
-import {standardFrame} from './standard-render.mjs?v=20261119-4';
-import {frameMarkup} from './frame-render.mjs?v=20261119-4';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-4';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261119-4';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-4';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-4';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261119-4';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-4';
+import {extraTerminalSections} from './macro-config.mjs?v=20261119-5';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-5';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261119-5';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261119-5';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-5';
+import {joinDinRails} from './frame-layout.mjs?v=20261119-5';
+import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-5';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261119-5';
+import {standardFrame} from './standard-render.mjs?v=20261119-5';
+import {frameMarkup} from './frame-render.mjs?v=20261119-5';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-5';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261119-5';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-5';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-5';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261119-5';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-5';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Highlight the drawn geometry, never the template's (possibly padded) viewBox.
 // Keep white masks, invisible hit targets and clipping paths visually unchanged.
@@ -64,7 +65,8 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false,selected=fals
  let connections='';
  if(e.autoConnect&&p.type==='schema'&&p.bus&&e.rotation===0){for(const [i,pt] of ports(e,p).entries()){const phase=e.autoPhases?.[i]||e.template?.ports?.[i]?.phase,y=BUS[phase];if(y===undefined||pt.x<DRAW.left||pt.x>DRAW.right||pt.y<y-.1)continue;connections+=`<g fill="none" stroke="#182c42" stroke-width="1.1"><path d="M${pt.x} ${y}V${pt.y}" ${phase==='N'?'stroke-dasharray="8 5"':''}/><circle cx="${pt.x}" cy="${y}" r="2.4" fill="#182c42"/>${editor?`<circle data-auto-port="${esc(e.id)}:${i}" cx="${pt.x}" cy="${y}" r="7" fill="transparent" stroke="none" pointer-events="all" style="cursor:ns-resize"/>`:""}</g>`;}}
  if(p.type==='schema'&&e.template&&!e.template.ports?.length)for(const pt of ports(e,p))connections+=`<circle cx="${pt.x}" cy="${pt.y}" r="2.4" fill="#182c42" stroke="none"/>`;
- for(const key of functionKeys(e)){const data=functionData(e,key),label=e.template?.labels?.find(l=>l.key===key),caption=data.description||(label?.letter==='P'?data.circuitName||e.circuitName:'');if(caption){const terminals=(e.template?.labels||[]).filter(l=>l.letter==='X').sort((a,b)=>b.matrix[5]-a.matrix[5]);const terminal=terminals.find(l=>!label||Math.abs(l.anchor.x-label.anchor.x)<e.template.viewWidth*.3)||terminals[0];const x=terminal?terminal.matrix[4]*w/e.template.viewWidth:label?label.matrix[4]*w/e.template.viewWidth:w/2,y=cut!==null?cut*h/e.template.viewHeight+20:terminal?Math.min(h-32,terminal.matrix[5]*h/e.template.viewHeight+52):h+18;body+=text(x,y,caption,'font-size="10" fill="#000" stroke="none"');}}
+ for(const key of functionKeys(e)){const data=functionData(e,key),label=e.template?.labels?.find(l=>l.key===key),caption=data.description||(label?.letter==='P'?data.circuitName||e.circuitName:'');if(caption&&!data.descriptionTextKey){const terminals=(e.template?.labels||[]).filter(l=>l.letter==='X').sort((a,b)=>b.matrix[5]-a.matrix[5]);const terminal=terminals.find(l=>!label||Math.abs(l.anchor.x-label.anchor.x)<e.template.viewWidth*.3)||terminals[0];const x=terminal?terminal.matrix[4]*w/e.template.viewWidth:label?label.matrix[4]*w/e.template.viewWidth:w/2,y=cut!==null?cut*h/e.template.viewHeight+20:terminal?Math.min(h-32,terminal.matrix[5]*h/e.template.viewHeight+52):h+18;body+=text(x,y,caption,'font-size="10" fill="#000" stroke="none"');}}
+ if(e.template&&cut===null)for(const a of extraTerminalSections(e))body+=text(a.x*w/e.template.viewWidth,a.y*h/e.template.viewHeight,a.section+' mm²',`font-size="${a.fontSize*h/e.template.viewHeight}" fill="#000" stroke="none"`);
  const color=deviceColor(d,p,e);if(color)body=`<g class="dispo-colored" style="color:${color}" stroke="${color}">${body}</g>`;
  if(editor&&selected)body=`<g class="cad-selected">${body}</g>`;
  const source=p.type==='dispo'&&e.dispoSource&&d.pages.find(q=>q.id===e.dispoSource.page)?.elements.some(q=>q.id===e.dispoSource.element)?pdfTarget(d,e.dispoSource.page):'';

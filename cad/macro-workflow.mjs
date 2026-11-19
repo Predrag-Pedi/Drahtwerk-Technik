@@ -1,32 +1,12 @@
-import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-4';
-import {placement} from './placement.mjs?v=20261119-4';
-import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-4';
-import {size} from './model.mjs?v=20261119-4';
+import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-5';
+import {placement} from './placement.mjs?v=20261119-5';
+import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-5';
+import {size} from './model.mjs?v=20261119-5';
 
 export const isSchemaMacro=t=>t?.category==='Schema'&&/^Makros\//i.test(t.source||'');
-// Original text keys are retained: edits use the same rendering, export and
-// device recognition as text edited after insertion.
-export function macroFields(t){
- return (t.details?.texts||[]).filter(t=>!/^\s*(?:\d+|L[123]?|N|PE|PEN|[+-])\s*$/.test(t.text)).map(t=>{
-  const value=t.text.trim();let label='Vorlagentext',primary=false;
-  if(/^\d+(?:[.,]\d+)?\s*A$/i.test(value)){label='Bemessungsstrom';primary=true;}
-  else if(/^[BCD]$/.test(value)){label='Charakteristik';primary=true;}
-  else if(/^\d+(?:[.,]\d+)?\s*mA$/i.test(value)){label='Fehlerstrom';primary=true;}
-  else if(/\d\s*[x×]\s*\d/i.test(value)){label='Kabel';primary=true;}
-  else if(/^\d+(?:[.,]\d+)?\s*mm[²2]$/i.test(value)){label='Querschnitt';primary=true;}
-  else if(/^\d+\s*V(?:AC|DC)?$/i.test(value)){label='Spannung';primary=true;}
-  return {key:t.key,label,value:t.text,primary};
- });
-}
-export function applyMacroValues(e,values={}){
- const allowed=new Set((e.template?.details?.texts||[]).map(t=>t.key));
- const edits={};for(const [key,value]of Object.entries(values)){
-  if(!allowed.has(key)||typeof value!=='string'||value.length>2000)throw Error('Ungültiger Makrowert.');
-  if(value!==e.template.details.texts.find(t=>t.key===key).text)edits[key]=value;
- }
- e.textEdits={...e.textEdits,...edits};return e;
-}
-export function macroAtPath(page,template,path,{values={},percent=100,autoConnect=true,terminalSide='original'}={}){
+export {macroFields,applyMacroValues} from './macro-config.mjs?v=20261119-5';
+import {applyMacroValues,applyMacroDraft} from './macro-config.mjs?v=20261119-5';
+export function macroAtPath(page,template,path,{values={},percent=100,autoConnect=true,terminalSide='original',draft=null}={}){
  if(page.type!=='schema'||!isSchemaMacro(template))throw Error('Pfadwahl ist für Schema-Makros verfügbar.');
  if(!Number.isInteger(path)||path<0||path>9)throw Error('Strompfad 0 bis 9 wählen.');
  if(!Number.isFinite(percent)||percent<1||percent>200)throw Error('Symbolgrösse prüfen.');
@@ -44,5 +24,5 @@ export function macroAtPath(page,template,path,{values={},percent=100,autoConnec
  });
  if(collision)throw Error(`Auf Pfad ${path} überschneidet sich das Makro mit einer Vorlage. Einen freien Pfad wählen oder mit der Maus platzieren.`);
  if(page.elements.length+page.wires.length>=5000)throw Error('Maximal 5000 Elemente pro Seite.');
- return applyTerminalSide(applyMacroValues(e,values),terminalSide);
+ return applyTerminalSide(draft?applyMacroDraft(e,draft):applyMacroValues(e,values),terminalSide);
 }
