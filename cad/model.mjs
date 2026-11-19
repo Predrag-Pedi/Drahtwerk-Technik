@@ -1,15 +1,15 @@
-import {validateManualPart} from './dispo-parts.mjs?v=20261118-7';
-import {validateMeasure} from './drawing-tools.mjs?v=20261118-7';
-import {defaultPageTitle,normalizePageTitle} from './page-titles.mjs?v=20261118-7';
-import {validateTariffs} from './tariffs.mjs?v=20261118-7';
-import {frame,sourcePoint} from './alignment.mjs?v=20261118-7';
-import {validateDispoMetadata,validateDispoConfig} from './dispo.mjs?v=20261118-7';
-import {validateConnections} from './continuations.mjs?v=20261118-7';
-import {validateTextEdits,validateTextOffsets} from './template-text.mjs?v=20261118-7';
-import {functionKeys,validateFunctions,functionData} from './references.mjs?v=20261118-7';
-import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261118-7';
+import {validateManualPart} from './dispo-parts.mjs?v=20261119-1';
+import {validateMeasure} from './drawing-tools.mjs?v=20261119-1';
+import {defaultPageTitle,normalizePageTitle} from './page-titles.mjs?v=20261119-1';
+import {validateTariffs} from './tariffs.mjs?v=20261119-1';
+import {frame,sourcePoint} from './alignment.mjs?v=20261119-1';
+import {validateDispoMetadata,validateDispoConfig} from './dispo.mjs?v=20261119-1';
+import {validateConnections} from './continuations.mjs?v=20261119-1';
+import {validateTextEdits,validateTextOffsets} from './template-text.mjs?v=20261119-1';
+import {functionKeys,validateFunctions,functionData} from './references.mjs?v=20261119-1';
+import {W,H,MM,localPoint,pathAt} from './geometry.mjs?v=20261119-1';
 export {W,H};
-import {validateTemplate,templateSize} from './template.mjs?v=20261118-7';
+import {validateTemplate,templateSize} from './template.mjs?v=20261119-1';
 export const uid=()=>crypto.randomUUID();
 export const clone=v=>structuredClone(v);
 export const GRID=10;
@@ -52,7 +52,7 @@ export function canLinkWire(p,id,ref){if(!ref?.wire)return true;const seen=new S
 export function removeWire(p,id){for(const w of p.wires)for(const key of ['from','to'])if(w[key]?.wire===id){const i=key==='from'?0:w.points.length-1;w.points[i]=endpoint(p,w[key],w.points[i]);w[key]=null;}p.wires=p.wires.filter(w=>w.id!==id);}
 export function wirePoints(p,wire){const pts=clone(wire.points);if(wire.from)pts[0]=endpoint(p,wire.from,pts[0]);if(wire.to)pts[pts.length-1]=endpoint(p,wire.to,pts.at(-1));if(wire.direct)return pts;const out=[pts[0]];for(const point of pts.slice(1)){const a=out.at(-1);if(a.x!==point.x&&a.y!==point.y)out.push({x:point.x,y:a.y});out.push(point);}return out;}
 export function removeElement(p,id){for(const w of [...p.wires])if(w.templateOwner===id||(w.direct&&w.from?.element===id&&w.to?.element===id&&w.from.local&&w.to.local))removeWire(p,w.id);p.wires.forEach(w=>{const pts=wirePoints(p,w);w.points=pts.map(({x,y})=>({x,y}));if(w.from?.element===id)w.from=null;if(w.to?.element===id)w.to=null;});p.elements=p.elements.filter(e=>e.id!==id);}
-export function duplicatePage(d,p){const q=clone(p),ids=new Map();q.id=uid();q.number=Math.max(...d.pages.map(p=>p.number))+1;q.title=q.number>=10&&!q.standardType&&['schema','dispo'].includes(q.type)?`Seite ${q.number}`:p.title;q.elements.forEach(e=>{const old=e.id;e.id=uid();ids.set(old,e.id);if(e.tag.startsWith(String(p.number)))e.tag=String(q.number)+e.tag.slice(String(p.number).length);if(e.targetPage===p.id)e.targetPage=q.id;});q.wires.forEach(w=>{const old=w.id;w.id=uid();ids.set(old,w.id);for(const key of ['from','to'])if(w[key]?.element)w[key].element=ids.get(w[key].element);});q.wires.forEach(w=>{for(const k of ['from','to'])if(w[k]?.wire)w[k].wire=ids.get(w[k].wire);});q.elements.forEach(e=>{for(const r of Object.values(e.tariffAssignments||{}))if(r.page===p.id){r.page=q.id;r.element=ids.get(r.element)||r.element;}for(const f of Object.values(e.functions||{}))if(f.owner?.page===p.id){f.owner.page=q.id;f.owner.element=ids.get(f.owner.element)||f.owner.element;}else if(f.role==='contact')delete f.owner;});const terminalNumbers=new Map();for(const e of d.pages.flatMap(p=>p.elements))if(e.terminalStrip)terminalNumbers.set(e.terminalStrip.name,Math.max(terminalNumbers.get(e.terminalStrip.name)||0,e.terminalStrip.number));for(const e of q.elements)if(e.terminalStrip){const number=(terminalNumbers.get(e.terminalStrip.name)||0)+1;if(number>9999)throw Error('Keine freien Klemmennummern mehr.');e.terminalStrip.number=number;terminalNumbers.set(e.terminalStrip.name,number);}return q;}
+export function duplicatePage(d,p){const q=clone(p),ids=new Map();q.id=uid();q.number=Math.max(...d.pages.map(p=>p.number))+1;q.title=q.number>=10&&!q.standardType&&['schema','dispo'].includes(q.type)?`Seite ${q.number}`:p.title;q.elements.forEach(e=>{const old=e.id;e.id=uid();ids.set(old,e.id);if(e.tag.startsWith(String(p.number)))e.tag=String(q.number)+e.tag.slice(String(p.number).length);if(e.targetPage===p.id)e.targetPage=q.id;});q.wires.forEach(w=>{const old=w.id;w.id=uid();ids.set(old,w.id);for(const key of ['from','to'])if(w[key]?.element)w[key].element=ids.get(w[key].element);});q.wires.forEach(w=>{for(const k of ['from','to'])if(w[k]?.wire)w[k].wire=ids.get(w[k].wire);});q.elements.forEach(e=>{for(const r of e.dispoStructure||[])if(r.frameStyle?.startsWith('incoming-spd:'))r.frameStyle='incoming-spd:'+(ids.get(r.frameStyle.slice(13))||r.frameStyle.slice(13));for(const r of Object.values(e.tariffAssignments||{}))if(r.page===p.id){r.page=q.id;r.element=ids.get(r.element)||r.element;}for(const f of Object.values(e.functions||{}))if(f.owner?.page===p.id){f.owner.page=q.id;f.owner.element=ids.get(f.owner.element)||f.owner.element;}else if(f.role==='contact')delete f.owner;});const terminalNumbers=new Map();for(const e of d.pages.flatMap(p=>p.elements))if(e.terminalStrip)terminalNumbers.set(e.terminalStrip.name,Math.max(terminalNumbers.get(e.terminalStrip.name)||0,e.terminalStrip.number));for(const e of q.elements)if(e.terminalStrip){const number=(terminalNumbers.get(e.terminalStrip.name)||0)+1;if(number>9999)throw Error('Keine freien Klemmennummern mehr.');e.terminalStrip.number=number;terminalNumbers.set(e.terminalStrip.name,number);}return q;}
 export function validateProject(raw){
  const fail=()=>{throw Error('Ungültige CAD-Projektdatei.');};const str=(v,max=10000)=>typeof v==='string'&&v.length<=max?v:fail();const num=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max?v:fail();
  if(!raw||raw.version!==1||!Array.isArray(raw.pages)||!raw.pages.length||raw.pages.length>200)fail();

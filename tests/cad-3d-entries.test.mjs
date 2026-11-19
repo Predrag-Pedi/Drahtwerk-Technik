@@ -17,7 +17,7 @@ test('all configured roof and floor entries have bounded, distinct geometry',()=
  for(const n of [1,2,3])assert.equal(entry(n+'-teilig','PVC','floor').filter(b=>b.entry.role==='infill').length,n);
 });
 test('perforation is an actual through-opening in both rendered surfaces, not a dark decal',()=>{
- const b=entry('Standard mit Lochblech').find(b=>b.shape==='entryPerforated'),mesh=boxMesh(b),nx=Math.min(16,Math.floor(b.w/24)),nz=Math.min(8,Math.floor(b.d/24)),p=[b.w/nx/2,b.d/nz/2];
+ const b=entry('Standard mit Lochblech').find(b=>b.shape==='entryPerforated'),mesh=boxMesh(b),nx=Math.min(40,Math.ceil(b.w/32)),nz=Math.min(16,Math.ceil(b.d/32)),p=[b.w/nx/2,b.d/nz/2];
  const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
  const inside=(a,b,c)=>{const signs=[cross(a,b,p),cross(b,c,p),cross(c,a,p)];return signs.every(n=>n>=-1e-6)||signs.every(n=>n<=1e-6);};
  for(const y of [0,b.h])for(const face of mesh.surfaces.filter(f=>f.every(i=>mesh.vertices[i][1]===y))){const points=face.map(i=>[mesh.vertices[i][0],mesh.vertices[i][2]]);for(let i=1;i<points.length-1;i++)assert.equal(inside(points[0],points[i],points[i+1]),false);}
@@ -36,4 +36,17 @@ test('door camera envelope contains the full sweep without changing the cabinet 
   const p={scale:10,elements:[cabinet('a',0,{angle:180,hinge,wings,pocket:'Aluminium A4 Quer'})]},boxes=sceneBoxes(p),bounds=doorMotionBounds(boxes);
   for(let angle=0;angle<=180;angle+=3)for(const b of sceneBoxes(p,{a:angle}).filter(b=>b.hingeX!==undefined))for(const v of boxMesh(b).vertices)for(const coordinate of boxWorldPoint(b,v,bounds.center))assert.ok(Math.abs(coordinate)<=bounds.extent/2+.001);
  }
+});
+
+test('perforated entries use circular holes without interior cell walls',()=>{
+ const b={w:192,h:3,d:64,shape:'entryPerforated'},mesh=boxMesh(b),firstHole=mesh.vertices.slice(16,32),radius=8;
+ for(const [x,y,z]of firstHole){assert.equal(y,0);assert.ok(Math.abs(Math.hypot(x-16,z-16)-radius)<1e-8);}
+ const wall=mesh.surfaces.filter(f=>new Set(f.map(i=>mesh.vertices[i][1])).size>1);
+ assert.ok(wall.length>100);assert.ok(!wall.some(f=>f.every(i=>Math.abs(mesh.vertices[i][0]-32)<1e-8)));
+ assert.ok(mesh.vertices.every(v=>v.every(Number.isFinite)));
+});
+
+test('non-square perforation cells cover every sheet corner without diagonal gaps',()=>{
+ const {vertices}=boxMesh({shape:'entryPerforated',w:192,h:3,d:42});
+ for(let x=0;x<=6;x++)for(let z=0;z<=2;z++)for(const y of [0,3])assert.ok(vertices.some(v=>Math.abs(v[0]-x*32)<1e-7&&v[1]===y&&Math.abs(v[2]-z*21)<1e-7),`${x},${y},${z}`);
 });

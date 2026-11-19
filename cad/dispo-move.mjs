@@ -1,5 +1,6 @@
-import {fullBodyFuse} from './fuse-systems.mjs?v=20261118-7';
-import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261118-7';
+import {plateOpenings,dinBodyCenter} from './frame-layout.mjs?v=20261119-1';
+import {fullBodyFuse} from './fuse-systems.mjs?v=20261119-1';
+import {feederOffset,packFeederBanks} from './meter-layout.mjs?v=20261119-1';
 const factor=p=>1200/420/p.scale;
 const device=e=>!!e.dispoSource;
 // Apparatus belongs to the mounting frame, not the outer enclosure wall.
@@ -9,7 +10,8 @@ const fuseCompanions=(p,e)=>fullBodyFuse(e)&&fusePart(e)?p.elements.filter(q=>fu
 const box=(p,es)=>({x:Math.min(...es.map(e=>e.x)),y:Math.min(...es.map(e=>e.y)),right:Math.max(...es.map(e=>e.x+e.width*factor(p))),bottom:Math.max(...es.map(e=>e.y+e.height*factor(p)))});
 export function dispoGroup(p,id){const e=p.elements.find(e=>e.id===id);if(e&&fuseCompanions(p,e).length)return fuseCompanions(p,e);if(e?.measurementOwner){const meter=p.elements.find(q=>q.dispoKind==='meter'&&q.measurementOwner===e.measurementOwner);return meter?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):[e];}if(e?.frameStyle==='incoming-terminal')return [e,...incomingCompanions(p,e)];if(!device(e||{})||e.dispoKind==='meter')return e?[e]:[];return p.elements.filter(q=>device(q)&&q.dispoKind!=='meter'&&q.frameStyle===e.frameStyle&&Math.abs(q.y-e.y)<.1&&(e.circuitName?q.circuitName===e.circuitName:q.dispoSource.element===e.dispoSource.element&&q.dispoSource.page===e.dispoSource.page));}
 export function moveDispoElements(p,ids,dx,dy){
- const linked=new Set(ids);for(const e of p.elements.filter(e=>ids.has(e.id)))for(const q of e.measurementOwner?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):incomingCompanions(p,e))linked.add(q.id);for(const e of p.elements.filter(e=>linked.has(e.id)))for(const q of fuseCompanions(p,e))linked.add(q.id);const moving=p.elements.filter(e=>linked.has(e.id)),before=moving.some(e=>e.dispoKind==='meter'||e.frameStyle==='incoming-terminal')?structuredClone(p.elements):null;
+ const linked=new Set(ids);for(const e of p.elements.filter(e=>ids.has(e.id)))for(const q of e.measurementOwner?p.elements.filter(q=>q.measurementOwner===e.measurementOwner):incomingCompanions(p,e))linked.add(q.id);for(const e of p.elements.filter(e=>linked.has(e.id)))for(const q of fuseCompanions(p,e))linked.add(q.id);const moving=p.elements.filter(e=>linked.has(e.id)),before=moving.some(e=>e.dispoKind==='meter'||e.frameStyle==='incoming-terminal'||e.dispoKind==='spd')?structuredClone(p.elements):null;
+ if(before)linkIncomingSupports(p);
  if(p.type==='dispo'){const mm=1/factor(p),meters=moving.filter(e=>e.dispoKind==='meter'&&e.width===250&&e.height===400);for(const c of p.elements.filter(q=>q.dispoStructure))for(const part of c.dispoStructure)if((part.frameStyle?.startsWith('measurement:')&&meters.some(e=>part.frameStyle==='measurement:'+e.measurementOwner))||(part.plateType==='meter'&&meters.some(e=>Math.abs(c.x+part.x/mm-e.x)<.01&&Math.abs(c.y+part.y/mm-e.y)<.01))){part.x+=dx*mm;part.y+=dy*mm;}}
  for(const e of moving){e.x+=dx;e.y+=dy;}
  if(before)try{if(moving.some(e=>e.dispoKind==='meter'))alignMeterFuses(p);updateIncomingRails(p);updateSupplyBlocks(p);}catch(error){p.elements=before;throw error;}
@@ -106,13 +108,29 @@ function reflowBottom(p,preferred=new Map(),blocks=new Map()){
  for(const [e,x] of changes)e.x=x;
 }
 
-export function updateIncomingRails(p){
+// Older projects did not retain the SPD support owner. Resolve it before moving,
+// while the original rail and device still occupy the same place.
+function linkIncomingSupports(p){
  const f=factor(p);
- for(const c of p.elements.filter(e=>e.dispoStructure))for(const r of c.dispoStructure){
-  if(!r.frameStyle?.startsWith('incoming:'))continue;
-  const owner=p.elements.find(e=>e.frameStyle==='incoming-terminal'&&e.dispoSource?.element===r.frameStyle.slice(9));if(!owner)continue;
-  const center=(owner.x-c.x)/f+owner.width/2,edge=center<c.width/2?c.width-innerEdge(c)-40:innerEdge(c)+40;
-  r.x=Math.min(center,edge);r.width=Math.max(1,Math.abs(center-edge));r.y=(owner.y-c.y)/f+owner.height*.55;
+ for(const e of p.elements.filter(e=>e.dispoKind==='spd'&&e.inputOwner)){
+  if(p.elements.some(c=>c.dispoStructure?.some(r=>r.frameStyle==='incoming-spd:'+e.id)))continue;
+  for(const c of p.elements.filter(c=>c.dispoStructure&&!c.rotation)){
+   const x=(e.x-c.x)/f,y=(e.y-c.y)/f;
+   const rail=c.dispoStructure.find(r=>r.profile==='AS35'&&!r.frameStyle&&r.width<=250&&x>=r.x-.01&&x+e.width<=r.x+r.width+.01&&r.y>=y&&r.y<=y+e.height);
+   if(rail){rail.frameStyle='incoming-spd:'+e.id;break;}
+  }
+ }
+}
+export function updateIncomingRails(p){
+ const f=factor(p);linkIncomingSupports(p);
+ const cabinets=p.elements.filter(e=>e.dispoStructure&&!e.rotation),supports=cabinets.flatMap(c=>c.dispoStructure.filter(r=>r.frameStyle?.startsWith('incoming:')||r.frameStyle?.startsWith('incoming-spd:')).map(r=>({c,r})));
+ for(const {c,r}of supports){
+  const spd=r.frameStyle.startsWith('incoming-spd:'),owner=p.elements.find(e=>spd?e.id===r.frameStyle.slice(13):e.frameStyle==='incoming-terminal'&&e.dispoSource?.element===r.frameStyle.slice(9));if(!owner)continue;
+  const target=cabinets.find(q=>owner.x+owner.width*f/2>=q.x&&owner.x+owner.width*f/2<q.x+q.width*f&&owner.y>=q.y&&owner.y+owner.height*f<=q.y+(q.height-(q.plinthHeight||0))*f+.01);if(!target)continue;
+  if(target!==c){c.dispoStructure.splice(c.dispoStructure.indexOf(r),1);target.dispoStructure.push(r);}
+  const left=innerEdge(target)+40,right=target.width-innerEdge(target)-40,center=Math.max(left,Math.min(right,(owner.x-target.x)/f+owner.width/2));
+  if(spd){r.width=Math.min(r.width,right-left);r.x=Math.max(left,Math.min(right-r.width,center-r.width/2));r.y=(owner.y-target.y)/f+owner.height*.665-r.height/2;}
+  else{const edge=center<target.width/2?right:left;r.x=Math.min(center,edge);r.width=Math.max(1,Math.abs(center-edge));r.y=(owner.y-target.y)/f+owner.height*.55;}
  }
 }
 
@@ -138,6 +156,8 @@ export function updateSupplyBlocks(p){
 export function shiftIncomingBay(p,before,id){
  const old=before.elements.find(e=>e.id===id),moved=p.elements.find(e=>e.id===id),f=factor(p);
  if(old?.frameStyle!=='incoming-terminal')return false;
+ before=structuredClone(before);linkIncomingSupports(before);
+ const transfer=transferIncomingBay(p,before,id);if(transfer)return true;
  for(const c of before.elements.filter(e=>e.dispoStructure&&!e.rotation)){
   const source=c.dispoStructure.find(s=>s.plateType==='cover'&&s.width===250&&s.height===400&&old.x>=c.x+s.x*f-.01&&old.x<c.x+(s.x+250)*f&&old.y>=c.y+s.y*f&&old.y<c.y+(s.y+400)*f);if(!source)continue;
   const cx=(moved.x+moved.width*f/2-c.x)/f,cy=(moved.y+moved.height*f/2-c.y)/f;
@@ -145,28 +165,72 @@ export function shiftIncomingBay(p,before,id){
   const dest=target.x+Math.floor((cx-target.x)/250)*250,delta=dest-source.x,lo=Math.min(dest,source.x),hi=Math.max(dest,source.x)+250;
   const shift=x=>Math.abs(x-source.x)<.01?delta:delta>0?-250:250;
   const companions=new Set(incomingCompanions(before,old).map(e=>e.id));
-  const changes=[];
+  const changes=[];let repack=false;
   for(const e of before.elements.filter(device)){
    if(e.id===id||companions.has(e.id)){changes.push({id:e.id,x:e.x+delta*f,y:e.y});continue;}
    if(e.dispoKind==='spd'&&old.spdCoupled===false)continue;
    const x=(e.x-c.x)/f,y=(e.y-c.y)/f;if(y>=source.y+400-.01||y+e.height<=source.y+.01||x>=hi-.01||x+e.width<=lo+.01)continue;
    const cell=source.x+Math.floor((x-source.x+.01)/250)*250;
-   if(e.rotation||e.dispoKind==='meter'||x<lo-.01||x+e.width>cell+250+.01||y<source.y-.01||y+e.height>source.y+400+.01)throw Error('Die Gerätegruppe überschreitet eine Modulgrenze. Bitte innerhalb des 250er-Moduls anordnen.');
+   if(e.rotation||e.dispoKind==='meter'||y<source.y-.01||y+e.height>source.y+400+.01)throw Error('Die Gerätegruppe passt nicht vollständig in den freien Gerätebereich.');
+   if(x<lo-.01||x+e.width>hi+.01)repack=true;
    changes.push({id:e.id,x:e.x+shift(cell)*f,y:e.y});
   }
   if(old.spdCoupled===false){const fixed=before.elements.filter(e=>e.dispoKind==='spd'&&!changes.some(q=>q.id===e.id));for(const q of changes){const e=before.elements.find(e=>e.id===q.id);if(fixed.some(s=>q.x<s.x+s.width*f-.01&&q.x+e.width*f>s.x+.01&&q.y<s.y+s.height*f-.01&&q.y+e.height*f>s.y+.01))throw Error('Der entkoppelte SPD belegt den Zielbereich. Bitte zuerst separat verschieben.');}}
   const structure=[];
   for(const r of c.dispoStructure){
-   if(r.frameStyle?.startsWith('incoming:')){structure.push({...r});continue;}
+   if(r.frameStyle?.startsWith('incoming:')||r.frameStyle?.startsWith('incoming-spd:')){structure.push({...r});continue;}
    if(!(r.plateType==='slots'||r.plateType==='cover'&&r===source||r.plateType==='blank'||['AS35','copper','comb'].includes(r.profile))||r.y<source.y-.01||r.y+r.height>source.y+400+.01){structure.push({...r});continue;}
    const cuts=[r.x,...Array.from({length:Math.round((hi-lo)/250)+1},(_,i)=>lo+i*250).filter(x=>x>r.x+.01&&x<r.x+r.width-.01),r.x+r.width].sort((a,b)=>a-b);
    for(let i=0;i<cuts.length-1;i++){const x=cuts[i],w=cuts[i+1]-x,cell=source.x+Math.floor((x-source.x+.01)/250)*250;structure.push({...r,x:x+(x>=lo-.01&&x<hi-.01?shift(cell):0),width:w});}
   }
+  if(repack)repackIncomingRows(before,c,source,structure,changes,new Set([id,...companions]));
+  validateIncomingChanges(before,changes);
   p.elements.find(e=>e.id===c.id).dispoStructure=structure;
   for(const q of changes)Object.assign(p.elements.find(e=>e.id===q.id),{x:q.x,y:q.y});
   updateIncomingRails(p);updateSupplyBlocks(p);return true;
  }
  return false;
+}
+
+// A cut-through 500/750 mm apparatus opening may contain a bank crossing the
+// selected 250 mm boundary. Repack complete devices into the remaining openings.
+function repackIncomingRows(p,c,source,structure,changes,excluded){
+ const f=factor(p),devices=p.elements.filter(e=>device(e)&&!excluded.has(e.id)&&e.x>=c.x&&e.x+e.width*f<=c.x+c.width*f+.01&&e.y>=c.y+source.y*f-.01&&e.y+e.height*f<=c.y+(source.y+400)*f+.01),rows=new Map();
+ for(const e of devices){if(e.dispoKind==='spd')continue;const center=(e.y-c.y)/f+dinBodyCenter({...e,dispoTemplateId:e.dispoTemplateId||e.template?.id}),row=Math.round((center-source.y-85)/125);if(row<0||row>2||Math.abs(center-source.y-85-row*125)>30)throw Error('Diese Gerätegruppe lässt sich nicht auf die freien DIN-Reihen verteilen.');if(!rows.has(row))rows.set(row,[]);rows.get(row).push(e);}
+ const slots=structure.filter(r=>r.plateType==='slots'&&Math.abs(r.y-source.y)<.01).flatMap(r=>plateOpenings(r.width,r.cutCenterBridge).map(o=>({x:r.x+o.x,right:r.x+o.x+o.width}))).sort((a,b)=>a.x-b.x);
+ for(const group of rows.values()){let index=0,cursor=slots[0]?.x,previous=null;for(const e of group.sort((a,b)=>a.x-b.x)){let gap=previous&&previous.circuitName!==e.circuitName?18:0;while(index<slots.length&&cursor+gap+e.width>slots[index].right+.01){index++;cursor=slots[index]?.x;gap=0;}if(index>=slots.length)throw Error('Die Geräte passen neben der Einspeisung nicht in die verbleibenden Plattenöffnungen.');const q={id:e.id,x:c.x+(cursor+gap)*f,y:e.y},existing=changes.find(q=>q.id===e.id);if(existing)Object.assign(existing,q);else changes.push(q);cursor+=gap+e.width;previous=e;}}
+ const next=e=>({...e,...changes.find(q=>q.id===e.id)}),inBand=r=>r.y>=source.y-.01&&r.y+r.height<=source.y+400+.01;
+ const connectors=c.dispoStructure.filter(r=>['comb','copper'].includes(r.profile)&&inBand(r));
+ for(let i=structure.length-1;i>=0;i--)if(inBand(structure[i])&&(structure[i].plateType==='blank'||['comb','copper'].includes(structure[i].profile)))structure.splice(i,1);
+ for(const r of connectors){const owners=devices.filter(e=>{const x=(e.x-c.x)/f,y=(e.y-c.y)/f;return x<r.x+r.width-.01&&x+e.width>r.x+.01&&r.y>=y&&r.y<=y+e.height+10;}).map(next).sort((a,b)=>a.x-b.x);let part=null;for(const e of owners){const x=(e.x-c.x)/f;if(part&&Math.abs(part.x+part.width-x)<.01)part.width=x+e.width-part.x;else{part={...r,x,width:e.width};structure.push(part);}}}
+ for(let row=0;row<3;row++)for(const slot of slots){let cursor=slot.x;for(const e of (rows.get(row)||[]).map(next).filter(e=>(e.x-c.x)/f>=slot.x-.01&&(e.x-c.x)/f<slot.right).sort((a,b)=>a.x-b.x)){const x=(e.x-c.x)/f;if(x>cursor+.1)structure.push({kind:'plate',plateType:'blank',x:cursor,y:source.y+60+row*125,width:x-cursor,height:46,depth:3,mountZ:3});cursor=x+e.width;}if(cursor<slot.right-.1)structure.push({kind:'plate',plateType:'blank',x:cursor,y:source.y+60+row*125,width:slot.right-cursor,height:46,depth:3,mountZ:3});}
+}
+
+// A drop across a field boundary exchanges complete bays. Supports stay local
+// to their new frame rather than extending through the neighbouring field.
+function transferIncomingBay(p,before,id){
+ const f=factor(p),old=before.elements.find(e=>e.id===id),moved=p.elements.find(e=>e.id===id);
+ const cabinets=before.elements.filter(c=>c.dispoStructure&&!c.rotation),sourceCab=cabinets.find(c=>old.x>=c.x&&old.x+old.width*f<=c.x+c.width*f+.01),targetCab=cabinets.find(c=>moved.x+moved.width*f/2>=c.x&&moved.x+moved.width*f/2<c.x+c.width*f&&moved.y>=c.y&&moved.y+moved.height*f<=c.y+c.height*f);
+ if(!sourceCab||!targetCab||sourceCab===targetCab)return false;
+ const source=sourceCab.dispoStructure.find(s=>s.plateType==='cover'&&s.width===250&&s.height===400&&old.x>=sourceCab.x+s.x*f-.01&&old.x<sourceCab.x+(s.x+250)*f&&old.y>=sourceCab.y+s.y*f&&old.y<sourceCab.y+(s.y+400)*f);
+ const cx=(moved.x+moved.width*f/2-targetCab.x)/f,cy=(moved.y+moved.height*f/2-targetCab.y)/f,target=targetCab.dispoStructure.find(s=>s.plateType==='slots'&&s.height===400&&cx>=s.x&&cx<s.x+s.width&&cy>=s.y&&cy<s.y+400);
+ if(!source||!target)return false;
+ const tx=target.x+Math.floor((cx-target.x)/250)*250,ty=target.y,dx=targetCab.x+tx*f-sourceCab.x-source.x*f,dy=targetCab.y+ty*f-sourceCab.y-source.y*f;
+ const group=new Set([id,...incomingCompanions(before,old).map(e=>e.id)]),area={x:targetCab.x+tx*f,y:targetCab.y+ty*f,right:targetCab.x+(tx+250)*f,bottom:targetCab.y+(ty+400)*f};
+ const displaced=before.elements.filter(e=>device(e)&&!group.has(e.id)).filter(e=>{const b=box(p,[e]);return b.x<area.right-.01&&b.right>area.x+.01&&b.y<area.bottom-.01&&b.bottom>area.y+.01;});
+ if(displaced.some(e=>{const b=box(p,[e]);return e.rotation||e.dispoKind==='meter'||b.x<area.x-.01||b.right>area.right+.01||b.y<area.y-.01||b.bottom>area.bottom+.01;}))throw Error('Am Ziel benötigt die Einspeisung einen freien 250-mm-Bereich. Die dortige Gerätegruppe passt nicht vollständig an den bisherigen Platz.');
+ const changes=[...before.elements.filter(e=>group.has(e.id)).map(e=>({id:e.id,x:e.x+dx,y:e.y+dy})),...displaced.map(e=>({id:e.id,x:e.x-dx,y:e.y-dy}))];validateIncomingChanges(before,changes);
+ const slice=(cab,x,y)=>{const stay=[],bay=[];for(const r of cab.dispoStructure){const a=Math.max(r.x,x),b=Math.min(r.x+r.width,x+250),movable=['slots','cover','blank'].includes(r.plateType)||['AS35','copper','comb'].includes(r.profile);if(!movable||r.frameStyle?.startsWith('incoming')||r.y<y-.01||r.y+r.height>y+400+.01||b<=a){stay.push({...r});continue;}if(r.x<a)stay.push({...r,width:a-r.x});if(r.x+r.width>b)stay.push({...r,x:b,width:r.x+r.width-b});bay.push({...r,x:a-x,y:r.y-y,width:b-a});}return {stay,bay};};
+ const a=slice(sourceCab,source.x,source.y),b=slice(targetCab,tx,ty);
+ p.elements.find(e=>e.id===sourceCab.id).dispoStructure=[...a.stay,...b.bay.map(r=>({...r,x:r.x+source.x,y:r.y+source.y}))];
+ p.elements.find(e=>e.id===targetCab.id).dispoStructure=[...b.stay,...a.bay.map(r=>({...r,x:r.x+tx,y:r.y+ty}))];
+ for(const q of changes)Object.assign(p.elements.find(e=>e.id===q.id),{x:q.x,y:q.y});updateIncomingRails(p);updateSupplyBlocks(p);return true;
+}
+function validateIncomingChanges(p,changes){
+ const f=factor(p),next=p.elements.filter(device).map(e=>({...e,...changes.find(q=>q.id===e.id)})),overlap=(a,b)=>a.x<b.x+b.width*f-.01&&a.x+a.width*f>b.x+.01&&a.y<b.y+b.height*f-.01&&a.y+a.height*f>b.y+.01;
+ for(const change of changes){const e=next.find(e=>e.id===change.id),old=p.elements.find(q=>q.id===e.id);if(!p.elements.some(c=>c.kind==='cabinet'&&e.x>=c.x-.01&&e.x+e.width*f<=c.x+c.width*f+.01&&e.y>=c.y-.01&&e.y+e.height*f<=c.y+(c.height-(c.plinthHeight||0))*f+.01))throw Error('Klemmen und Gerätegruppe müssen innerhalb des Rahmens bleiben.');
+  if(next.some(q=>q.id!==e.id&&overlap(e,q)&&!overlap(old,p.elements.find(r=>r.id===q.id))))throw Error('Die verschobene Gerätegruppe überschneidet sich am Ziel mit einem anderen Gerät.');
+ }
 }
 
 // Exchange a meter plus its lower 250 mm measurement module as one 250 x 800 bay.

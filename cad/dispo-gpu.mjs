@@ -1,5 +1,5 @@
-import {boxWorldPoint} from './box-transform.mjs?v=20261118-7';
-import {boxMesh} from './dispo-mesh.mjs?v=20261118-7';
+import {boxWorldPoint} from './box-transform.mjs?v=20261119-1';
+import {boxMesh} from './dispo-mesh.mjs?v=20261119-1';
 // Static geometry is uploaded once; orbit/zoom only update camera uniforms.
 export function prepareGeometry(boxes,center,indices){
  const triangles=[],edges=[],labels=[];
