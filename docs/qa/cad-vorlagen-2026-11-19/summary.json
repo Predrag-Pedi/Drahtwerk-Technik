@@ -1,0 +1,14 @@
+{
+  "total": 4291,
+  "passed": 4291,
+  "errors": [],
+  "schema": 3602,
+  "dispo": 689,
+  "fitActions": 90,
+  "schemaFitActions": 81,
+  "dispoFitActions": 9,
+  "macros": 106,
+  "terminalTemplates": 83,
+  "terminalTables": 113,
+  "rasterRendered": 4291
+}

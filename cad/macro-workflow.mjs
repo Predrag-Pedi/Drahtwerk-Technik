@@ -1,6 +1,7 @@
-import {placement} from './placement.mjs?v=20261119-1';
-import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-1';
-import {size} from './model.mjs?v=20261119-1';
+import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-3';
+import {placement} from './placement.mjs?v=20261119-3';
+import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-3';
+import {size} from './model.mjs?v=20261119-3';
 
 export const isSchemaMacro=t=>t?.category==='Schema'&&/^Makros\//i.test(t.source||'');
 // Original text keys are retained: edits use the same rendering, export and
@@ -25,7 +26,7 @@ export function applyMacroValues(e,values={}){
  }
  e.textEdits={...e.textEdits,...edits};return e;
 }
-export function macroAtPath(page,template,path,{values={},percent=100,autoConnect=true}={}){
+export function macroAtPath(page,template,path,{values={},percent=100,autoConnect=true,terminalSide='original'}={}){
  if(page.type!=='schema'||!isSchemaMacro(template))throw Error('Pfadwahl ist für Schema-Makros verfügbar.');
  if(!Number.isInteger(path)||path<0||path>9)throw Error('Strompfad 0 bis 9 wählen.');
  if(!Number.isFinite(percent)||percent<1||percent>200)throw Error('Symbolgrösse prüfen.');
@@ -43,5 +44,5 @@ export function macroAtPath(page,template,path,{values={},percent=100,autoConnec
  });
  if(collision)throw Error(`Auf Pfad ${path} überschneidet sich das Makro mit einer Vorlage. Einen freien Pfad wählen oder mit der Maus platzieren.`);
  if(page.elements.length+page.wires.length>=5000)throw Error('Maximal 5000 Elemente pro Seite.');
- return applyMacroValues(e,values);
+ return applyTerminalSide(applyMacroValues(e,values),terminalSide);
 }

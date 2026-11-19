@@ -29,7 +29,7 @@ with zipfile.ZipFile(a.archive) as z:
     if desc and desc.strip():name=desc.strip()+(' · '+typ.strip() if typ and typ.strip() else '')
    except ET.ParseError:pass
   id='tlx-'+hashlib.sha256(source.encode()).hexdigest()[:16]
-  meta=dict(id=id,name=name,source=source,category='Dispo' if parts[1].startswith('184-') else 'Schema',group=parts[-2])
+  meta=dict(id=id,name=name,source=source,category='Dispo' if (parts[1].startswith('184-') or '/50Schaltschrank/' in source) else 'Schema',group=parts[-2])
   manifest.append(meta);(a.workdir/'input'/(id+'.dwg')).write_bytes(z.read(source))
 (a.workdir/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False))
 print('Prepared',len(manifest),'additional drawings; existing IDs preserved')

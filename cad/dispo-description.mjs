@@ -1,6 +1,6 @@
-import {cabinetOptions,cabinetField} from './cabinet-options.mjs?v=20261119-1';
-import {createElement} from './model.mjs?v=20261119-1';
-import {DRAW} from './geometry.mjs?v=20261119-1';
+import {cabinetOptions,cabinetField} from './cabinet-options.mjs?v=20261119-3';
+import {createElement} from './model.mjs?v=20261119-3';
+import {DRAW} from './geometry.mjs?v=20261119-3';
 // Construction facts only. A generated plan never declares a completed test,
 // delivery, electrical certification or contract scope from a reference project.
 export function dispositionDescription(c,title=''){

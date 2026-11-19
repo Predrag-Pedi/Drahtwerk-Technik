@@ -1,4 +1,4 @@
-import {DRAW} from './geometry.mjs?v=20261119-1';
+import {DRAW} from './geometry.mjs?v=20261119-3';
 
 // Scale the complete drawing about the page centre; real equipment sizes stay in mm.
 export function setDispoScale(p,scale){

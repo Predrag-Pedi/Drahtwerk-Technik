@@ -1,18 +1,18 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261119-1';
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261119-1';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261119-1';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-1';
-import {joinDinRails} from './frame-layout.mjs?v=20261119-1';
-import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-1';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261119-1';
-import {standardFrame} from './standard-render.mjs?v=20261119-1';
-import {frameMarkup} from './frame-render.mjs?v=20261119-1';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-1';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261119-1';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-1';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-1';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261119-1';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-1';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-3';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261119-3';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261119-3';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-3';
+import {joinDinRails} from './frame-layout.mjs?v=20261119-3';
+import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-3';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261119-3';
+import {standardFrame} from './standard-render.mjs?v=20261119-3';
+import {frameMarkup} from './frame-render.mjs?v=20261119-3';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-3';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261119-3';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-3';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-3';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261119-3';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-3';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Highlight the drawn geometry, never the template's (possibly padded) viewBox.
 // Keep white masks, invisible hit targets and clipping paths visually unchanged.
@@ -45,7 +45,7 @@ export function elementMarkup(e,p,d,editor=false,groupSelect=false,selected=fals
  if(manualInterior(e)){const m=manualInterior(e),f=W/420/p.scale,sockel=e.manualPart.plinth;body=`<rect width="${w}" height="${h}" fill="#f3f5f7"/><rect x="${m.left*f}" y="${m.top*f}" width="${(m.right-m.left)*f}" height="${(m.bottom-m.top)*f}" fill="white"/>`+(sockel?`<rect y="${h-sockel*f}" width="${w}" height="${sockel*f}" fill="#111111"/>`:'')+cabinetDimensions(e,w,h,p);}
  else if(e.kind==='cabinet'&&e.frameStyle?.startsWith('almatec-')){body=cabinetShell(e,W/420/p.scale)+cabinetDimensions(e,w,h,p);}
  else if(frameMarkup(e,w,h)!==null){body=frameMarkup(e,w,h);}
- else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,p.type==='schema'?tariffTextEdits(d,e):(e.textEdits||{}),editor&&!groupSelect,hits,e.textOffsets||{});}
+ else if(e.kind==='template'&&e.template){const labels=templateLabels(e,p);for(const key of functionKeys(e))labels[key]=functionBmk(d,p,e,key);const hits=editor&&!groupSelect?templateLines(e.template).map((l,i)=>`<path class="template-line-hit" data-template-line="${esc(e.id)}:${i}" d="M ${l.a.x} ${l.a.y} L ${l.b.x} ${l.b.y}" fill="none" stroke="transparent" stroke-width="7" vector-effect="non-scaling-stroke" pointer-events="stroke"/>`).join(''):'';body=templateMarkup(e.template,w,h,labels,p.type==='schema'?tariffTextEdits(d,e):(e.textEdits||{}),editor&&!groupSelect,hits,e.textOffsets||{},e.terminalSide);}
  else if(s.ports.length)body=`<g transform="scale(${w/s.w} ${h/s.h})">${e.kind==='contact'&&functionData(e).contactType==='NC'?path('M20 0V20 M20 40V60 M20 40L8 17 M12 21H26'):e.kind==='contact'&&functionData(e).contactType==='CO'?path('M20 0V20 M20 40V60 M20 40L8 17 M35 0V20H28'):glyph(e.kind)}</g>`;
  else if(e.kind==='text')body=e.text.split('\n').map((l,i)=>text(0,e.dispoDescription?10+i*11:16+i*17,l,e.dispoDescription?'font-size="9"':'')).join('');
  else if(e.kind==='dimension'&&e.measure){const m=dimensionGeometry(e,p);body=path(m.path)+text(m.x,m.y,e.text||m.text,`text-anchor="middle" font-size="10" ${m.vertical?`transform="rotate(-90 ${m.x} ${m.y})"`:''}`);}
