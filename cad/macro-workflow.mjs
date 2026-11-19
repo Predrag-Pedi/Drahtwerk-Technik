@@ -1,11 +1,11 @@
-import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-5';
-import {placement} from './placement.mjs?v=20261119-5';
-import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-5';
-import {size} from './model.mjs?v=20261119-5';
+import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-6';
+import {placement} from './placement.mjs?v=20261119-6';
+import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-6';
+import {size} from './model.mjs?v=20261119-6';
 
 export const isSchemaMacro=t=>t?.category==='Schema'&&/^Makros\//i.test(t.source||'');
-export {macroFields,applyMacroValues} from './macro-config.mjs?v=20261119-5';
-import {applyMacroValues,applyMacroDraft} from './macro-config.mjs?v=20261119-5';
+export {macroFields,applyMacroValues} from './macro-config.mjs?v=20261119-6';
+import {applyMacroValues,applyMacroDraft} from './macro-config.mjs?v=20261119-6';
 export function macroAtPath(page,template,path,{values={},percent=100,autoConnect=true,terminalSide='original',draft=null}={}){
  if(page.type!=='schema'||!isSchemaMacro(template))throw Error('Pfadwahl ist für Schema-Makros verfügbar.');
  if(!Number.isInteger(path)||path<0||path>9)throw Error('Strompfad 0 bis 9 wählen.');

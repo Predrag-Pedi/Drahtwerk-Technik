@@ -1,6 +1,7 @@
-import {createElement,ports,uid,size,symbols} from './model.mjs?v=20261119-5';
-import {DRAW,bounds} from './geometry.mjs?v=20261119-5';
-import {allFunctions,functionBmk,functionData,referenceLocation,contactsFor} from './references.mjs?v=20261119-5';
+import {articleForFunction,articleSummary,manufacturers} from './protection-catalog.mjs?v=20261119-6';
+import {createElement,ports,uid,size,symbols} from './model.mjs?v=20261119-6';
+import {DRAW,bounds} from './geometry.mjs?v=20261119-6';
+import {allFunctions,functionBmk,functionData,referenceLocation,contactsFor} from './references.mjs?v=20261119-6';
 
 export function outgoingPorts(e,p){
  if(!e||e.rotation||e.template)return [];
@@ -48,5 +49,5 @@ export function reportRows(doc,kind){
  if(kind==='terminals')return [[...base,'Klemmenleiste','Nummer','Anschluss','Blatt'],...doc.pages.filter(p=>p.type==='schema').flatMap(p=>p.elements.filter(e=>e.terminalStrip).map(e=>[...prefix,e.terminalStrip.name,e.terminalStrip.number,e.terminalStrip.label,p.number])),...rows.filter(r=>r.f.element.kind==='terminal'&&!r.f.element.terminalStrip||r.f.element.template?.labels?.some(l=>l.key===r.f.key&&l.letter==='X')).map(r=>[...prefix,r.bmk,'',r.description,r.page])];
  const devices=rows.filter(r=>r.bmk&&r.f.data.role!=='contact'&&!r.f.element.terminalStrip);
  if(kind==='measurement')return [[...base,'BMK','Gerät / Typ','Verwendungszweck','Blatt/Pfad','Isolationswiderstand (MΩ)','Schleifenimpedanz (Ω)','RCD-Auslösezeit (ms)','Prüfdatum','Geprüft durch','Bemerkungen'],...devices.filter(r=>['ls','fils','fuse'].includes(r.f.element.kind)||r.f.element.template?.labels?.some(l=>l.key===r.f.key&&l.letter==='F')).map(r=>[...prefix,r.bmk,r.type,r.description,r.path,'','','','','',''])];
- return [[...base,'BMK','Gerät / Typ','Verwendungszweck','Blatt/Pfad'],...devices.map(r=>[...prefix,r.bmk,r.type,r.description,r.path])];
+ return [[...base,'BMK','Gerät / Typ','Verwendungszweck','Blatt/Pfad','Hersteller','Artikelnummer','ELDAS','Artikelwerte'],...devices.map(r=>{const a=articleForFunction(r.f.element,r.f.key);return [...prefix,r.bmk,r.type,r.description,r.path,a?manufacturers[a.manufacturer]:'',a?.article||'',a?.eldas||'',a?articleSummary(a):''];})];
 }

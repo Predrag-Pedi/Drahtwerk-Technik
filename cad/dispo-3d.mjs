@@ -1,12 +1,12 @@
-import {cableEntryBoxes} from './cable-entry-3d.mjs?v=20261119-5';
-import {createDoorMotion} from './door-motion.mjs?v=20261119-5';
-import {cabinetOptions,cabinetField,ralColors} from './cabinet-options.mjs?v=20261119-5';
-import {boxWorldPoint,doorMotionBounds} from './box-transform.mjs?v=20261119-5';
-import {manualInterior} from './dispo-parts.mjs?v=20261119-5';
-import {joinDinRails} from './frame-layout.mjs?v=20261119-5';
-import {createGpuRenderer} from './dispo-gpu.mjs?v=20261119-5';
-import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261119-5';
-import {frameBoxes} from './frame-render.mjs?v=20261119-5';
+import {cableEntryBoxes} from './cable-entry-3d.mjs?v=20261119-6';
+import {createDoorMotion} from './door-motion.mjs?v=20261119-6';
+import {cabinetOptions,cabinetField,ralColors} from './cabinet-options.mjs?v=20261119-6';
+import {boxWorldPoint,doorMotionBounds} from './box-transform.mjs?v=20261119-6';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-6';
+import {joinDinRails} from './frame-layout.mjs?v=20261119-6';
+import {createGpuRenderer} from './dispo-gpu.mjs?v=20261119-6';
+import {boxMesh,meterConduits} from './dispo-mesh.mjs?v=20261119-6';
+import {frameBoxes} from './frame-render.mjs?v=20261119-6';
 // Orthographic 3D: real XYZ geometry, orbit camera, depth-sorted faces. No network dependency.
 export function sceneBoxes(p,doorAngles={}){
  const factor=420*p.scale/1200,boxes=[];

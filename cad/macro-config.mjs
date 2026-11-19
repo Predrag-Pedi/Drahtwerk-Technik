@@ -1,4 +1,6 @@
-import {functionData} from './references.mjs?v=20261119-5';
+import {protectionFields} from './protection-fields.mjs?v=20261119-6';
+import {articleById,compatibleArticles,matchingArticles,preferredArticle,articleValue} from './protection-catalog.mjs?v=20261119-6';
+import {functionData} from './references.mjs?v=20261119-6';
 
 // Drahtwerk's supplied table, not a general ampacity calculation. No
 // interpolation for ratings absent from that table (e.g. 50 A or 400 A).
@@ -82,7 +84,9 @@ export function applyMacroValues(e,values={}){
  return e;
 }
 export function applyMacroDraft(e,draft){
+ validateMacroArticles(e.template,draft);
  applyMacroValues(e,draft.values);
+ for(const [key,id]of Object.entries(draft.articles||{})){if(!id)continue;const a=articleById(id);e.functions??={};e.functions[key]={...functionData(e,key),protectionArticleId:id,manufacturer:a.manufacturer};}
  for(const {key,textKey} of outgoingFields(e.template)){
   const name=draft.names[key]??'';if(typeof name!=='string'||name.length>200)throw Error('Abgangname darf höchstens 200 Zeichen enthalten.');
   if(!name&&!textKey)continue;
@@ -103,4 +107,28 @@ export function extraTerminalSections(e){
   const section=e.functions?.[b.terminalKey]?.terminalSection;if(!section||b.sectionKey||seen.has(b.terminalKey))continue;seen.add(b.terminalKey);
   const label=e.template.labels.filter(l=>l.key===b.terminalKey).sort((a,b)=>point(b)[1]-point(a)[1])[0];if(label)result.push({key:b.terminalKey,section,x:label.matrix[4],y:label.matrix[5]-label.fontSize*1.6,fontSize:label.fontSize});
  }return result;
+}
+
+// Only the catalogue-aware UI opts drafts into strict article validation. Old
+// projects stay readable and do not acquire a manufacturer/article silently.
+export function selectMacroArticle(t,draft,key,id){
+ const profile=protectionFields(t).find(p=>p.key===key),a=articleById(id);
+ if(!profile||!a||!compatibleArticles(profile).some(x=>x.id===id))throw Error('Artikel passt nicht zur Geräteart oder Polzahl der Vorlage.');
+ draft.articles??={};draft.articles[key]=id;
+ for(const [field,textKey]of Object.entries(profile.fields)){const value=articleValue(a,field);if(value!=='')draft.values[textKey]=String(value);}
+ return syncMacroCables(t,draft);
+}
+export function initializeMacroArticles(t,draft){
+ draft.articles??={};
+ for(const p of protectionFields(t)){
+  if(draft.articles[p.key]&&matchingArticles(t,p,draft.values).some(a=>a.id===draft.articles[p.key]))continue;
+  const a=preferredArticle(matchingArticles(t,p,draft.values),{series:'Clario iC40',manufacturer:/Hager/i.test(t.name)?'hager':'schneider',current:13,curve:'C',residual:30,rcdType:'A',selective:false});
+  if(a)selectMacroArticle(t,draft,p.key,a.id);else draft.articles[p.key]='';
+ }
+ return draft;
+}
+export function validateMacroArticles(t,draft){
+ if(!draft.articles)return;
+ const keys=new Set(protectionFields(t).map(p=>p.key));if(Object.keys(draft.articles).some(key=>!keys.has(key)))throw Error('Unbekannte Gerätefunktion für Katalogartikel.');
+ for(const p of protectionFields(t).filter(p=>Object.hasOwn(draft.articles,p.key)))if(!draft.articles[p.key]||!matchingArticles(t,p,draft.values).some(a=>a.id===draft.articles[p.key]))throw Error(`Für ${p.key} einen passenden Katalogartikel wählen.`);
 }

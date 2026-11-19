@@ -1,19 +1,19 @@
-import {extraTerminalSections} from './macro-config.mjs?v=20261119-5';
-import {manualInterior} from './dispo-parts.mjs?v=20261119-5';
-import {dimensionGeometry} from './drawing-tools.mjs?v=20261119-5';
-import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261119-5';
-import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-5';
-import {joinDinRails} from './frame-layout.mjs?v=20261119-5';
-import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-5';
-import {continuationCut,meterView} from './meter-view.mjs?v=20261119-5';
-import {standardFrame} from './standard-render.mjs?v=20261119-5';
-import {frameMarkup} from './frame-render.mjs?v=20261119-5';
-import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-5';
-import {templateLines,linePoints} from './line-edit.mjs?v=20261119-5';
-import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-5';
-import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-5';
-import {templateMarkup,templateLabels} from './template.mjs?v=20261119-5';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-5';
+import {extraTerminalSections} from './macro-config.mjs?v=20261119-6';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-6';
+import {dimensionGeometry} from './drawing-tools.mjs?v=20261119-6';
+import {tariffTextEdits,tariffMarkup} from './tariffs.mjs?v=20261119-6';
+import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-6';
+import {joinDinRails} from './frame-layout.mjs?v=20261119-6';
+import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-6';
+import {continuationCut,meterView} from './meter-view.mjs?v=20261119-6';
+import {standardFrame} from './standard-render.mjs?v=20261119-6';
+import {frameMarkup} from './frame-render.mjs?v=20261119-6';
+import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-6';
+import {templateLines,linePoints} from './line-edit.mjs?v=20261119-6';
+import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-6';
+import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-6';
+import {templateMarkup,templateLabels} from './template.mjs?v=20261119-6';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-6';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Highlight the drawn geometry, never the template's (possibly padded) viewBox.
 // Keep white masks, invisible hit targets and clipping paths visually unchanged.

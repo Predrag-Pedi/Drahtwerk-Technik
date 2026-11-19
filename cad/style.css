@@ -223,3 +223,15 @@
 #macroSidebar [data-macro-terminal-label]{margin-top:10px}
 #macroSidebar [data-macro-terminal-label] .macro-label{font-weight:400;color:#526d88}
 #macroSidebar [data-macro-notice]{margin:0 0 8px;font-size:11px;line-height:1.4;color:#79531c}
+/* Catalogue controls stay in the existing left-hand workflow. */
+.macro-articles{grid-column:1/-1;min-width:0}.macro-article{display:grid;gap:7px;min-width:0;padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid #d6e1ef}.macro-article strong{font-size:12px}.macro-article-values{display:grid;grid-template-columns:1fr 1fr;gap:7px}.macro-article-values>.macro-choices:first-child{grid-column:1/-1}.macro-article-values .macro-choice-row{flex-wrap:wrap}.macro-article small{font-size:10px;color:#607895}.macro-article-details summary{cursor:pointer;font-size:11px;color:#2459a1}.macro-article-details[open]{display:grid;gap:8px}.macro-article-details select{width:100%;min-width:0;font-size:11px}.macro-article-details a{font-size:11px}.macro-ratings{font-size:10px;margin:0}.macro-ratings dt{margin-top:5px}.macro-ratings dd{margin:0;font-weight:600}
+#editor :is(#macroSidebar,#inspector) .macro-article .macro-choices{min-width:0;margin:0;padding:0;border:0}
+#editor :is(#macroSidebar,#inspector) .macro-article .macro-choices legend{margin-bottom:4px;padding:0;font-size:11px;color:#526d88}
+#editor :is(#macroSidebar,#inspector) .macro-article .macro-choice-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+#editor :is(#macroSidebar,#inspector) .macro-article>.macro-choices .macro-choice-row,
+#editor :is(#macroSidebar,#inspector) .macro-article-values>.macro-choices:not(:first-child) .macro-choice-row,
+#editor :is(#macroSidebar,#inspector) .macro-article-details .macro-choice-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+#editor :is(#macroSidebar,#inspector) .macro-article .macro-choice-row button{width:100%;min-width:0;min-height:28px;margin:0;padding:4px 3px;font-size:11px;font-weight:600;background:#f7f9fc;border-color:#d4dfec;color:#34506c}
+#editor :is(#macroSidebar,#inspector) .macro-article .macro-choice-row button[aria-pressed=true]{background:#e3eeff;color:#154fb1;border-color:#447ee9;box-shadow:inset 0 0 0 1px #447ee9}
+#editor .macro-article-details .macro-field{display:block;margin:0}
+#editor .macro-article-details select{max-width:100%;white-space:normal}
