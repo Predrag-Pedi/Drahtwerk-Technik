@@ -1,7 +1,8 @@
-import {isRse} from './rse.mjs?v=20261119-5';
-import {fuseLimits} from './fuse-systems.mjs?v=20261119-5';
-import {BUS} from './geometry.mjs?v=20261119-5';
-import {ports,wirePoints} from './model.mjs?v=20261119-5';
+import {articleForFunction} from './protection-catalog.mjs?v=20261119-6';
+import {isRse} from './rse.mjs?v=20261119-6';
+import {fuseLimits} from './fuse-systems.mjs?v=20261119-6';
+import {BUS} from './geometry.mjs?v=20261119-6';
+import {ports,wirePoints} from './model.mjs?v=20261119-6';
 // Read texts belonging to one macro function, never an unrelated fuse elsewhere in the macro.
 export function deviceText(e,key='$'){
  if(!e.template)return [e.value,e.text].filter(Boolean).join(' ');
@@ -44,6 +45,7 @@ export function spdFunction(e,key){
 }
 // Classify the selected function, not the enclosing mixed meter macro.
 export function protectionKind(e,key='$'){
+ const article=articleForFunction(e,key);if(article)return article.kind;
  const label=e.template?.labels?.find(l=>l.key===key);
  if(e.template?label?.letter!=='F':!['fuse','ls','fils'].includes(e.kind))return '';
  const text=deviceText(e,key),name=e.template?.name||'';
@@ -53,6 +55,7 @@ export function protectionKind(e,key='$'){
  if(knownSpd!==false&&(/\bSPD\b|Überspannungs[-\s]*(?:ableiter|schutz)|Typ\s*CT[12]|Surge|Funkenstrecke/i.test(text)||singleFunction&&/\bSPD\b|Überspannung|Typ\s*CT[12]|Surge|Funkenstrecke/i.test(name+' '+(e.template?.group||''))))return 'spd';
  if(['ls','fils'].includes(e.kind))return e.kind;
  const single=(e.template?.labels||[]).filter(l=>l.letter==='F').length===1;
+ if(single&&/\bFI\b/i.test(name)&&!/FI[ _/-]*LS/i.test(name))return 'fi';
  if(/\b\d+(?:[.,]\d+)?\s*mA\b|FI.?LS/i.test(text)||single&&/FI.?LS/i.test(name))return 'fils';
  if(/\b[BCD]\s*\d+|\d+\s*A\s*[/ ]*\s*[BCD]\b/i.test(text)||single&&/(?:^|_)LS(?:_|$)/i.test(name))return 'ls';
  return 'fuse';

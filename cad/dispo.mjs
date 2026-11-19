@@ -1,15 +1,16 @@
-import {validateCabinetSettings,cabinetOptions,cabinetField} from './cabinet-options.mjs?v=20261119-5';
-import {isCabinet,cabinetLayout} from './cabinet-layout.mjs?v=20261119-5';
-import {systemLayout} from './system-layout.mjs?v=20261119-5';
-import {isRse,groupRseFuses} from './rse.mjs?v=20261119-5';
-import {measurementGroups} from './metering.mjs?v=20261119-5';
-import {DRAW} from './geometry.mjs?v=20261119-5';
-import {meterParentFor,frame} from './alignment.mjs?v=20261119-5';
-import {deviceText,protectionKind,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261119-5';
-import {createElement,W} from './model.mjs?v=20261119-5';
-import {allFunctions,functionBmk} from './references.mjs?v=20261119-5';
+import {articleForFunction} from './protection-catalog.mjs?v=20261119-6';
+import {validateCabinetSettings,cabinetOptions,cabinetField} from './cabinet-options.mjs?v=20261119-6';
+import {isCabinet,cabinetLayout} from './cabinet-layout.mjs?v=20261119-6';
+import {systemLayout} from './system-layout.mjs?v=20261119-6';
+import {isRse,groupRseFuses} from './rse.mjs?v=20261119-6';
+import {measurementGroups} from './metering.mjs?v=20261119-6';
+import {DRAW} from './geometry.mjs?v=20261119-6';
+import {meterParentFor,frame} from './alignment.mjs?v=20261119-6';
+import {deviceText,protectionKind,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261119-6';
+import {createElement,W} from './model.mjs?v=20261119-6';
+import {allFunctions,functionBmk} from './references.mjs?v=20261119-6';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
-const envelopes={ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],spd:[72,134.8,75],terminal:[8,60,45]};
+const envelopes={fi:[72,90,75],ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],spd:[72,134.8,75],terminal:[8,60,45]};
 export function schemaDevices(doc){
  const devices=[],warnings=[],seen=new Set();
  for(const {page,element:e,key,data} of allFunctions(doc)){
@@ -27,7 +28,7 @@ export function schemaDevices(doc){
   if(kind==='template'){const letter=tag.match(/[A-Z]+/i)?.[0]?.toUpperCase();kind=({F:'fuse',Q:'switch',S:'switch',K:'coil',P:'meter',Y:'meter',X:'terminal'})[letter]||'unknown';}
   if(isTest)kind='test-terminal';
   if(kind==='unknown'&&/^\d*T/.test(tag)&&/stromwandler/i.test(e.template?.name||''))kind='transformer';
-  const content=deviceText(e,key);
+  const content=deviceText(e,key),article=articleForFunction(e,key);
   if(kind==='fuse')kind=protectionKind(e,key)||kind;
   const poles=/\b1\s+2\s+3\s+4\s+5\s+6\b/.test(content)?3:/\b1\s+2\s+N\s+N\b|\b1\s+N\b/.test(content)?1:undefined;
   if(kind==='fuse'&&disconnectBlade(content)&&!fuseRating(content,doc.ratedCurrent).current)throw Error(`${tag}: Trennmesser DIN00 – Bemessungsstrom in den Projektdaten ergänzen.`);
@@ -44,7 +45,7 @@ export function schemaDevices(doc){
   const meterKey=meterParent?.template?.labels?.find(l=>l.letter==='P')?.key;
   const meterSource=['fuse','ls','fils'].includes(kind)&&meterKey?{page:page.id,element:meterParent.id,key:meterKey}:undefined;
   if(kind==='fuse'&&isRse(e))kind='rse-fuse';
-  devices.push({smisslineHK:data.smisslineHK,smisslineNeutral:data.smisslineNeutral,smisslineFeedCurrent:data.smisslineFeedCurrent,smisslineFeedFrom:data.smisslineFeedFrom,current:Number(content.match(/\b(\d+)\s*A\b/i)?.[1])||0,breakerSystemExplicit:data.breakerSystem!==undefined,fuseSystemExplicit:data.fuseSystem!==undefined,breakerSystem:data.breakerSystem||'conventional',fuseSystem:data.fuseSystem||'conventional',meterSource,meterFed,phase:phases.length===1?phases[0]:'',supplyKey:meterParent?meterParent.id:meterFed?'meter-outlet:'+e.id:'bus:'+page.id,manufacturer:data.manufacturer||'auto',lsMode:data.lsMode||'allpole',poles,neutral:/\bN\b/.test(content)||kind==='fuse'&&(e.template?.ports?.length?e.template.ports:inputs).some(pt=>pt.phase==='N'),schemaTemplateName:e.template?.name||'',...rating,incoming,meterState:'prepared',circuitName:data.circuitName||(meterFed&&!meterParent?'':circuitName(doc,{page:page.id,element:e.id})),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number});
+  devices.push({smisslineHK:data.smisslineHK,smisslineNeutral:data.smisslineNeutral,smisslineFeedCurrent:data.smisslineFeedCurrent,smisslineFeedFrom:data.smisslineFeedFrom,current:Number(content.match(/\b(\d+)\s*A\b/i)?.[1])||0,breakerSystemExplicit:data.breakerSystem!==undefined,fuseSystemExplicit:data.fuseSystem!==undefined,breakerSystem:data.breakerSystem||'conventional',fuseSystem:data.fuseSystem||'conventional',meterSource,meterFed,phase:phases.length===1?phases[0]:'',supplyKey:meterParent?meterParent.id:meterFed?'meter-outlet:'+e.id:'bus:'+page.id,manufacturer:data.manufacturer||'auto',lsMode:data.lsMode||'allpole',poles,neutral:/\bN\b/.test(content)||kind==='fuse'&&(e.template?.ports?.length?e.template.ports:inputs).some(pt=>pt.phase==='N'),schemaTemplateName:e.template?.name||'',...rating,incoming,meterState:'prepared',circuitName:data.circuitName||(meterFed&&!meterParent?'':circuitName(doc,{page:page.id,element:e.id})),source:{page:page.id,element:e.id,key},tag,kind,name:e.template?`${key} · ${content||e.template.name.replaceAll('_',' ')}`:e.value||e.text||kind,width,height,depth,confirmed:false,include:true,pageNumber:page.number,...(article?{current:article.current,manufacturer:article.manufacturer,protectionArticle:article}: {})});
  }
  for(const p of doc.pages.filter(p=>p.type==='schema'))for(const e of p.elements)if(e.template&&!e.template.labels?.length)warnings.push(`Blatt ${p.number}: «${e.template.name}» ohne auswertbare Gerätekennzeichen.`);
  measurementGroups(doc,devices,warnings);groupRseFuses(devices);return {devices,warnings};
