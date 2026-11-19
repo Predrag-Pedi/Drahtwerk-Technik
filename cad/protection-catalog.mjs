@@ -1,10 +1,10 @@
-import {protectionArticles,catalogSources,catalogDate} from './protection-articles.mjs?v=20261119-6';
-import {protectionFields} from './protection-fields.mjs?v=20261119-6';
+import {protectionArticles,catalogSources,catalogDate} from './protection-articles.mjs?v=20261119-7';
+import {protectionFields} from './protection-fields.mjs?v=20261119-7';
 export {protectionArticles,catalogDate};
-export const manufacturers={hager:'Hager',schneider:'Schneider'};
+export const manufacturers={hager:'Hager',schneider:'Schneider',abb:'ABB',eaton:'Eaton',siemens:'Siemens'};
 const byId=new Map(protectionArticles.map(a=>[a.id,a]));
 export const articleById=id=>byId.get(id)||null;
-export const articleSource=a=>a.source==='feller-live'?`https://online-katalog.feller.ch/de/product?fnr=${encodeURIComponent(a.article)}`:catalogSources[a.source].url+'#page='+a.sourcePage;
+export const articleSource=a=>a.sourceUrl||(a.source==='feller-live'?`https://online-katalog.feller.ch/de/product?fnr=${encodeURIComponent(a.article)}`:catalogSources[a.source].url+'#page='+a.sourcePage);
 export function compatibleArticles(profile){return protectionArticles.filter(a=>a.kind===profile.kind&&(a.poles===profile.poles||a.kind==='fi'&&({'1P+N':'2P','3P+N':'4P'}[profile.poles]===a.poles||{'2P':'1P+N','4P':'3P+N'}[profile.poles]===a.poles)));}
 export const articleValue=(a,field)=>field==='current'?a.current+'A':field==='residual'?a.residual+'mA':a[field]??'';
 const norm=(v,field)=>['current','residual'].includes(field)?Number(String(v).match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',','.')):String(v).replace(/\s/g,'').toUpperCase();
@@ -25,4 +25,4 @@ export function articleForFunction(e,key){
  const a=articleById(e.functions?.[key]?.protectionArticleId),profile=a&&protectionFields(e.template).find(p=>p.key===key);
  return profile&&matchingArticles(e.template,profile,e.textEdits).some(x=>x.id===a.id)?a:null;
 }
-export function articleFieldOwner(e,textKey){return protectionFields(e.template).find(p=>e.functions?.[p.key]?.protectionArticleId&&Object.values(p.fields).includes(textKey));}
+export function articleFieldOwner(e,textKey){return protectionFields(e.template).find(p=>(e.functions?.[p.key]?.protectionArticleId||e.functions?.[p.key]?.protectionSpecId)&&Object.values(p.fields).includes(textKey));}

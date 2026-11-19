@@ -1,6 +1,6 @@
-import {fieldLayout} from './field-layout.mjs?v=20261119-6';
-import {systemLayout} from './system-layout.mjs?v=20261119-6';
-import {anBodyWidths,anDepths,fieldExtra,cabinetField} from './cabinet-options.mjs?v=20261119-6';
+import {fieldLayout} from './field-layout.mjs?v=20261119-7';
+import {systemLayout} from './system-layout.mjs?v=20261119-7';
+import {anBodyWidths,anDepths,fieldExtra,cabinetField} from './cabinet-options.mjs?v=20261119-7';
 export {anDepths};
 // Default outer widths include two 25 mm standard side walls.
 export const anWidths=anBodyWidths.map(w=>w+50);

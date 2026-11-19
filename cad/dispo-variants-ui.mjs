@@ -1,6 +1,6 @@
-import {configureCabinet} from './cabinet-config-ui.mjs?v=20261119-6';
-import {dispoVariants,cachedDispoBuild,calculateDispoVariant} from './dispo-variants.mjs?v=20261119-6';
-import {svgPage} from './render.mjs?v=20261119-6';
+import {configureCabinet} from './cabinet-config-ui.mjs?v=20261119-7';
+import {dispoVariants,cachedDispoBuild,calculateDispoVariant} from './dispo-variants.mjs?v=20261119-7';
+import {svgPage} from './render.mjs?v=20261119-7';
 
 const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 export function openDispoVariants({doc,page,onApply,initialError=''}){
