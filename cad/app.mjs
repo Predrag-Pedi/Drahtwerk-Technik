@@ -1,4 +1,4 @@
-import {protectionPicker} from './protection-picker.mjs?v=20261119-7';
+import {protectionPicker} from './protection-picker.mjs?v=20261119-8';
 import {protectionFields} from './protection-fields.mjs?v=20261119-7';
 import {articleForFunction} from './protection-catalog.mjs?v=20261119-7';
 import {outgoingFields,macroBindings} from './macro-config.mjs?v=20261119-7';
@@ -6,7 +6,7 @@ import {applyMacroDraft} from './macro-config.mjs?v=20261119-7';
 import {drawingText,applyDrawingText} from './text-edit.mjs?v=20261119-7';
 import {applyTerminalSide,terminalBands,terminalSideOptions} from './terminal-markers.mjs?v=20261119-7';
 import {templateFit} from './template-fit.mjs?v=20261119-7';
-import {macroSidebar} from './macro-sidebar.mjs?v=20261119-7';
+import {macroSidebar} from './macro-sidebar.mjs?v=20261119-8';
 import {applyMacroValues,macroAtPath,isSchemaMacro} from './macro-workflow.mjs?v=20261119-7';
 import {openDispoVariants} from './dispo-variants-ui.mjs?v=20261119-7';
 import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261119-7';
@@ -48,7 +48,7 @@ const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
 let multi=[],selectionPage=null,connectionSelection=[];
 const textClicks=createTextClickTracker();
-let lineMode=false,deviceKey='$',deviceContext='';const deviceSelections=new Map();
+let lineMode=false,deviceKey='$',deviceContext='',devicePickerView={};const deviceSelections=new Map();
 let hoverPoint=null,placementRotation=0,activeTemplate=null,templateCatalog=null,templateLimit=40,templateRequest=0;
 let measurePoints=[],placementDimensions=null,verticalWire=false,snapGuides=null;
 let pendingAssembly=null,placementMetadata=null,linearStart=null;
@@ -155,14 +155,14 @@ function referenceInspector(root,e,p){
  for(const [i,t]of rseLegend(e).entries())field(root,'RSE-Legende '+i,e.textEdits?.[t.key]??t.text,v=>change(()=>{e.textEdits??={};e.textEdits[t.key]=v;}));
  }
  const keys=functionKeys(e);if(!keys.length)return;const box=document.createElement('section');box.className='reference-settings';root.append(box);const heading=document.createElement('h3');heading.textContent='Geräteeinstellungen / Hersteller';box.append(heading);
- const context=doc.id+':'+p.id+':'+e.id;if(deviceContext!==context){deviceContext=context;deviceKey=inspectorFunctionKey(e,deviceSelections.get(context));}deviceKey=inspectorFunctionKey(e,deviceKey);const key=deviceKey;
+ const context=doc.id+':'+p.id+':'+e.id;if(deviceContext!==context){deviceContext=context;deviceKey=inspectorFunctionKey(e,deviceSelections.get(context));devicePickerView={};}deviceKey=inspectorFunctionKey(e,deviceKey);const key=deviceKey;
  if(p.type==='schema')for(const meterKey of keys.filter(k=>e.kind==='meter'||e.template?.labels?.some(l=>l.key===k&&l.letter==='P')))field(box,'Zählerbeschriftung / Verwendungszweck · '+functionBmk(doc,p,e,meterKey),functionData(e,meterKey).description||'',v=>change(()=>updateFunction(doc,{page:p,element:e,key:meterKey,data:functionData(e,meterKey)},{description:v})));
  if(e.template)field(box,'Gerät in Vorlage',key,v=>{deviceKey=v;deviceSelections.set(context,v);inspector();},{options:keys.map(k=>[k,`${functionBmk(doc,p,e,k)} · ${k}`])});
  const data=functionData(e,key),update=(k,v)=>change(()=>updateFunction(doc,{page:p,element:e,key,data}, {[k]:v}));
  if(p.type==='schema'&&protectionFields(e.template).some(f=>f.key===key)){
   const articleBox=document.createElement('div');box.append(articleBox);
   const draft={values:{...e.textEdits},manualCables:macroBindings(e.template).map(b=>b.cableKey),names:Object.fromEntries(outgoingFields(e.template).map(f=>[f.key,functionData(e,f.key).description??e.textEdits?.[f.textKey]??f.value??''])),side:e.terminalSide||'original',articles:{[key]:data.protectionArticleId||data.protectionSpecId||''},manufacturerBound:{[key]:Boolean(data.protectionArticleId)}};
-  protectionPicker(articleBox,e.template,draft,message=>{change(()=>applyMacroDraft(e,draft));toast(message);},key);
+  protectionPicker(articleBox,e.template,draft,message=>{change(()=>applyMacroDraft(e,draft));toast(message);},key,devicePickerView);
  }
 
  if(p.type==='schema'&&e.kind!=='meter'&&!e.template?.labels?.some(l=>l.key===key&&l.letter==='P'))field(box,'Verwendungszweck / Beschriftung unten',data.description||'',v=>update('description',v));
