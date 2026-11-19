@@ -1,0 +1,9 @@
+{
+  "name": "Firmenportal – Node 24",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+  "postStartCommand": "node server/codespaces-start.mjs",
+  "forwardPorts": [4173],
+  "portsAttributes": {
+    "4173": {"label": "Firmenportal", "onAutoForward": "notify"}
+  }
+}

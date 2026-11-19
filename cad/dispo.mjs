@@ -7,7 +7,7 @@ import {measurementGroups} from './metering.mjs?v=20261119-7';
 import {DRAW} from './geometry.mjs?v=20261119-7';
 import {meterParentFor,frame} from './alignment.mjs?v=20261119-7';
 import {deviceText,protectionKind,fuseRating,disconnectBlade,circuitName,circuitNames} from './circuit-data.mjs?v=20261119-7';
-import {createElement,W} from './model.mjs?v=20261119-7';
+import {createElement,W} from './model.mjs?v=20261119-9';
 import {allFunctions,functionBmk} from './references.mjs?v=20261119-7';
 // Planning envelopes, deliberately not manufacturer-specific article dimensions.
 const envelopes={fi:[72,90,75],ls:[18,90,75],fils:[36,90,75],fuse:[54,100,85],switch:[90,140,110],coil:[54,90,90],timer:[36,90,70],meter:[180,260,120],spd:[72,134.8,75],terminal:[8,60,45]};
@@ -100,5 +100,5 @@ export function drahtwerkDemo(d){
   p.wires.push({id:crypto.randomUUID(),points:[{x:fuse.x+20,y:190},{x:meter.x+20,y:260}],from:{element:fuse.id,index:1},to:{element:meter.id,index:0},label:'',dashed:false});
   for(let n=0;n<4;n++){const e=createElement(p,'ls',180+i*300+n*45,500);e.value='C13 A';e.circuitName=name;p.elements.push(e);}
  }
- const q=d.pages.find(p=>p.type==='dispo'),g=generateDispo(q,schemaDevices(d).devices,defaultConfig());Object.assign(q,{title:'Drahtwerk · Selbstbaurahmen',elements:g.elements,scale:g.scale,dispoConfig:g.config,grid:false});return d;
+ const q=d.pages.find(p=>p.type==='dispo'),g=generateDispo(q,schemaDevices(d).devices,defaultConfig());Object.assign(q,{title:'Selbstbaurahmen',elements:g.elements,scale:g.scale,dispoConfig:g.config,grid:false});return d;
 }

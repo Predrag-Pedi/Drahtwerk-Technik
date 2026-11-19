@@ -1,6 +1,6 @@
 import {continuationCut} from './meter-view.mjs?v=20261119-7';
 import {moveDispoElements} from './dispo-move.mjs?v=20261119-7';
-import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261119-7';
+import {size,wirePoints,removeElement,removeWire} from './model.mjs?v=20261119-9';
 import {bounds,localPoint} from './geometry.mjs?v=20261119-7';
 import {templateLines,linePoints,detachLine} from './line-edit.mjs?v=20261119-7';
 export const selectionKey=s=>JSON.stringify([s.kind,s.id,s.index,s.key]);

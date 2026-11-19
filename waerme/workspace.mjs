@@ -1,5 +1,5 @@
-import {ready,calculationBusy,captureCalculation,restoreCalculation,resetCalculation} from './app.mjs?v=20261110-8';
-import {projectRepository,projectSummary} from './projects.mjs?v=20261110-8';
+import {ready,calculationBusy,captureCalculation,restoreCalculation,resetCalculation} from './app.mjs?v=20261119-9';
+import {projectRepository,projectSummary} from './projects.mjs?v=20261119-9';
 const $=id=>document.getElementById(id),editor=$('heatEditor');
 let records=[],current=null,changed=false,working=false,applying=false;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -36,4 +36,4 @@ document.addEventListener('heat-state',controls);
 window.addEventListener('beforeunload',e=>{if(editor.open&&(changed||working||calculationBusy())){e.preventDefault();e.returnValue='';}});
 // Native anchors also work without JS; avoid changing the overview URL while editing.
 editor.querySelectorAll('.heat-steps a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();editor.querySelector(a.hash)?.scrollIntoView({behavior:'auto',block:'start'});}));
-controls();await ready;controls();try{await refresh();}catch(e){$('heatListStatus').textContent='Lokaler Speicher nicht verfügbar: '+e.message;}
+controls();await ready;controls();try{await refresh();}catch(e){$('heatListStatus').textContent='Speicher nicht verfügbar: '+e.message;}

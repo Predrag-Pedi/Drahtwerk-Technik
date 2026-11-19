@@ -5,7 +5,7 @@ import {templateFit} from './template-fit.mjs?v=20261119-7';
 import {isSchemaMacro,macroAtPath} from './macro-workflow.mjs?v=20261119-7';
 import {macroFields,macroBindings,outgoingFields,createMacroDraft,setMacroValue,terminalForCable,numericValue,sectionForCurrent,initializeMacroArticles,validateMacroArticles} from './macro-config.mjs?v=20261119-7';
 import {templateMarkup} from './template.mjs?v=20261119-7';
-import {templateName,libraryName,libraryFacets,searchText} from './library.mjs?v=20261119-7';
+import {templateName,libraryName,libraryFacets,searchText} from './library.mjs?v=20261119-9';
 
 // All choices are drafts until inserted. Each placement receives a fresh copy.
 export function macroSidebar(root,{manual,place,changed,currentPage,choose,getPercent,setPercent}){
@@ -26,7 +26,7 @@ export function macroSidebar(root,{manual,place,changed,currentPage,choose,getPe
    const b=bindings.find(b=>b.cableKey===box.dataset.cableInfo),section=terminalForCable(value(b.cableKey)),manual=draft.manualCables.includes(b.cableKey),table=b.currentKey&&sectionForCurrent(value(b.currentKey),{control:b.control}),automatic=Boolean(b.currentKey&&table!==null);
    box.querySelector('output').textContent=section?`Klemmen ${section} mm²`:manual?'Klemmen: Querschnitt prüfen':b.sectionKey?`Klemmen ${value(b.sectionKey)}`:'Querschnitt nicht erkannt';
    const button=box.querySelector('button');button.hidden=!b.currentKey;button.disabled=!automatic;button.setAttribute('aria-pressed',String(!manual));button.textContent=manual?'Automatisch':'Auto';
-   box.querySelector('small').textContent=manual?'Manuell · bleibt bei Stromänderung erhalten':!b.power?'Leitung aus Vorlage':!b.currentKey?'Kabel manuell · Stromzuordnung nicht eindeutig':table===null?`Kein Tabellenwert für ${value(b.currentKey)} · Kabel anpassen`:'Nach Drahtwerk-Tabelle';
+   box.querySelector('small').textContent=manual?'Manuell · bleibt bei Stromänderung erhalten':!b.power?'Leitung aus Vorlage':!b.currentKey?'Kabel manuell · Stromzuordnung nicht eindeutig':table===null?`Kein Tabellenwert für ${value(b.currentKey)} · Kabel anpassen`:'Nach hinterlegter Stromtabelle';
   }
   redraw();changed(template,{...draft.values});
  }
