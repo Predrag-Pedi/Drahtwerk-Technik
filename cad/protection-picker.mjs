@@ -6,13 +6,21 @@ const labels={current:'Bemessungsstrom',curve:'Charakteristik',residual:'Fehlers
 const display=(key,value)=>key==='manufacturer'?manufacturers[value]:key==='current'?value+'A':key==='residual'?value+'mA':['icn','icu'].includes(key)?value+' kA':key==='selective'?value?'Ja · S':'Nein':value;
 // Video filters describe a whole device category, not legal cross-products.
 export const videoVariants={ls:{curve:['B','C','D','K','Z','E']},fils:{current:[4,6,10,13,16,20,25,32,40],curve:['B','C','D'],residual:[10,30,100,300],rcdType:['A','F']},fi:{rcdType:['A','B','F','A-SI','B+','B-SI','B-EV','A HI']}};
-export function protectionPicker(root,t,draft,changed,onlyKey){
+// Presentation shortcuts only: availability and valid combinations still come from the catalogue.
+const commonValues={current:[10,13,16,20,25,32,40,63],curve:['B','C'],residual:[30,300],rcdType:['A','F']};
+export function choiceGroups(kind,key,values,selected){
+ const common=key==='current'&&kind==='fi'?[25,40,63]:commonValues[key];
+ return {primary:values.filter(v=>!common||common.includes(v)||v===selected),secondary:values.filter(v=>common&&!common.includes(v)&&v!==selected)};
+}
+export function protectionPicker(root,t,draft,changed,onlyKey,view={}){
  const profiles=protectionFields(t).filter(p=>!onlyKey||p.key===onlyKey);root.replaceChildren();
  for(const profile of profiles){
   const box=node('section',undefined,'macro-article'),all=compatibleArticles(profile),selected=articleById(draft.articles?.[profile.key])||preferredArticle(matchingArticles(t,profile,draft.values)),bound=draft.manufacturerBound?.[profile.key]===true;root.append(box);
   box.append(node('strong',`${{ls:'LS',fils:'FI/LS',fi:'FI'}[profile.kind]} · ${profile.poles}${profiles.length>1?' · '+profile.key:''}`));
   const more=node('details',undefined,'macro-article-details');
-  const rebuild=()=>{const open=more.open;protectionPicker(root,t,draft,changed,onlyKey);const reopened=[...root.querySelectorAll('.macro-article')][profiles.indexOf(profile)]?.querySelector('details');if(reopened)reopened.open=open;};
+  const rebuild=()=>{for(const detail of root.querySelectorAll('details[data-picker-section]'))view[detail.dataset.pickerSection]=detail.open;protectionPicker(root,t,draft,changed,onlyKey,view);};
+  const disclosure=(detail,key)=>{const id=profile.key+':'+key;detail.dataset.pickerSection=id;detail.open=Boolean(view[id]);detail.ontoggle=()=>{if(detail.isConnected)view[id]=detail.open;};};
+  disclosure(more,'article');
   const select=(a,bind=bound)=>{if(!a)return;const before=selected;selectMacroArticle(t,draft,profile.key,a.id,{bind});rebuild();const changedValues=before?['current','curve','residual','rcdType','icn','icu','selective'].filter(k=>before[k]!==a[k]&&a[k]!==undefined).map(k=>`${labels[k]} ${display(k,a[k])}`).join(' · '):'';changed(changedValues?`Gerätewerte übernommen: ${changedValues}`:'Gerätewerte übernommen.');};
   const toggle=node('label',undefined,'macro-manufacturer-toggle'),checkbox=node('input');checkbox.type='checkbox';checkbox.checked=bound;checkbox.setAttribute('aria-label','Hersteller festlegen');toggle.append(checkbox,node('span','Hersteller festlegen'));box.append(toggle);
   checkbox.onchange=()=>{draft.manufacturerBound??={};draft.manufacturerBound[profile.key]=checkbox.checked;const a=selected||preferredArticle(all);if(a)select(a,checkbox.checked);else rebuild();};
@@ -21,7 +29,9 @@ export function protectionPicker(root,t,draft,changed,onlyKey){
    const values=[...new Set(offered.filter(v=>v!==undefined))].sort((a,b)=>typeof a==='number'?a-b:String(a).localeCompare(String(b),'de'));
    if(!values.length)return;
    const group=node('fieldset',undefined,'macro-choices');group.append(node('legend',labels[key]));const row=node('div',undefined,'macro-choice-row');group.append(row);
-   for(const value of values){const b=node('button',display(key,value)),candidates=pool.filter(a=>a[key]===value);b.type='button';b.setAttribute('aria-label',`${labels[key]}: ${display(key,value)}`);b.setAttribute('aria-pressed',String(selected?.[key]===value));b.disabled=!candidates.length;if(b.disabled)b.title=`Für ${profile.poles} ist diese Ausführung noch nicht mit einem passenden Artikel belegt.`;b.onclick=()=>{const previous={...selected};if(!bound){delete previous.manufacturer;delete previous.series;}select(preferredArticle(candidates,previous));};row.append(b);}
+   const add=(parent,value)=>{const b=node('button',display(key,value)),candidates=pool.filter(a=>a[key]===value);b.type='button';b.setAttribute('aria-label',`${labels[key]}: ${display(key,value)}`);b.setAttribute('aria-pressed',String(selected?.[key]===value));b.disabled=!candidates.length;if(b.disabled)b.title=`Für ${profile.poles} ist diese Ausführung noch nicht mit einem passenden Artikel belegt.`;b.onclick=()=>{const previous={...selected};if(!bound){delete previous.manufacturer;delete previous.series;}select(preferredArticle(candidates,previous));};parent.append(b);};
+   const {primary,secondary}=choiceGroups(profile.kind,key,values,selected?.[key]);primary.forEach(value=>add(row,value));
+   if(secondary.length){const extra=node('details',undefined,'macro-choice-more'),summary=node('summary'),otherRow=node('div',undefined,'macro-choice-row');summary.append(node('span','Weitere anzeigen','macro-choice-expand'),node('span','Weniger anzeigen','macro-choice-collapse'));summary.title=labels[key];extra.append(summary,otherRow);secondary.forEach(value=>add(otherRow,value));disclosure(extra,key);group.append(extra);}
    parent.append(group);
   };
   if(!all.length){box.append(node('p','Für diese Polausführung ist noch kein Artikel hinterlegt. Eine passende Gerätevorlage wählen.','macro-error'));continue;}

@@ -1,4 +1,4 @@
-import {protectionPicker} from './protection-picker.mjs?v=20261119-7';
+import {protectionPicker} from './protection-picker.mjs?v=20261119-8';
 import {protectionFields} from './protection-fields.mjs?v=20261119-7';
 import {terminalBands} from './terminal-markers.mjs?v=20261119-7';
 import {templateFit} from './template-fit.mjs?v=20261119-7';

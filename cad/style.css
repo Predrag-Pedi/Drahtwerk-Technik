@@ -238,3 +238,9 @@
 #editor .macro-manufacturer-toggle{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;margin:3px 0}
 #editor .macro-manufacturer-toggle input{width:16px;height:16px;min-height:0;margin:0;accent-color:#2463eb}
 #editor :is(#macroSidebar,#inspector) .macro-article .macro-choice-row button:disabled{opacity:.45;cursor:not-allowed;background:#f2f4f7;box-shadow:none}
+.macro-article-values{align-items:start}
+#editor :is(#macroSidebar,#inspector) .macro-choice-more{margin:4px 0 0}
+.macro-choice-more summary{width:fit-content;cursor:pointer;font-size:11px;color:#2459a1;padding:3px 0}
+.macro-choice-more summary:focus-visible{outline:2px solid #447ee9;outline-offset:2px;border-radius:2px}
+.macro-choice-more[open]>.macro-choice-row{margin-top:4px}
+.macro-choice-more:not([open]) .macro-choice-collapse,.macro-choice-more[open] .macro-choice-expand{display:none}
