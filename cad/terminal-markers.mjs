@@ -1,4 +1,4 @@
-import bands from './terminal-bands.mjs?v=20261119-3';
+import bands from './terminal-bands.mjs?v=20261119-4';
 
 export const terminalSideOptions=[['original','Aus Vorlage'],['top','Oben – Balken oben'],['bottom','Unten – Balken unten']];
 export function terminalBands(t){

@@ -1,9 +1,9 @@
-import {manualInterior} from './dispo-parts.mjs?v=20261119-3';
-import {snapDispo} from './drawing-tools.mjs?v=20261119-3';
-import {alignMacro} from './alignment.mjs?v=20261119-3';
-import {DRAW,BUS,MM,bounds} from './geometry.mjs?v=20261119-3';
-import {createElement,snap,symbols,size} from './model.mjs?v=20261119-3';
-import {elementMarkup} from './render.mjs?v=20261119-3';
+import {manualInterior} from './dispo-parts.mjs?v=20261119-4';
+import {snapDispo} from './drawing-tools.mjs?v=20261119-4';
+import {alignMacro} from './alignment.mjs?v=20261119-4';
+import {DRAW,BUS,MM,bounds} from './geometry.mjs?v=20261119-4';
+import {createElement,snap,symbols,size} from './model.mjs?v=20261119-4';
+import {elementMarkup} from './render.mjs?v=20261119-4';
 export function placement(page,kind,point,grid=true,rotation=0,template=null,autoConnect=true,options={}){
  if(!point||!symbols[kind]||point.x<DRAW.left||point.x>DRAW.right||point.y<DRAW.top||point.y>DRAW.bottom)return null;
  if(kind==='template'&&!template)return null;

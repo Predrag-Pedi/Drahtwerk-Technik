@@ -1,8 +1,8 @@
-import {choices,ralColors,cabinetOptions,cabinetField,anBodyWidths,anDepths,fieldExtra} from './cabinet-options.mjs?v=20261119-3';
-import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261119-3';
-import {checkCabinet} from './cabinet-layout.mjs?v=20261119-3';
-import {cachedDispoBuild} from './dispo-variants.mjs?v=20261119-3';
-import {svgPage} from './render.mjs?v=20261119-3';
+import {choices,ralColors,cabinetOptions,cabinetField,anBodyWidths,anDepths,fieldExtra} from './cabinet-options.mjs?v=20261119-4';
+import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261119-4';
+import {checkCabinet} from './cabinet-layout.mjs?v=20261119-4';
+import {cachedDispoBuild} from './dispo-variants.mjs?v=20261119-4';
+import {svgPage} from './render.mjs?v=20261119-4';
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 export function configureCabinet({config,doc,page,submitLabel='Übernehmen',onApply}){
  return new Promise(resolve=>{
