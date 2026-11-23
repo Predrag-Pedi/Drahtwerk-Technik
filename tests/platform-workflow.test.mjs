@@ -18,6 +18,7 @@ test('landing, username login, developer workspace and individual tool rights th
   await t.test('anonymous visitors see the landing and login, but no dashboard or management page',async()=>{
    const home=await request('/');assert.equal(home.status,200);assert.match(home.data,/<title>SchaltBase/);assert.match(home.data,/data-demo="dispo"/);assert.match(home.data,/data-demo="offers"/);
    for(const [path,type] of [['/platform/home-demo.mjs','text/javascript'],['/platform/home.css','text/css'],['/platform/brand.css','text/css'],['/platform/demo-dispo.svg','image/svg+xml'],['/platform/demo-schema.svg','image/svg+xml'],['/platform/schaltbase-icon.png','image/png']]){const asset=await request(path);assert.equal(asset.status,200);assert.equal(asset.headers.get('content-type'),type);}
+   for(const name of ['macro','schema-1','schema-2','schema-3','schema-source','dispo-frame','dispo-plates','dispo-complete']){const asset=await request(`/platform/demos/${name}.svg`);assert.equal(asset.status,200);assert.equal(asset.headers.get('content-type'),'image/svg+xml');}
    assert.equal(JSON.parse((await request('/manifest.webmanifest')).data).name,'SchaltBase');
    assert.match((await request('/login.html')).data,/Benutzername oder E-Mail/);
    for(const path of ['/index.html','/portal.html','/cad.html','/offerten.html']){const r=await request(path);assert.equal(r.status,302);assert.equal(r.headers.get('location'),'/login.html');}

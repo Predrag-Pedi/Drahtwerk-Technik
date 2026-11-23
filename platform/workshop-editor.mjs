@@ -1,5 +1,5 @@
 import {account, api} from './client.mjs';
-import {templateTools} from './workshop-model.mjs';
+import {templateTools, railProfiles} from './workshop-model.mjs';
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const newId = () => crypto.randomUUID();
 const tools = () => Object.keys(templateTools).filter(k => ['read', 'write'].includes(account.permissions[k]));
@@ -12,7 +12,7 @@ export function mountWorkshopEditor(root) {
   const available = tools();
   let tool = new URLSearchParams(location.search).get('tool');
   if (!available.includes(tool)) tool = available[0];
-  let result, draft, files = [], usage, folderIndex = 0, dirty = false, busy = false, disposed = false, generation = 0;
+  let result, draft, files = [], usage, folderIndex = 0, profileIndex = 0, dirty = false, busy = false, disposed = false, generation = 0;
   const editable = () => account.permissions[tool] === 'write';
   const docs = () => ['ew', 'spacing'].includes(tool);
   const key = () => tool === 'ew' ? 'files' : 'images';
@@ -41,7 +41,7 @@ export function mountWorkshopEditor(root) {
     try {
       const [template, library] = await Promise.all([api(endpoint()), docs() ? api(endpoint() + '/files') : Promise.resolve(null)]);
       if (disposed || serial !== generation) return;
-      result = template; draft = structuredClone(result.value); files = library?.files || []; usage = library; folderIndex = 0; dirty = false;
+      result = template; draft = tool === 'rails' ? railProfiles(result.value) : structuredClone(result.value); profileIndex = 0; files = library?.files || []; usage = library; folderIndex = 0; dirty = false;
     } catch (e) {
       if (!disposed && serial === generation) {
         root.innerHTML = '<p role="alert"></p>' + btn('Erneut laden', 'reload'); root.querySelector('p').textContent = e.message;
@@ -51,11 +51,16 @@ export function mountWorkshopEditor(root) {
     }
   }
   function railRows() {
-    return '<p class="muted">Die Schnittlänge ergibt sich aus Breite, Höhe oder Tiefe minus Abzug. Stückzahlen werden weiterhin in der Berechnung eingegeben.</p>' + table(['Bezeichnung', 'Basis', 'Abzug (mm)', 'Reihenfolge'], draft.rows.map((r, i) => `<tr>
-      <td>${input('rows.'+i+'.label','Bezeichnung',r.label,'text',true)}</td>
-      <td><select aria-label="Basis" data-ws-path="rows.${i}.dimension">${[['w','Breite'],['h','Höhe'],['d','Tiefe']].map(([v,l]) => `<option value="${v}" ${v===r.dimension?'selected':''}>${l}</option>`).join('')}</select></td>
-      <td>${input('rows.'+i+'.deduction','Abzug in mm',r.deduction,'number',true)}</td>
-      <td class="ws-actions">${btn('↑','move-up','rows:'+i,'aria-label="Schiene nach oben"')}${btn('↓','move-down','rows:'+i,'aria-label="Schiene nach unten"')}${btn('Entfernen','rail-remove',i)}</td></tr>`)) + btn('Schiene hinzufügen','rail-add');
+    const p = draft.profiles[profileIndex], path = 'profiles.' + profileIndex + '.rows';
+    return `<div class="ws-depth-heading"><label>Verteilungstiefe auswählen<select data-ws-profile data-ws-view aria-label="Verteilungstiefe auswählen">${draft.profiles.map((p,i) => `<option value="${i}" ${i===profileIndex?'selected':''}>${esc(p.depth)} mm · ${p.rows.length} ${p.rows.length===1?'Schiene':'Schienen'}</option>`).join('')}</select></label><a href="schienenrechner.html">Zum Schienenrechner</a></div>
+      <p class="muted">Nur die Schienen der eingegebenen Tiefe erscheinen im Rechner. Der bisherige Standard gilt für 165 mm. Die Schnittlänge ergibt sich aus dem gewählten Grundmass minus Abzug.</p>
+      <section class="ws-group"><div class="ws-group-head"><label>Tiefe dieser Liste (mm)<input aria-label="Tiefe dieser Liste in mm" data-ws-path="profiles.${profileIndex}.depth" value="${esc(p.depth)}" type="number" min="1" max="2000" step="1" required></label>${btn('Tiefe entfernen','profile-remove',profileIndex)}</div>` + table(['Bezeichnung', 'Basis', 'Abzug (mm)', 'Reihenfolge'], p.rows.map((r, i) => `<tr>
+      <td>${input(path+'.'+i+'.label','Bezeichnung',r.label,'text',true)}</td>
+      <td><select aria-label="Basis" data-ws-path="${path}.${i}.dimension">${[['w','Breite'],['h','Höhe'],['d','Tiefe']].map(([v,l]) => `<option value="${v}" ${v===r.dimension?'selected':''}>${l}</option>`).join('')}</select></td>
+      <td>${input(path+'.'+i+'.deduction','Abzug in mm',r.deduction,'number',true)}</td>
+      <td class="ws-actions">${btn('↑','move-up',path+':'+i,'aria-label="Schiene nach oben"')}${btn('↓','move-down',path+':'+i,'aria-label="Schiene nach unten"')}${btn('Entfernen','rail-remove',i)}</td></tr>`)) + btn('Schiene hinzufügen','rail-add') + `</section>
+      <div class="ws-new-depth"><label>Weitere Tiefe (mm)<input data-ws-new-depth aria-label="Weitere Tiefe in mm" type="number" min="1" max="2000" step="1" placeholder="z. B. 110"></label><label class="ws-copy-depth"><input data-ws-copy-depth type="checkbox"> Schienen der ausgewählten Tiefe als Ausgangspunkt kopieren</label>${btn('Tiefe hinzufügen','profile-add')}</div>
+      <p class="muted small">Alle Tiefen werden gemeinsam als Firmenvorlage gespeichert. Stückzahlen bleiben eine persönliche Eingabe im Schienenrechner.</p>`;
   }
   function colors() {
     return draft.groups.map((g, n) => `<section class="ws-group"><div class="ws-group-head"><label>Kategorie${input('groups.'+n+'.name','Kategorie',g.name,'text',true)}</label>${btn('Kategorie entfernen','group-remove',n)}</div>` + table(['Anwendung','Querschnitt / Kabel','Leiter','Drahtfarbe',''], g.rows.map((r,i) => `<tr>${['name','size','wire','color'].map((field,k) => `<td>${input('groups.'+n+'.rows.'+i+'.'+field,['Anwendung','Querschnitt / Kabel','Leiter','Drahtfarbe'][k],r[field],'text',field==='name')}</td>`).join('')}<td class="ws-actions">${btn('↑','move-up','groups.'+n+'.rows:'+i,'aria-label="Eintrag nach oben"')}${btn('↓','move-down','groups.'+n+'.rows:'+i,'aria-label="Eintrag nach unten"')}${btn('Entfernen','color-remove',n+':'+i)}</td></tr>`)) + btn('Eintrag hinzufügen','color-add',n) + '</section>').join('') + btn('Kategorie hinzufügen','group-add');
@@ -93,6 +98,7 @@ export function mountWorkshopEditor(root) {
     target[field] = e.target.type==='number' ? (e.target.value===''?null:Number(e.target.value)) : e.target.value; setDirty();
   };
   root.onchange = async e => {
+    if (e.target.hasAttribute('data-ws-profile')) {profileIndex=Number(e.target.value); render(); return;}
     if (e.target.hasAttribute('data-ws-folder')) {folderIndex=Number(e.target.value); render(); return;}
     if (!e.target.hasAttribute('data-ws-upload') || !editable() || busy) return;
     const selected = [...e.target.files]; if (!selected.length) return;
@@ -128,14 +134,27 @@ export function mountWorkshopEditor(root) {
     try{
       if(kind==='reset'){
         if(!confirm('Eigene Vorlage für «'+templateTools[tool]+'» verwerfen und künftig wieder den gemeinsamen Standard verwenden? Hochgeladene Dateien bleiben in der Dateiverwaltung.'))return;
-        busy=true;lock();result=await api(endpoint(),{method:'DELETE',body:{revision:result.revision}});draft=structuredClone(result.value);dirty=false;folderIndex=0;render();message('Gemeinsamer Standard wiederhergestellt.');return;
+        busy=true;lock();result=await api(endpoint(),{method:'DELETE',body:{revision:result.revision}});draft=structuredClone(result.value);dirty=false;folderIndex=0;profileIndex=0;render();message('Gemeinsamer Standard wiederhergestellt.');return;
       }
       if(kind==='file-delete'){
         const file=files.find(f=>f.id===index);if(!file||!confirm('«'+file.name+'» endgültig aus dem Betriebsspeicher löschen?'))return;
         busy=true;lock();await api(endpoint()+'/files/'+index,{method:'DELETE',body:{}});files=files.filter(f=>f.id!==index);if(usage)usage.usedBytes-=file.size;render();message('Datei gelöscht.');return;
       }
-      if(kind==='rail-add')draft.rows.push({id:newId(),label:'Neue Schiene',dimension:'w',deduction:0});
-      if(kind==='rail-remove'){if(draft.rows.length===1)throw Error('Mindestens eine Schienenregel behalten.');draft.rows.splice(Number(index),1);}
+      if(kind==='profile-add'){
+        const depth=Number(root.querySelector('[data-ws-new-depth]').value);
+        if(!Number.isInteger(depth)||depth<1||depth>2000)throw Error('Bitte eine Tiefe von 1 bis 2000 mm eingeben.');
+        if(draft.profiles.some(p=>p.depth===depth))throw Error('Für '+depth+' mm gibt es bereits eine Liste. Oben diese Tiefe auswählen.');
+        if(draft.profiles.length>=50)throw Error('Maximal 50 Verteilungstiefen pro Firmenvorlage.');
+        const rows=root.querySelector('[data-ws-copy-depth]').checked?structuredClone(draft.profiles[profileIndex].rows):[{id:newId(),label:'Neue Schiene',dimension:'w',deduction:0}];
+        draft.profiles.push({id:newId(),depth,rows});profileIndex=draft.profiles.length-1;
+      }
+      if(kind==='profile-remove'){
+        if(draft.profiles.length===1)throw Error('Mindestens eine Verteilungstiefe behalten.');
+        if(!confirm('Schienenliste für '+draft.profiles[Number(index)].depth+' mm aus der Firmenvorlage entfernen?'))return;
+        draft.profiles.splice(Number(index),1);profileIndex=Math.max(0,Math.min(profileIndex,draft.profiles.length-1));
+      }
+      if(kind==='rail-add')draft.profiles[profileIndex].rows.push({id:newId(),label:'Neue Schiene',dimension:'w',deduction:0});
+      if(kind==='rail-remove'){const rows=draft.profiles[profileIndex].rows;if(rows.length===1)throw Error('Mindestens eine Schienenregel pro Tiefe behalten.');rows.splice(Number(index),1);}
       if(kind==='group-add')draft.groups.push({id:newId(),name:'Neue Kategorie',rows:[]});
       if(kind==='group-remove'){if(draft.groups.length===1)throw Error('Mindestens eine Kategorie behalten.');if(!confirm('Kategorie mit allen Einträgen aus der Firmenvorlage entfernen?'))return;draft.groups.splice(Number(index),1);}
       if(kind==='color-add')draft.groups[Number(index)].rows.push({id:newId(),name:'Neue Anwendung',size:'',wire:'',color:''});

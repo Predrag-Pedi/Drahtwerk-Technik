@@ -4,7 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {fail} from './security.mjs';
 import {audit} from './db.mjs';
 import {companyStorageBytes, companyStorageLimit} from './storage.mjs';
-import {templateTools, standardRails, parseWireColors, standardDocuments} from '../platform/workshop-model.mjs';
+import {templateTools, railProfiles, parseWireColors, standardDocuments} from '../platform/workshop-model.mjs';
 
 const fileLimit = 10 * 1024 * 1024;
 const documentKey = tool => tool === 'ew' ? 'files' : 'images';
@@ -26,17 +26,25 @@ function list(value, max, parse, minimum = 0) {
   return result;
 }
 async function defaults(root, tool) {
-  if (tool === 'rails') return {rows: standardRails};
+  if (tool === 'rails') return railProfiles();
   if (tool === 'wireColors') return parseWireColors(await readFile(resolve(root, 'drahtfarben.txt'), 'utf8'));
   const manifest = JSON.parse(await readFile(resolve(root, tool === 'ew' ? 'ew-dateien.json' : 'aufbau-dateien.json'), 'utf8'));
   return standardDocuments(tool, manifest);
 }
 function validate(db, companyId, tool, value, standard) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail(400, 'Werkstattvorlage fehlt.');
-  if (tool === 'rails') return {rows: list(value.rows, 100, r => {
-    if (!['w', 'h', 'd'].includes(r.dimension) || !Number.isFinite(r.deduction) || r.deduction < 0 || r.deduction > 10000) fail(400, 'Basis oder Abzug ist ungültig (0–10000 mm).');
-    return {id: id(r.id), label: str(r.label, 120), dimension: r.dimension, deduction: r.deduction};
-  }, 1)};
+  if (tool === 'rails') {
+    if (!Array.isArray(value.profiles)) fail(400, 'Bitte die Seite neu laden: Schienenregeln werden jetzt je Verteilungstiefe gespeichert.');
+    const profiles = list(value.profiles, 50, p => {
+      if (!Number.isInteger(p.depth) || p.depth < 1 || p.depth > 2000) fail(400, 'Verteilungstiefe muss eine ganze Zahl von 1 bis 2000 mm sein.');
+      return {id: id(p.id), depth: p.depth, rows: list(p.rows, 100, r => {
+        if (!['w', 'h', 'd'].includes(r.dimension) || !Number.isFinite(r.deduction) || r.deduction < 0 || r.deduction > 10000) fail(400, 'Basis oder Abzug ist ungültig (0–10000 mm).');
+        return {id: id(r.id), label: str(r.label, 120), dimension: r.dimension, deduction: r.deduction};
+      }, 1)};
+    }, 1);
+    if (new Set(profiles.map(p => p.depth)).size !== profiles.length) fail(400, 'Jede Verteilungstiefe darf nur einmal vorkommen.');
+    return {version: 2, profiles};
+  }
   if (tool === 'wireColors') return {groups: list(value.groups, 30, g => ({
     id: id(g.id), name: str(g.name, 120), rows: list(g.rows, 100, r => ({
       id: id(r.id), name: str(r.name, 200), size: str(r.size, 100, true), wire: str(r.wire, 100, true), color: str(r.color, 120, true),
@@ -62,7 +70,8 @@ function validate(db, companyId, tool, value, standard) {
 const filePath = (s, file) => `/api/workshop-files/${s.company.id}/${s.user.id}/${file.id}/${file.name}`;
 function effective(db, s, tool, standard) {
   const row = db.prepare('SELECT data,revision,updated_at FROM workshop_templates WHERE company_id=? AND tool=?').get(s.company.id, tool);
-  const value = structuredClone(row?.data ? JSON.parse(row.data) : standard);
+  const raw = row?.data ? JSON.parse(row.data) : standard;
+  const value = tool === 'rails' ? railProfiles(raw) : structuredClone(raw);
   if (tool === 'ew' || tool === 'spacing') for (const folder of value.folders) for (const doc of folder[documentKey(tool)]) {
     if (doc.fileId) {
       const file = db.prepare('SELECT id,name FROM workshop_files WHERE id=? AND company_id=? AND tool=?').get(doc.fileId, s.company.id, tool);
