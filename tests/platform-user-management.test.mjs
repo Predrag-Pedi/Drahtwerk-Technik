@@ -107,7 +107,7 @@ test('existing SQLite database upgrades without losing accounts, sessions or com
  const dir=mkdtempSync(join(tmpdir(),'users-migration-')),path=join(dir,'platform.sqlite');let db;
  try{
   db=new DatabaseSync(path);db.exec(`CREATE TABLE users(id TEXT PRIMARY KEY,company_id TEXT,email TEXT UNIQUE,name TEXT,role TEXT,permissions TEXT,password TEXT,enabled INTEGER DEFAULT 1,must_change INTEGER DEFAULT 1,created_at TEXT);INSERT INTO users VALUES ('existing','company','existing.login','Existing Name','member','{}','unchanged-hash',1,0,'2026-11-23');PRAGMA user_version=2;`);db.close();
-  db=openDatabase(path);assert.equal(db.prepare('PRAGMA user_version').get().user_version,3);assert.equal(db.prepare('SELECT deleted_at FROM users').get().deleted_at,null);
+  db=openDatabase(path);assert.equal(db.prepare('PRAGMA user_version').get().user_version,4);assert.equal(db.prepare('SELECT deleted_at FROM users').get().deleted_at,null);
   const row=db.prepare('SELECT * FROM users').get();assert.equal(row.email,'existing.login');assert.equal(row.password,'unchanged-hash');assert.equal(row.must_change,0);
   saveObject(db,'companies',{id:'company',name:'Preserved company'});
   db.prepare('INSERT INTO records VALUES (?,?,?,?,?,?,?)').run('company','offers','quote','{"kept":true}',1,'existing','2026-11-23');

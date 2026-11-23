@@ -21,7 +21,7 @@ test('company workshop templates and documents are persistent, isolated and perm
     return {cookie: 'test-session=token-' + id, company, id, csrf: 'csrf-' + id};
   }
   const admin = user('admin', 'alpha', 'admin'), member = user('member', 'alpha', 'member', {workshop: 'read'}), other = user('other', 'beta', 'admin');
-  const blocked = user('blocked', 'alpha', 'member', {workshop: 'none'}), readAdmin = user('read-admin', 'alpha', 'admin', {workshop: 'read'}), writer = user('writer', 'alpha', 'member');
+  const blocked = user('blocked', 'alpha', 'member', {workshop: 'none'}), readAdmin = user('read-admin', 'alpha', 'admin', {workshop: 'read'}), writer = user('writer', 'alpha', 'member', {rails:'write',ew:'read'});
   const reserve = net.createServer(); await new Promise(r => reserve.listen(0, '127.0.0.1', r)); const port = reserve.address().port; await new Promise(r => reserve.close(r));
   const origin = 'http://127.0.0.1:' + port, server = createApp({db, root: resolve(import.meta.dirname, '..'), origin});
   await new Promise(r => server.listen(port, '127.0.0.1', r));
@@ -46,9 +46,9 @@ test('company workshop templates and documents are persistent, isolated and perm
       assert.equal(railLength(standardRails[0], {h: 1000}), 960);
       assert.equal(railLength({dimension: 'd', deduction: 50}, {d: 300}), 250);
     });
-    await t.test('only an admin with write rights may edit, with tenant headers and CSRF', async () => {
+    await t.test('write rights, tenant headers and CSRF protect templates independently of roles', async () => {
       const payload = {revision: 0, value: rail.value};
-      for (const actor of [member, readAdmin, writer, blocked]) assert.equal((await request(endpoint('rails'), 'PUT', payload, actor)).status, 403);
+      for (const actor of [member, readAdmin, blocked]) assert.equal((await request(endpoint('rails'), 'PUT', payload, actor)).status, 403);
       assert.equal((await request(endpoint('rails'), 'GET', undefined, null)).status, 401);
       assert.equal((await request(endpoint('rails'), 'GET', undefined, blocked)).status, 403);
       assert.equal((await request(endpoint('rails'), 'PUT', payload, admin, {'X-Company-Id': 'beta'})).status, 409);
@@ -57,7 +57,9 @@ test('company workshop templates and documents are persistent, isolated and perm
     });
     await t.test('company overrides are shared with its staff, and stale writes cannot undo reset', async () => {
       rail.value.profiles[0].rows[0].deduction = 75;
-      const saved = await request(endpoint('rails'), 'PUT', {revision: 0, value: rail.value});
+      const saved = await request(endpoint('rails'), 'PUT', {revision: 0, value: rail.value}, writer);
+      assert.equal((await request('/api/company/users','GET',undefined,writer)).status,403);
+      assert.equal((await request(endpoint('wireColors'),'GET',undefined,writer)).status,403);
       assert.equal(saved.status, 200); assert.equal(saved.data.source, 'company'); assert.equal(saved.data.revision, 1);
       assert.equal((await request(endpoint('rails'), 'GET', undefined, member)).data.value.profiles[0].rows[0].deduction, 75);
       assert.equal((await request(endpoint('rails'), 'GET', undefined, other)).data.value.profiles[0].rows[0].deduction, 40);
@@ -87,6 +89,14 @@ test('company workshop templates and documents are persistent, isolated and perm
       assert.equal((await request(endpoint('spacing'), 'PUT', {revision: 0, value: spacing.value})).status, 200);
       assert.equal((await request(endpoint('ew') + '/files', 'GET', undefined, other)).data.files.length, 0);
     });
+    await t.test('a member with EW write access can upload and remove unreferenced documents', async () => {
+      db.prepare('UPDATE users SET permissions=? WHERE id=?').run(JSON.stringify({rails:'write',ew:'write'}),'writer');
+      const result=await request(endpoint('ew')+'/files','POST',{name:'Member.pdf',base64:Buffer.from('%PDF-1.4\n%%EOF\n').toString('base64')},writer);
+      assert.equal(result.status,201);
+      assert.ok((await request(endpoint('ew')+'/files','GET',undefined,writer)).data.files.some(f=>f.id===result.data.id));
+      assert.equal((await request(endpoint('ew')+'/files/'+result.data.id,'DELETE',{},writer)).status,200);
+      db.prepare('UPDATE users SET permissions=? WHERE id=?').run(JSON.stringify({rails:'write',ew:'read'}),'writer');
+    });
     await t.test('document references reject cross-tenant, wrong-tool and arbitrary paths', async () => {
       const value = {folders: [{id: 'mine', name: 'Unser EW', info: 'Zählerplatte 250 mm', files: [{id: 'doc', name: 'Vorschrift', fileId: upload.id}]}]};
       assert.equal((await request(endpoint('ew'), 'PUT', {revision: 0, value}, other)).status, 400);
@@ -114,9 +124,9 @@ test('company workshop templates and documents are persistent, isolated and perm
         handle = http.request(origin + path, {method: 'PUT', headers: {...headers(admin), 'Content-Length': Buffer.byteLength(raw)}}, res => {res.resume(); res.on('end', () => resolve(res.statusCode));}); handle.on('error', reject);
       });
       handle.write(raw.slice(0, 1)); await incoming;
-      db.prepare("UPDATE users SET role='member' WHERE id='admin'").run();
+      db.prepare(`UPDATE users SET permissions='{"workshop":"read"}' WHERE id='admin'`).run();
       handle.end(raw.slice(1)); assert.equal(await response, 403);
-      db.prepare("UPDATE users SET role='admin' WHERE id='admin'").run();
+      db.prepare(`UPDATE users SET permissions='{"workshop":"write"}' WHERE id='admin'`).run();
       assert.equal((await request(path)).data.revision, 3);
     });
     await t.test('legacy saved rules become only 165 mm without mutating the database', async () => {

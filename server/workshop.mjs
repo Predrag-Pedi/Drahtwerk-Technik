@@ -106,7 +106,7 @@ function uploadedFile(tool, value) {
   return {name, mime, bytes};
 }
 
-export function workshopHandler({db, root, body, json, freshSession, requireArea, requireRole}) {
+export function workshopHandler({db, root, body, json, freshSession, requireArea}) {
   return async function handle({req, res, path, method, s}) {
     const media = path.match(/^\/api\/workshop-files\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)$/);
     if (media) {
@@ -125,7 +125,6 @@ export function workshopHandler({db, root, body, json, freshSession, requireArea
     const [, tool, files, fileId] = route;
     if (!Object.hasOwn(templateTools, tool)) fail(404, 'Werkzeug nicht gefunden.');
     requireArea(s, tool, method !== 'GET');
-    if (method !== 'GET' || files) requireRole(s, 'developer', 'admin');
     if (files) {
       if (!['ew', 'spacing'].includes(tool)) fail(404, 'Dieses Werkzeug hat keine Dateien.');
       if (method === 'GET' && !fileId) {
@@ -133,7 +132,7 @@ export function workshopHandler({db, root, body, json, freshSession, requireArea
         json(res, {files: items.map(f => ({...f, path: filePath(s, f)})), usedBytes: companyStorageBytes(db, s.company.id), limitBytes: companyStorageLimit});
       } else if (method === 'POST' && !fileId) {
         const b = await body(req), current = freshSession(req, s);
-        requireRole(current, 'developer', 'admin'); requireArea(current, tool, true);
+        requireArea(current, tool, true);
         const file = uploadedFile(tool, b), newId = randomUUID(), at = new Date().toISOString();
         atomic(db, () => {
           if (db.prepare('SELECT COUNT(*) n FROM workshop_files WHERE company_id=? AND tool=?').get(current.company.id, tool).n >= 250) fail(413, 'Maximal 250 eigene Dateien pro Werkzeug. Nicht mehr benötigte Dateien entfernen.');
@@ -145,7 +144,7 @@ export function workshopHandler({db, root, body, json, freshSession, requireArea
       } else if (method === 'DELETE' && fileId) {
         await body(req);
         const current = freshSession(req, s);
-        requireRole(current, 'developer', 'admin'); requireArea(current, tool, true);
+        requireArea(current, tool, true);
         atomic(db, () => {
           const template = db.prepare('SELECT data FROM workshop_templates WHERE company_id=? AND tool=?').get(current.company.id, tool);
           if (template?.data && JSON.parse(template.data).folders.some(f => f[documentKey(tool)].some(d => d.fileId === fileId))) fail(409, 'Die Datei wird verwendet. Zuerst aus der Vorlage entfernen und speichern.');
@@ -163,7 +162,7 @@ export function workshopHandler({db, root, body, json, freshSession, requireArea
     if (method === 'GET') json(res, effective(db, current, tool, standard));
     else if (['PUT', 'DELETE'].includes(method)) {
       const active = freshSession(req, current);
-      requireRole(active, 'developer', 'admin'); requireArea(active, tool, true);
+      requireArea(active, tool, true);
       atomic(db, () => {
         const old = db.prepare('SELECT data,revision FROM workshop_templates WHERE company_id=? AND tool=?').get(active.company.id, tool);
         if (!Number.isInteger(b.revision) || b.revision !== (old?.revision || 0)) fail(409, 'Die Firmenvorlage wurde inzwischen geändert. Bitte Änderungen sichern und neu laden.');

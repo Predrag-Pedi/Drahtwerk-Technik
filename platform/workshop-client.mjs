@@ -13,7 +13,7 @@ export function templateNotice(tool, result, error = '') {
   text.textContent = error || (result.source === 'company' ? 'Firmenvorlage · ' + account.company.name : 'Gemeinsamer Standard') + ' · ' + templateTools[tool];
   if (error) {notice.setAttribute('role', 'alert'); text.textContent += ' Bitte neu laden.';}
   notice.append(text);
-  if (serverMode && account?.company && ['developer', 'admin'].includes(account.user.role)) {
+  if (serverMode && account?.company && account.permissions[tool] === 'write') {
     const link = document.createElement('a'); link.href = '/portal.html?section=workshop&tool=' + tool;
     link.textContent = account.permissions[tool] === 'write' ? 'Firmenvorlage bearbeiten' : 'Firmenvorlage ansehen'; notice.append(link);
   }
