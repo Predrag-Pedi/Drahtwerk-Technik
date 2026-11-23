@@ -37,6 +37,21 @@ Bestehende Browserprojekte werden nicht automatisch einem neuen Betrieb zugeordn
 
 Firmendaten gelten für alle Benutzer des Betriebs. Neue Betriebe starten ohne Logo und Absender. Schema-/Dispositionsrahmen und Offerten übernehmen die hinterlegten Daten; leere Felder bleiben leer. Importierte freie Texte und eigene Excel-/PDF-Vorlagen werden nicht pauschal umgeschrieben. Für kundenspezifische Wärmeberechnungsformulare die passende eigene Excel-Vorlage hinterlegen. Interne Importkennungen und ursprüngliche Quelldaten bleiben aus Kompatibilitätsgründen bestehen; sie sind kein sichtbarer Herstelleraufdruck.
 
+## Werkstattvorlagen pro Firma
+
+Unter dem Kontomenü → **Werkstattvorlagen** stehen Schienenregeln, Drahtfarben, EW-Unterlagen und Aufbauabstände zur Verfügung. Firmenadministratoren und Entwickler können eine eigene Vorlage speichern, wenn sie für das Werkzeug Schreibrechte haben. Mitarbeitende verwenden diese Vorgaben, können die gemeinsame Firmenvorlage aber nicht verändern.
+
+- **Schienenregeln:** Bezeichnung, Reihenfolge, Bezugsmasse (Breite/Höhe/Tiefe) und Abzug in mm. Stückzahlen und aktuelle Rahmenmasse bleiben eine persönliche Berechnung im Browser, getrennt nach Betrieb und Benutzer. Es findet keine automatische Übernahme fremder alter Browserdaten statt.
+- **Drahtfarben:** Kategorien, Anwendungen, Querschnitte/Kabel, Leiter und Farbbezeichnungen bearbeiten.
+- **EW-Unterlagen:** Ordner, Hinweise und PDF-Zuordnungen verwalten; eigene PDFs ergänzen.
+- **Aufbauabstände:** Kategorien und Hinweise verwalten; eigene PNG-, JPEG- oder WebP-Zeichnungen ergänzen. Die Abstände werden in dieser Version weiterhin als Zeichnungen angezeigt, nicht als parametrischer Aufbaueditor.
+
+Neue Betriebe verwenden den gemeinsamen Standard aus den bisherigen Vorgaben. Erst «Firmenvorlage speichern» legt eine eigene Kopie des betreffenden Bereichs an. Eine gespeicherte Firmenvorlage bleibt unabhängig von späteren Standardänderungen. «Auf Standard zurücksetzen» aktiviert wieder den jeweils aktuellen Standard. Die anderen Bereiche und Firmen werden dadurch nicht verändert. Geöffnete Werkzeuge müssen neu geladen werden, um Änderungen zu übernehmen. Gleichzeitige Änderungen werden durch Versionsprüfungen geschützt; bei einem Konflikt bleiben die Eingaben im Editor erhalten.
+
+Uploads werden sofort im Betriebsspeicher abgelegt; die Zuordnung zu einem Ordner wird mit der Vorlage gespeichert. Unter «Eigene Dateien verwalten» lassen sich bereits hochgeladene Dateien wiederverwenden oder nach dem Entfernen aller gespeicherten Verweise löschen. Ein Zurücksetzen der Vorlage löscht keine Uploads. Maximal 10 MB pro Datei und 250 eigene Dateien pro Werkzeug. Die vorläufige Grenze von 500 MB pro Betrieb umfasst Projekte, Vorlagen und Werkstattdateien gemeinsam; sie ist ein App-Limit und keine Aussage zum Speicherangebot eines Hosters.
+
+Die Tabellen `workshop_templates` und `workshop_files` werden beim Serverstart ergänzend angelegt (Datenbankschema 2). Eigene Dateien sind als BLOBs in SQLite gespeichert und werden durch `npm run db:backup` mitgesichert. Dateizugriffe prüfen Betrieb, Benutzer, Werkzeugrecht und Lizenz. Dateilinks sind an den aktuellen Benutzer gebunden; Mitarbeitende öffnen die Unterlagen über ihr Werkzeug. Die Standarddateien bleiben im Repository, firmenspezifische Dateien und Vorlagen ausschliesslich in der privaten Datenbank. Auf GitHub Pages ohne Backend bleiben die Standardwerkzeuge verfügbar, ohne Firmenbearbeitung.
+
 ## Später auf einen Server umziehen
 
 Repository auschecken, Node 24 installieren, einen privaten beschreibbaren Datenordner anlegen und einen HTTPS-Reverse-Proxy vorschalten. Beispielwerte:

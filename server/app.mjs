@@ -6,6 +6,8 @@ import {object,saveObject,publicUser,audit,developerWorkspace} from './db.mjs';
 import {token,digest,fail,passwordHash,passwordMatches,text,loginIdentifier,rateLimit} from './security.mjs';
 import {modules,emptyProfile,profileFields,permissionsFor,pageModule,pageTool,permissionKeys,licenseModule,swissDay} from '../platform/model.mjs';
 import {validRequestHost,validRequestOrigin} from './request-host.mjs';
+import {workshopHandler} from './workshop.mjs';
+import {companyStorageBytes,companyStorageLimit} from './storage.mjs';
 const areas={cad:'cad',offers:'offers',heat:'heat',heatTemplate:'heat'};
 const json=(res,value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));};
 function validPermissions(value){if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Berechtigungen fehlen.');return Object.fromEntries(permissionKeys.map(k=>{const v=value[k]??(licenseModule(k)==='workshop'?value.workshop:'none')??'none';if(!['none','read','write'].includes(v))fail(400,'Ungültige Berechtigung.');return [k,v];}));}
@@ -22,6 +24,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
  function requireRole(s,...roles){if(!roles.includes(s.user.role))fail(403,'Keine Berechtigung für diese Aktion.');}
  function requireArea(s,area,write=false){if(!s.company)fail(403,'Zuerst einen Betrieb auswählen.');const permission=s.permissions[areas[area]||area];if(!permission||permission==='none'||write&&permission!=='write')fail(403,'Lizenz oder Benutzerberechtigung erlaubt diese Aktion nicht.');}
  function seatCheck(id,except=null){const c=object(db,'companies',id);if(!c||c.internalWorkspace)fail(404,'Betrieb nicht gefunden.');const count=db.prepare('SELECT COUNT(*) n FROM users WHERE company_id=? AND enabled=1 AND id!=?').get(id,except||'').n;if(count>=c.seats)fail(409,'Alle gebuchten Benutzerplätze sind belegt.');}
+ const handleWorkshop=workshopHandler({db,root,body,json,freshSession,requireArea,requireRole});
  return http.createServer(async(req,res)=>{
   res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');res.setHeader('Content-Security-Policy',"frame-ancestors 'none'; object-src 'none'; base-uri 'self'");if(secure)res.setHeader('Strict-Transport-Security','max-age=31536000');
   try{
@@ -64,12 +67,13 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
      if(u.role==='admin'&&u.enabled&&(!b.enabled||b.role!=='admin')&&db.prepare("SELECT COUNT(*) n FROM users WHERE company_id=? AND role='admin' AND enabled=1").get(s.company.id).n<=1)fail(409,'Mindestens ein aktiver Firmenadministrator muss verbleiben.');if(b.enabled&&!u.enabled)seatCheck(s.company.id,u.id);
      db.prepare('UPDATE users SET role=?,permissions=?,enabled=? WHERE id=?').run(b.role,JSON.stringify(perms),Number(b.enabled),u.id);db.prepare('DELETE FROM sessions WHERE user_id=? AND hash!=?').run(u.id,s.hash);audit(db,s.user.id,s.company.id,'user.permissionsSaved',u.id);return json(res,publicUser(db.prepare('SELECT * FROM users WHERE id=?').get(u.id)));
     }
+    if(path.startsWith('/api/company/workshop/')||path.startsWith('/api/workshop-files/')){if(await handleWorkshop({req,res,path,method,s}))return;}
     const record=path.match(/^\/api\/records\/([A-Za-z]+)(?:\/([^/]+))?$/);
     if(record){const [,area,id]=record;if(!Object.hasOwn(areas,area))fail(404,'Unbekannter Bereich.');requireArea(s,area,method!=='GET');if(id&&id.length>200)fail(400,'Ungültige Datensatz-ID.');
      if(method==='GET'){if(!id)return json(res,db.prepare('SELECT id,data,revision,updated_at FROM records WHERE company_id=? AND area=?').all(s.company.id,area).map(r=>({id:r.id,value:JSON.parse(r.data),revision:r.revision,updatedAt:r.updated_at})));const r=db.prepare('SELECT data,revision,updated_at FROM records WHERE company_id=? AND area=? AND id=?').get(s.company.id,area,id);return json(res,r?{value:JSON.parse(r.data),revision:r.revision,updatedAt:r.updated_at}:{value:null,revision:0});}
      if(id&&['PUT','DELETE'].includes(method)){const b=await body(req);requireArea(freshSession(req,s),area,true);const old=db.prepare('SELECT revision,length(CAST(data AS BLOB)) bytes FROM records WHERE company_id=? AND area=? AND id=?').get(s.company.id,area,id);if(!Number.isInteger(b.revision)||b.revision!==(old?.revision||0))fail(409,'Ein anderer Benutzer hat diese Daten geändert. Bitte sichern und neu laden.');
       if(method==='DELETE'){db.prepare('DELETE FROM records WHERE company_id=? AND area=? AND id=?').run(s.company.id,area,id);audit(db,s.user.id,s.company.id,'record.deleted',area+':'+id);return json(res,{ok:true,revision:0});}
-      if(b.value===undefined)fail(400,'Datensatz fehlt.');const data=JSON.stringify(b.value),used=db.prepare('SELECT COALESCE(SUM(length(CAST(data AS BLOB))),0) bytes FROM records WHERE company_id=?').get(s.company.id).bytes;if(used-(old?.bytes||0)+Buffer.byteLength(data)>500*1024*1024)fail(413,'Speichergrenze des Testbetriebs erreicht (500 MB).');const revision=(old?.revision||0)+1;db.prepare('INSERT INTO records VALUES (?,?,?,?,?,?,?) ON CONFLICT(company_id,area,id) DO UPDATE SET data=excluded.data,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=excluded.updated_at').run(s.company.id,area,id,data,revision,s.user.id,new Date().toISOString());audit(db,s.user.id,s.company.id,'record.saved',area+':'+id);return json(res,{ok:true,revision});
+      if(b.value===undefined)fail(400,'Datensatz fehlt.');const data=JSON.stringify(b.value),used=companyStorageBytes(db,s.company.id);if(used-(old?.bytes||0)+Buffer.byteLength(data)>companyStorageLimit)fail(413,'Speichergrenze des Testbetriebs erreicht (500 MB).');const revision=(old?.revision||0)+1;db.prepare('INSERT INTO records VALUES (?,?,?,?,?,?,?) ON CONFLICT(company_id,area,id) DO UPDATE SET data=excluded.data,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=excluded.updated_at').run(s.company.id,area,id,data,revision,s.user.id,new Date().toISOString());audit(db,s.user.id,s.company.id,'record.saved',area+':'+id);return json(res,{ok:true,revision});
      }
     }
     fail(404,'Schnittstelle nicht gefunden.');
