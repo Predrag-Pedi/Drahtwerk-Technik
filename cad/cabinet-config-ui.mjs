@@ -1,5 +1,5 @@
 import {choices,ralColors,cabinetOptions,cabinetField,anBodyWidths,anDepths,fieldExtra} from './cabinet-options.mjs?v=20261119-7';
-import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261119-7';
+import {defaultConfig,validateDispoConfig} from './dispo.mjs?v=20261119-9';
 import {checkCabinet} from './cabinet-layout.mjs?v=20261119-7';
 import {cachedDispoBuild} from './dispo-variants.mjs?v=20261119-7';
 import {svgPage} from './render.mjs?v=20261119-7';

@@ -1,0 +1,3 @@
+export const safeLogo=value=>typeof value==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(value)?value:'';
+// Original glyph artwork stays intact except for fixed supplier/company labels.
+export function neutralArtwork(svg,cover=false){return svg.replace(/<image\b[\s\S]*?\/>/g,'').replace(/<use\b[^>]*data-text="[^"]*"[^>]*\/>/g,tag=>{const m=tag.match(/transform="matrix\(([^)]*)\)"/);if(!m)return tag;const nums=m[1].split(',').map(Number),x=nums[4],y=nums[5];const supplier=x>=37&&x<=39&&y>=548&&y<=580;const company=cover?x>=286&&x<=450&&y>=480&&y<=550:x>=390&&x<=451&&y>=550&&y<=578;return supplier||company?'':tag;});}

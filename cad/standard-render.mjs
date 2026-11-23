@@ -1,10 +1,17 @@
+import {companyProfile,addressLines} from '../platform/client.mjs';
+import {neutralArtwork,safeLogo} from '../platform/branding.mjs';
 import artwork from './standard-pages.mjs?v=20261119-7';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const t=(x,y,value,size=8)=>`<text x="${x}" y="${y}" fill="#000" stroke="none" font-family="Arial" font-size="${size}">${esc(value)}</text>`;
-export function standardFrame(d,p){
- const kind=p.standardType||(p.type==='cover'?'cover':p.type==='index'?'index':''),inner=(artwork[kind]||artwork.symbols).replaceAll('#ff0000','#000000');
+export function standardFrame(d,p,brand=companyProfile()){
+ const kind=p.standardType||(p.type==='cover'?'cover':p.type==='index'?'index':''),inner=neutralArtwork(artwork[kind]||artwork.symbols,kind==='cover').replaceAll('#ff0000','#000000');
  const clip=kind?'':`<defs><clipPath id="frameOnly"><path d="M0 0H842V595H0Z M42 51V548H795V51Z" clip-rule="evenodd"/></clipPath></defs>`;
  let body=clip+`<g fill="#000" stroke="none" ${kind?'':'clip-path="url(#frameOnly)"'}>${inner}</g>`;
+ const logo=safeLogo(brand.logo),cover=kind==='cover',companyLines=[...addressLines(brand),[brand.email,brand.phone].filter(Boolean).join(' · ')];
+ const bx=cover?287:391,by=cover?494:559,step=cover?12:4.5,fs=cover?8:3.6;
+ body+=`<defs><clipPath id="companyBrand"><rect x="${cover?65:326}" y="${cover?474:550}" width="${cover?390:126}" height="${cover?80:28}"/></clipPath></defs><g clip-path="url(#companyBrand)">`;
+ if(logo)body+=`<image x="${cover?71:328}" y="${cover?476:551}" width="${cover?194:57}" height="${cover?77:25}" preserveAspectRatio="xMidYMid meet" href="${esc(logo)}"/>`;
+ body+=companyLines.slice(0,5).map((line,i)=>t(bx,by+i*step,line,fs)).join('')+'</g>';
  if(kind==='cover'){
   body+=t(348,150,d.name,12)+t(348,213,d.address,12)+t(348,305,d.customer,12)+t(348,404,d.order,12)+t(348,451,d.schema,12)+t(714,497,d.date,8)+t(714,527,p.number,8)+t(598,556,d.pages.length,8);
  }else{

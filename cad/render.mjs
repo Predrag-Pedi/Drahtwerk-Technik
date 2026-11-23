@@ -6,14 +6,14 @@ import {deviceColor,pageGroupColor} from './dispo-colors.mjs?v=20261119-7';
 import {joinDinRails} from './frame-layout.mjs?v=20261119-7';
 import {cabinetShell,cabinetPanels} from './cabinet-render.mjs?v=20261119-7';
 import {continuationCut,meterView} from './meter-view.mjs?v=20261119-7';
-import {standardFrame} from './standard-render.mjs?v=20261119-7';
+import {standardFrame} from './standard-render.mjs?v=20261119-9';
 import {frameMarkup} from './frame-render.mjs?v=20261119-7';
 import {connectionCandidates,connectionPoint,referenceText,linked,otherEnd} from './continuations.mjs?v=20261119-7';
 import {templateLines,linePoints} from './line-edit.mjs?v=20261119-7';
 import {functionKeys,functionData,functionPoint,functionBmk,findFunction,contactsFor,referenceLocation} from './references.mjs?v=20261119-7';
 import {BUS,DRAW,pathAt} from './geometry.mjs?v=20261119-7';
 import {templateMarkup,templateLabels} from './template.mjs?v=20261119-7';
-import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-7';
+import {W,H,symbols,size,ports,wirePoints} from './model.mjs?v=20261119-9';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Highlight the drawn geometry, never the template's (possibly padded) viewBox.
 // Keep white masks, invisible hit targets and clipping paths visually unchanged.

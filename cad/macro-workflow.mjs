@@ -1,7 +1,7 @@
 import {applyTerminalSide} from './terminal-markers.mjs?v=20261119-7';
 import {placement} from './placement.mjs?v=20261119-7';
 import {DRAW,pathAt,bounds,localPoint} from './geometry.mjs?v=20261119-7';
-import {size} from './model.mjs?v=20261119-7';
+import {size} from './model.mjs?v=20261119-9';
 
 export const isSchemaMacro=t=>t?.category==='Schema'&&/^Makros\//i.test(t.source||'');
 export {macroFields,applyMacroValues} from './macro-config.mjs?v=20261119-7';

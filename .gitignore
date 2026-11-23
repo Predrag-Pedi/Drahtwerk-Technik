@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.openai/
+.env
+.env.*
+!.env.example
+runtime/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.pem
+*.key

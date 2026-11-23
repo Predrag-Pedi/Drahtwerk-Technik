@@ -1,3 +1,4 @@
+import {savedLabel,localScope} from '../platform/client.mjs';
 import {protectionPicker} from './protection-picker.mjs?v=20261119-8';
 import {protectionFields} from './protection-fields.mjs?v=20261119-7';
 import {articleForFunction} from './protection-catalog.mjs?v=20261119-7';
@@ -6,7 +7,7 @@ import {applyMacroDraft} from './macro-config.mjs?v=20261119-7';
 import {drawingText,applyDrawingText} from './text-edit.mjs?v=20261119-7';
 import {applyTerminalSide,terminalBands,terminalSideOptions} from './terminal-markers.mjs?v=20261119-7';
 import {templateFit} from './template-fit.mjs?v=20261119-7';
-import {macroSidebar} from './macro-sidebar.mjs?v=20261119-8';
+import {macroSidebar} from './macro-sidebar.mjs?v=20261119-9';
 import {applyMacroValues,macroAtPath,isSchemaMacro} from './macro-workflow.mjs?v=20261119-7';
 import {openDispoVariants} from './dispo-variants-ui.mjs?v=20261119-7';
 import {linearPartBetween,linearPartPoint} from './dispo-linear.mjs?v=20261119-7';
@@ -22,11 +23,11 @@ import {isRse,rseLegend,rsePhase,setRsePhase} from './rse.mjs?v=20261119-7';
 import {protectionKind} from './circuit-data.mjs?v=20261119-7';
 import {fuseSystems,fuseNames} from './fuse-systems.mjs?v=20261119-7';
 import {reconcilePageOrder} from './page-order.mjs?v=20261119-7';
-import {addStandardPages} from './model.mjs?v=20261119-7';
+import {addStandardPages} from './model.mjs?v=20261119-9';
 import {hasLsSettings,inspectorFunctionKey} from './references.mjs?v=20261119-7';
 import {dispoGroup,swapDispoDrop,arrowStep} from './dispo-move.mjs?v=20261119-7';
-import {drahtwerkDemo} from './dispo.mjs?v=20261119-7';
-import {defaultConfig} from './dispo.mjs?v=20261119-7';
+import {drahtwerkDemo} from './dispo.mjs?v=20261119-9';
+import {defaultConfig} from './dispo.mjs?v=20261119-9';
 import {editSiteSettings,editManualSettings} from './dispo-ui.mjs?v=20261119-7';
 import {openDispo3D} from './dispo-3d.mjs?v=20261119-7';
 import {createTextClickTracker} from './text-click.mjs?v=20261119-7';
@@ -35,14 +36,14 @@ import {connectionCandidates,connectionPoint,connectionGroup,connectSelected,cre
 import {installNavigation} from './navigation.mjs?v=20261119-7';
 import {templateLines,linePoints,detachLine,trimContinuationTails} from './line-edit.mjs?v=20261119-7';
 import {functionKeys,functionData,functionBmk,allFunctions,findFunction,referenceLocation,contactsFor,assignContact} from './references.mjs?v=20261119-7';
-import {filterLibrary,libraryCategory,templateName,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261119-7';
+import {filterLibrary,libraryCategory,templateName,libraryName,libraryFacets,rememberTemplate,readLibrarySettings} from './library.mjs?v=20261119-9';
 import {alignMacro,alignPage} from './alignment.mjs?v=20261119-7';
 import {MM,BUS,DRAW,pathAt,bounds} from './geometry.mjs?v=20261119-7';
 import {enrichedDetails,validateTemplate,templateMarkup,templateLabels} from './template.mjs?v=20261119-7';
 import {placement,placementMarkup,snapGuidesMarkup} from './placement.mjs?v=20261119-7';
-import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261119-7';
+import {uid,clone,W,H,symbols,project,page,createElement,ports,snap,size,wirePoints,endpoint,canLinkWire,removeWire,removeElement,duplicatePage,validateProject,demo,contactDemo} from './model.mjs?v=20261119-9';
 import {svgPage,glyph,esc} from './render.mjs?v=20261119-7';
-import {database} from './storage.mjs?v=20261119-7';
+import {database} from './storage.mjs?v=20261119-9';
 import {pdf,download} from './export.mjs?v=20261119-7';
 const $=id=>document.getElementById(id);
 let docs=[],doc=null,pageId=null,selected=null,tool='select',zoom=1,undo=[],redo=[],wire=null,drag=null,saveTimer=null,saveQueue=Promise.resolve(),dialogSubmit=null,toastTimer;
@@ -54,8 +55,8 @@ let measurePoints=[],placementDimensions=null,verticalWire=false,snapGuides=null
 let pendingAssembly=null,placementMetadata=null,linearStart=null;
 const twoPointPart=()=>['rail','duct'].includes(tool)&&['rail','duct'].includes(placementMetadata?.manualPart?.type);
 let libraryScope='all',symbolLimit=60;
-const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(key)});
-function saveLibrarySettings(){try{localStorage.setItem('cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
+const librarySettings=readLibrarySettings({getItem:key=>localStorage.getItem(localScope()+key)});
+function saveLibrarySettings(){try{localStorage.setItem(localScope()+'cad-library-settings',JSON.stringify(librarySettings));}catch{toast('Bibliotheksauswahl konnte nicht dauerhaft gespeichert werden.');}}
 let templateDetails=null,detailsLoading=null;
 async function loadDetails(){if(templateDetails)return templateDetails;if(!detailsLoading)detailsLoading=fetch('cad/template-details.json?v=20261119-7').then(r=>{if(!r.ok)throw Error('Vorlagentexte konnten nicht geladen werden.');return r.json();}).then(data=>templateDetails=data).catch(e=>{detailsLoading=null;throw e;});return detailsLoading;}
 function attachDetails(e){if(e.template&&templateDetails?.[e.template.id])e.template.details=enrichedDetails(e.template.id,templateDetails[e.template.id]);}
@@ -96,13 +97,13 @@ function showConnection(a,add=false,keep=false){
 const current=()=>doc?.pages.find(p=>p.id===pageId);
 function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,5500);}
 function save(){if(!doc)return;doc.updated=Date.now();$('saveState').textContent='Wird gespeichert …';clearTimeout(saveTimer);const snapshot=clone(doc);enqueueSave(snapshot);}
-function enqueueSave(snapshot){saveQueue=saveQueue.catch(()=>{}).then(()=>database('save',snapshot)).then(()=>{const i=docs.findIndex(d=>d.id===snapshot.id);if(i<0)docs.push(snapshot);else docs[i]=snapshot;if(doc?.id===snapshot.id)$('saveState').textContent='In diesem Browser gespeichert';}).catch(e=>{if(doc?.id===snapshot.id)$('saveState').textContent='Nicht gespeichert – bitte Projekt sichern';toast('Speichern fehlgeschlagen: '+e.message);});return saveQueue;}
+function enqueueSave(snapshot){saveQueue=saveQueue.catch(()=>{}).then(()=>database('save',snapshot)).then(()=>{const i=docs.findIndex(d=>d.id===snapshot.id);if(i<0)docs.push(snapshot);else docs[i]=snapshot;if(doc?.id===snapshot.id)$('saveState').textContent=savedLabel();}).catch(e=>{if(doc?.id===snapshot.id)$('saveState').textContent='Nicht gespeichert – bitte Projekt sichern';toast('Speichern fehlgeschlagen: '+e.message);});return saveQueue;}
 async function flush(){clearTimeout(saveTimer);if(doc)await enqueueSave(clone(doc));}
 function remember(){undo.push(clone(doc));if(undo.length>60)undo.shift();redo=[];}
 function change(fn){remember();const before=undo.at(-1);try{fn();reconcilePageOrder(doc,before);}catch(error){doc=undo.pop();throw error;}save();render();}
 function history(direction){linearStart=null;hoverPoint=null;const from=direction==='undo'?undo:redo,to=direction==='undo'?redo:undo;if(!from.length)return;to.push(clone(doc));doc=from.pop();if(!current())pageId=doc.pages[0].id;selected=null;multi=[];wire=null;save();render();}
 function home(){const q=$('projectSearch').value.toLowerCase();$('projectCount').textContent=docs.length;const shown=docs.filter(d=>`${d.name} ${d.order} ${d.address}`.toLowerCase().includes(q)).sort((a,b)=>b.updated-a.updated);$('projectList').innerHTML=shown.length?shown.map(d=>`<div class="project-row"><span class="project-mark" aria-hidden="true">▱</span><button class="project-open" data-open="${esc(d.id)}"><strong>${esc(d.name)}</strong><small>${d.pages.length} Seiten · ${esc(d.address||'Noch keine Objektadresse')}</small></button><span class="project-number">${esc(d.order||'Ohne Auftragsnummer')}</span><button data-remove="${esc(d.id)}" class="danger" aria-label="${esc(d.name)} löschen">Löschen</button></div>`).join(''):'<div class="empty"><h3>Platz für deine nächste Zeichnung.</h3><p>Erstelle ein Projekt oder öffne das Beispiel, um den Editor kennenzulernen.</p></div>';}
-function open(d){++templateRequest;macros.clear();libraryView('browse');$('resumeMacro').hidden=true;activeTemplate=null;linearStart=null;pendingAssembly=null;placementMetadata=null;hoverPoint=null;placementRotation=0;$('saveState').textContent='In diesem Browser gespeichert';doc=clone(d);if(doc.pages.some((p,i)=>i&&p.number<doc.pages[i-1].number)){reconcilePageOrder(doc,d,{repair:true});save();}pageId=(doc.pages.find(p=>/^disposition$/i.test(p.title.trim()))||doc.pages.find(p=>p.type==='dispo')||doc.pages[0]).id;selected=null;multi=[];tool='select';undo=[];redo=[];wire=null;$('cadHome').hidden=true;$('editor').hidden=false;if(!templateCatalog)$('templateCategory').value=current().type==='dispo'?'Dispo':'Makro';loadTemplates();hydrateDetails();render();requestAnimationFrame(()=>{try{libraryWidth(Number(localStorage.getItem('cad-library-width'))||320);}catch{libraryWidth(320);}fit();});}
+function open(d){++templateRequest;macros.clear();libraryView('browse');$('resumeMacro').hidden=true;activeTemplate=null;linearStart=null;pendingAssembly=null;placementMetadata=null;hoverPoint=null;placementRotation=0;$('saveState').textContent=savedLabel();doc=clone(d);if(doc.pages.some((p,i)=>i&&p.number<doc.pages[i-1].number)){reconcilePageOrder(doc,d,{repair:true});save();}pageId=(doc.pages.find(p=>/^disposition$/i.test(p.title.trim()))||doc.pages.find(p=>p.type==='dispo')||doc.pages[0]).id;selected=null;multi=[];tool='select';undo=[];redo=[];wire=null;$('cadHome').hidden=true;$('editor').hidden=false;if(!templateCatalog)$('templateCategory').value=current().type==='dispo'?'Dispo':'Makro';loadTemplates();hydrateDetails();render();requestAnimationFrame(()=>{try{libraryWidth(Number(localStorage.getItem(localScope()+'cad-library-width'))||320);}catch{libraryWidth(320);}fit();});}
 function setTool(t){linearStart=null;pendingAssembly=null;placementMetadata=null;measurePoints=[];placementDimensions=null;snapGuides=null;textClicks.reset();if(t!=='template')activeTemplate=null;placementRotation=0;$('templateScale').value='100';tool=t;wire=null;selected=null;multi=[];render();}
 function render(){if(!doc)return;$('view3D').hidden=current().type!=='dispo';if($('compareDispo'))$('compareDispo').hidden=current().type!=='dispo';if($('siteSizeSettings'))$('siteSizeSettings').hidden=current().type!=='dispo';if(selectionPage!==pageId){if(pendingAssembly||twoPointPart())tool='select';linearStart=null;pendingAssembly=null;placementMetadata=null;multi=[];connectionSelection=[];selectionPage=pageId;}drawingOptions();macros.update();$('projectTitle').textContent=doc.name;$('pageList').innerHTML=doc.pages.map(p=>`<button class="page-entry ${p.id===pageId?'current':''}" data-page="${p.id}"><span class="num">${p.number}</span><span><strong>${esc(p.title)}</strong><small>${{schema:'Schema',dispo:'Dispo',cover:'Deckblatt',index:'Verzeichnis'}[p.type]}</small></span></button>`).join('');$('pageCaption').innerHTML=doc.pages.map(p=>`<button data-page="${p.id}" class="${p.id===pageId?'active':''}" aria-current="${p.id===pageId?'page':'false'}">${p.number} · ${esc(p.title)}</button>`).join('');const tabs=$('pageCaption'),active=tabs.querySelector('[aria-current=page]');if(active){if(active.offsetLeft<tabs.scrollLeft)tabs.scrollLeft=active.offsetLeft;else if(active.offsetLeft+active.offsetWidth>tabs.scrollLeft+tabs.clientWidth)tabs.scrollLeft=active.offsetLeft+active.offsetWidth-tabs.clientWidth;}$('placementKeys').textContent=twoPointPart()?'Punkt 1 → Punkt 2 · Esc beenden':tool==='template'?'Klick platzieren · R drehen · Esc beenden':'Mausrad: Zoom · Mitteltaste ziehen: Ansicht';$('toolCaption').textContent=tool==='template'?activeTemplate?templateName(activeTemplate):'':placementMetadata?.manualPart?partNames[placementMetadata.manualPart.type]+' platzieren':tool==='pan'?'Ansicht verschieben':tool==='select'?'Auswählen · Doppelklick auf BMK / Text zum Bearbeiten':tool==='wire'?'Verbindung zeichnen':tool==='terminal-strip'?'Klemmen platzieren':pendingAssembly?.kind==='assigned-contact'?'Kontakt platzieren':(symbols[tool]?.name||tool)+' platzieren';$('undo').disabled=!undo.length;$('redo').disabled=!redo.length;for(const id of ['deleteElement','duplicateElement'])$(id).disabled=!selected;$('rotate').disabled=!symbols[tool]&&!current().elements.some(e=>e.id===selected);$('deletePage').disabled=doc.pages.length===1;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));drawPaper();inspector();$('deleteElement').disabled=!selected&&!multi.length;$('duplicateElement').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||!selected;$('rotate').disabled=multi.length>1||multi.some(s=>['line','text'].includes(s.kind))||(!symbols[tool]&&!current().elements.some(e=>e.id===selected));if(twoPointPart())$('rotate').disabled=true;}
 function syncSelection(){selected=multi.length===1&&['element','wire'].includes(multi[0].kind)?multi[0].id:null;}
@@ -234,7 +235,7 @@ $('newProject').onclick=()=>showForm('Neues CAD-Projekt',[{key:'name',label:'Pro
 $('demoProject').onclick=async()=>{try{const d=demo();await database('save',d);docs.push(d);open(d);}catch(e){toast(e.message)}};
 $('projectSettings').onclick=()=>showForm('Projektdaten',['name','order','schema','customer','address','author','date','ratedCurrent'].map((key,i)=>({key,label:['Projektname','Auftrag','Schemanummer','Kunde','Objektadresse','Gezeichnet von','Datum','Bemessungsstrom (z. B. 100 A)'][i],value:doc[key],type:key==='date'?'date':'text'})),data=>{if(!data.name.trim())throw Error('Bitte einen Projektnamen eingeben.');change(()=>Object.assign(doc,data));});
 $('projectSearch').oninput=home;
-$('projectList').onclick=async e=>{const button=e.target.closest('button');if(!button)return;const id=button.dataset.open||button.dataset.remove,d=docs.find(d=>d.id===id);if(!d)return;if(button.dataset.open)open(d);else if(confirm(`Projekt «${d.name}» auf diesem Gerät löschen?`)){try{await database('delete',id);docs=docs.filter(d=>d.id!==id);home();}catch(e){toast(e.message)}}};
+$('projectList').onclick=async e=>{const button=e.target.closest('button');if(!button)return;const id=button.dataset.open||button.dataset.remove,d=docs.find(d=>d.id===id);if(!d)return;if(button.dataset.open)open(d);else if(confirm(`Projekt «${d.name}» löschen?`)){try{await database('delete',id);docs=docs.filter(d=>d.id!==id);home();}catch(e){toast(e.message)}}};
 $('backHome').onclick=async()=>{await flush();doc=null;wire=null;$('editor').hidden=true;$('cadHome').hidden=false;home();};
 $('backupProject').onclick=()=>download(new Blob([JSON.stringify(doc,null,2)],{type:'application/json'}),`${doc.order||doc.name} - CAD.json`);
 $('importProject').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>20*1024*1024)throw Error('Projektdatei zu gross (max. 20 MB).');const d=validateProject(JSON.parse(await f.text()));d.id=uid();d.name+=' (Import)';await database('save',d);docs.push(d);open(d);}catch(e){toast(e.message)}finally{$('importProject').value=''}};
@@ -347,10 +348,10 @@ symbolList();database('list').then(result=>{docs=result;home();}).catch(e=>{toas
 const layout=document.querySelector('.drawing-layout'),splitter=$('librarySplitter');
 function libraryWidth(value){const max=Math.max(220,Math.min(900,layout.clientWidth-480)),width=Math.max(220,Math.min(max,value));layout.style.setProperty('--library-width',width+'px');splitter.setAttribute('aria-valuenow',Math.round(width));splitter.setAttribute('aria-valuemax',Math.round(max));return width;}
 let resizing=false;
-try{libraryWidth(Number(localStorage.getItem('cad-library-width'))||320);}catch{libraryWidth(320);}
+try{libraryWidth(Number(localStorage.getItem(localScope()+'cad-library-width'))||320);}catch{libraryWidth(320);}
 splitter.onpointerdown=e=>{if(e.button!==0)return;resizing=true;splitter.setPointerCapture(e.pointerId);e.preventDefault();};
 splitter.onpointermove=e=>{if(resizing)libraryWidth(e.clientX-layout.getBoundingClientRect().left);};
-function endResize(){if(!resizing)return;resizing=false;try{localStorage.setItem('cad-library-width',parseFloat(layout.style.getPropertyValue('--library-width')));}catch{}fit();}
+function endResize(){if(!resizing)return;resizing=false;try{localStorage.setItem(localScope()+'cad-library-width',parseFloat(layout.style.getPropertyValue('--library-width')));}catch{}fit();}
 splitter.onpointerup=splitter.onpointercancel=endResize;
 splitter.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const current=parseFloat(layout.style.getPropertyValue('--library-width'))||320;libraryWidth(e.key==='Home'?220:e.key==='End'?900:current+(e.key==='ArrowRight'?40:-40));resizing=true;endResize();};
 window.addEventListener('resize',()=>{if(doc)libraryWidth(parseFloat(layout.style.getPropertyValue('--library-width'))||320);});
@@ -379,7 +380,7 @@ async function compareDispo(initialError=''){
 }
 $('view3D').onclick=()=>{try{openDispo3D(current(),id=>{selected=id;multi=[{kind:'element',id}];render();});}catch(e){toast(e.message);}};
 
-$('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Drahtwerk-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
+$('frameDemo').onclick=async()=>{try{const d=drahtwerkDemo(project('Beispiel · Schaltschrank-Aufbau'));await database('save',d);docs.push(d);open(d);pageId=d.pages.find(p=>p.type==='dispo').id;render();}catch(e){toast(e.message);}};
 
 const previewCache=new Map();
 const previewObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target,id=img.dataset.previewId;previewObserver.unobserve(img);if(!previewCache.has(id))previewCache.set(id,fetch(`cad/templates/${encodeURIComponent(id)}.json?v=20261119-7`).then(r=>{if(!r.ok)throw Error('Vorschau fehlt');return r.json();}).then(validateTemplate).then(t=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">${templateMarkup(t,200*t.width/Math.max(t.width,t.height),200*t.height/Math.max(t.width,t.height))}</svg>`)));previewCache.get(id).then(src=>img.src=src).catch(()=>img.alt='Vorschau nicht verfügbar');}});
@@ -389,7 +390,7 @@ const compareButton=$('compareDispo');compareButton.onclick=async()=>{if(compare
 const sizeButton=document.createElement('button');sizeButton.id='siteSizeSettings';sizeButton.textContent='Einbaumasse / Reserve';sizeButton.title='Maximale Einbaumasse, Durchgang und Reserve-Zählerplätze';compareButton.after(sizeButton);sizeButton.onclick=()=>{const target=current();if(target.type!=='dispo')return;editSiteSettings(target,showForm,config=>{change(()=>target.dispoConfig=config);toast('Einstellungen gespeichert. Unter «Varianten vergleichen» die gewünschte Anordnung übernehmen.');});};
 const breakerButton=document.createElement('button');breakerButton.textContent='Sicherungen';breakerButton.title='Hersteller für alle Sicherungen der Dispo';compareButton.after(breakerButton);breakerButton.onclick=()=>{if(current().type!=='dispo'){toast('Bitte zuerst die Dispo-Seite öffnen.');return;}showForm('Sicherungen – für die ganze Dispo',[{key:'manufacturer',label:'Hersteller für alle LS / FI-LS',value:current().dispoConfig?.breakerManufacturer||'auto',options:[['auto','Einzeleinstellungen / Vorlagen'],['hager','Hager – nach L1 / L2 / L3 in drei Reihen'],['schneider','Schneider – nebeneinander']]}],data=>{change(()=>current().dispoConfig={...defaultConfig(),...current().dispoConfig,breakerManufacturer:data.manufacturer});toast('Gespeichert. Unter «Varianten vergleichen» die gewünschte Anordnung übernehmen.');});};
 
-const standardButton=document.createElement('button');standardButton.textContent='Drahtwerk-Standardseiten';$('projectSettings').after(standardButton);standardButton.onclick=()=>{try{const next=addStandardPages(clone(doc));change(()=>doc=next);}catch(error){toast(error.message);}};
+const standardButton=document.createElement('button');standardButton.textContent='Standardseiten';$('projectSettings').after(standardButton);standardButton.onclick=()=>{try{const next=addStandardPages(clone(doc));change(()=>doc=next);}catch(error){toast(error.message);}};
 
 function drawingOptions(){const measure=tool==='dimension',w=tool==='wire',template=tool==='template'&&activeTemplate?.category==='Schema',dispo=current()?.type==='dispo'&&!!symbols[tool];$('drawingOptions').hidden=!measure&&!w&&!template&&!dispo&&!pendingAssembly;$('placementAnchorLabel').hidden=!dispo||twoPointPart();for(const id of ['terminalAssistant','contactManager'])$(id).hidden=current()?.type!=='schema';$('templateScaleLabel').hidden=$('templateFit').hidden=!template;for(const id of ['wireCountLabel','wireSpacingLabel','wireDirection'])$(id).hidden=!w;$('measureAxisLabel').hidden=!measure;for(const [id,type]of [['drawFrame','frame'],['drawCabinet','cabinet'],['drawDuct','duct'],['drawRail','rail']]){$(id).hidden=current()?.type!=='dispo';$(id).classList.toggle('active',placementMetadata?.manualPart?.type===type);}$('drawingHint').textContent=twoPointPart()?(linearStart?'Punkt 2 wählen · Länge folgt der Maus · Esc beenden':'Punkt 1 wählen · Danach Punkt 2 · Esc beenden'):measure?['Ersten Messpunkt wählen','Zweiten Messpunkt wählen','Masslinie platzieren'][measurePoints.length]:dispo?'Klick platzieren · Tab Einfügepunkt wechseln · R drehen · Esc beenden':pendingAssembly?'Vorschau platzieren · Esc abbrechen':template?'Klick platzieren · R drehen · Esc beenden':'Zwischenpunkte klicken · Enter abschliessen · Tab Knick wechseln';}
 function linearPointer(event){return linearPartPoint(current(),point(event,false),{grid:$('snap').checked,objectSnap:$('objectSnap').checked&&!event.altKey,tolerance:8/zoom});}
