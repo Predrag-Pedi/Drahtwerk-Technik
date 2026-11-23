@@ -1,17 +1,17 @@
 {
-  "name": "Planungsportal",
-  "short_name": "Planungsportal",
+  "name": "SchaltBase",
+  "short_name": "SchaltBase",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#edf2f7",
-  "theme_color": "#123c70",
+  "background_color": "#f4f7fb",
+  "theme_color": "#123259",
   "orientation": "landscape",
   "icons": [
     {
-      "src": "platform/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "platform/schaltbase-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
       "purpose": "any"
     }
   ]

@@ -1,0 +1,19 @@
+/* App identity is independent of the company identity used on documents. */
+.sb-icon{display:inline-block;width:32px;height:32px;object-fit:contain;border-radius:8px;flex-shrink:0;vertical-align:middle}
+.dw-brand,.dw-header .brand,.portal-brand{display:flex;align-items:center;gap:11px}
+.welcome-brand .sb-icon{width:34px;height:34px}
+@media screen{
+ .portal-header{position:sticky;top:0;z-index:10}
+ .suite-page header.dw-header,.suite-page header.top.dw-header{position:sticky;top:0;z-index:31}
+ .suite-sidebar,.suite-offerten .suite-sidebar{position:fixed!important;top:var(--suite-header-height,57px);bottom:0;min-height:0;max-height:calc(100dvh - var(--suite-header-height,57px));z-index:30;overflow:visible}
+ .suite-sidebar>.suite-identity{flex-shrink:0}
+ .suite-sidebar>nav{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+ .suite-sidebar>.suite-sidebar-foot{flex-shrink:0}
+ .suite-sidebar .account-options{min-width:220px}
+ .suite-menu-open .suite-menu-shade{top:var(--suite-header-height,57px)}
+ .heat-steps{top:calc(var(--suite-header-height,57px) + 12px)}
+ .suite-page{scroll-padding-top:calc(var(--suite-header-height,57px) + 16px)}
+ .suite-page :is(section[id],h1[id],h2[id]){scroll-margin-top:calc(var(--suite-header-height,57px) + 16px)}
+}
+@media screen and (max-width:650px){.sb-icon{width:28px;height:28px}.portal-header{gap:10px}.portal-brand{font-size:16px}}
+@media print{.sb-icon{display:none}}

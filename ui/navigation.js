@@ -2,6 +2,8 @@
 (() => {
  const sidebar=document.querySelector('.suite-sidebar'), header=document.querySelector('.dw-header');
  if(!sidebar||!header) return;
+ // Header can grow with zoom or accessibility text settings. Keep the drawer aligned.
+ const headerSize=new ResizeObserver(()=>{const height=header.getBoundingClientRect().height;if(height)document.documentElement.style.setProperty('--suite-header-height',height+'px');});headerSize.observe(header);
  sidebar.id='suite-navigation';
  const offers=sidebar.querySelector('a[href="offerten.html"]');
  if(offers&&!sidebar.querySelector('a[href="cad.html"]')){const link=document.createElement('a');link.href='cad.html';link.className='suite-nav-link';link.innerHTML='<svg class="suite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 4h16v16H4zM8 8h8v8H8zM12 4v4M12 16v4M4 12h4M16 12h4"/></svg><span>Schema & Dispo</span>';if(location.pathname.endsWith('/cad.html'))link.setAttribute('aria-current','page');offers.after(link);}
