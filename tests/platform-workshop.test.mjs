@@ -16,7 +16,7 @@ test('company workshop templates and documents are persistent, isolated and perm
   const now = Date.now();
   for (const id of ['alpha', 'beta']) saveObject(db, 'companies', {id, name: id, enabled: true, startsOn: '2000-01-01', endsOn: '2099-12-31', planId: 'basis', seats: 5});
   function user(id, company, role, permissions = {workshop: 'write'}) {
-    db.prepare('INSERT INTO users VALUES (?,?,?,?,?,?,?,1,0,?)').run(id, company, id, id, role, JSON.stringify(permissions), 'test-only-not-a-password', new Date().toISOString());
+    db.prepare('INSERT INTO users(id,company_id,email,name,role,permissions,password,enabled,must_change,created_at) VALUES (?,?,?,?,?,?,?,1,0,?)').run(id, company, id, id, role, JSON.stringify(permissions), 'test-only-not-a-password', new Date().toISOString());
     db.prepare('INSERT INTO sessions VALUES (?,?,?,?,?,?)').run(digest('token-' + id), id, company, 'csrf-' + id, now + 3600000, now);
     return {cookie: 'test-session=token-' + id, company, id, csrf: 'csrf-' + id};
   }

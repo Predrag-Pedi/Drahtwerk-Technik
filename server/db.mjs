@@ -16,7 +16,10 @@ export function openDatabase(path){
  CREATE TABLE IF NOT EXISTS workshop_templates(company_id TEXT NOT NULL REFERENCES companies(id),tool TEXT NOT NULL,data TEXT,revision INTEGER NOT NULL,updated_by TEXT NOT NULL REFERENCES users(id),updated_at TEXT NOT NULL,PRIMARY KEY(company_id,tool));
  CREATE TABLE IF NOT EXISTS workshop_files(id TEXT PRIMARY KEY,company_id TEXT NOT NULL REFERENCES companies(id),tool TEXT NOT NULL,name TEXT NOT NULL,mime TEXT NOT NULL,bytes BLOB NOT NULL,uploaded_by TEXT NOT NULL REFERENCES users(id),uploaded_at TEXT NOT NULL);
  CREATE INDEX IF NOT EXISTS workshop_files_company ON workshop_files(company_id,tool);
- PRAGMA user_version=2;`);
+ `);
+ // Keep author references when removing an account; existing installations migrate on startup.
+ if(!db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='deleted_at'))db.exec('ALTER TABLE users ADD COLUMN deleted_at TEXT');
+ db.exec('PRAGMA user_version=3');
  for(const p of initialPlans)db.prepare('INSERT OR IGNORE INTO plans VALUES (?,?)').run(p.id,JSON.stringify(p));
  return db;
 }

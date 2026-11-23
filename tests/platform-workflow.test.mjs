@@ -9,7 +9,7 @@ import {emptyProfile,permissionsFor} from '../platform/model.mjs';
 
 test('landing, username login, developer workspace and individual tool rights through the HTTPS tunnel',async t=>{
  const db=openDatabase(':memory:'),password=token(),origin='https://test-space-4173.app.github.dev';
- db.prepare("INSERT INTO users VALUES ('root',NULL,'predrag.test','Test Entwickler','developer','{}',?,1,0,?)").run(await passwordHash(password),new Date().toISOString());
+ db.prepare("INSERT INTO users(id,company_id,email,name,role,permissions,password,enabled,must_change,created_at) VALUES ('root',NULL,'predrag.test','Test Entwickler','developer','{}',?,1,0,?)").run(await passwordHash(password),new Date().toISOString());
  const server=createApp({db,root:resolve(import.meta.dirname,'..'),origin,codespaceProxyPort:4173});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const endpoint=`http://127.0.0.1:${server.address().port}`;
@@ -41,7 +41,7 @@ test('landing, username login, developer workspace and individual tool rights th
    assert.equal((await request('/api/admin/users','POST',{...body,identifier:'another.user',companyId:state.company.id},auth)).status,404);
   });
   await t.test('employee and company admin restrictions survive direct requests and email-like names',async()=>{
-   for(const [id,role] of [['staff','member'],['manager','admin']])db.prepare('INSERT INTO users VALUES (?,?,?,?,?,?,?,1,0,?)').run(id,company.id,id==='staff'?'developer@example.test':'manager.test',id,role,JSON.stringify({rails:'read',wires:'read',cad:'read'}),'unused',new Date().toISOString());
+   for(const [id,role] of [['staff','member'],['manager','admin']])db.prepare('INSERT INTO users(id,company_id,email,name,role,permissions,password,enabled,must_change,created_at) VALUES (?,?,?,?,?,?,?,1,0,?)').run(id,company.id,id==='staff'?'developer@example.test':'manager.test',id,role,JSON.stringify({rails:'read',wires:'read',cad:'read'}),'unused',new Date().toISOString());
    const sessionFor=id=>{const sid=token();db.prepare('INSERT INTO sessions VALUES (?,?,?,?,?,?)').run(digest(sid),id,company.id,'csrf',Date.now()+3600000,Date.now());return {Cookie:'__Host-session='+sid,'X-CSRF-Token':'csrf','X-Company-Id':company.id,'X-User-Id':id};};
    const staff=sessionFor('staff'),manager=sessionFor('manager');
    assert.equal((await request('/api/session','GET',undefined,staff)).data.user.role,'member');
