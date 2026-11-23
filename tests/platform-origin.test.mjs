@@ -41,7 +41,7 @@ test('ordinary deployment still requires its exact configured Origin',()=>{
 
 test('login, session, CSRF and logout work through the observed Codespaces header rewrite',async()=>{
  const db=openDatabase(':memory:'),password=token();
- db.prepare("INSERT INTO users VALUES ('dev',NULL,'developer@example.test','Test Developer','developer','{}',?,1,0,?)").run(await passwordHash(password),new Date().toISOString());
+ db.prepare("INSERT INTO users(id,company_id,email,name,role,permissions,password,enabled,must_change,created_at) VALUES ('dev',NULL,'developer@example.test','Test Developer','developer','{}',?,1,0,?)").run(await passwordHash(password),new Date().toISOString());
  const app=createApp({db,root:resolve(import.meta.dirname,'..'),origin:allowed.origin,codespaceProxyPort:4173});
  await new Promise(resolve=>app.listen(0,'127.0.0.1',resolve));
  const address='http://127.0.0.1:'+app.address().port;

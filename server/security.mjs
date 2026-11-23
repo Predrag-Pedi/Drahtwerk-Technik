@@ -4,9 +4,15 @@ const derive=promisify(scrypt);let hashing=0;
 export const token=()=>randomBytes(32).toString('base64url');
 export const digest=s=>createHash('sha256').update(s).digest('hex');
 export function fail(status,message){throw Object.assign(Error(message),{status});}
-export function passwordPolicy(p){if(typeof p!=='string'||p.length<12||p.length>256)fail(400,'Das Passwort muss 12 bis 256 Zeichen lang sein.');}
+export function passwordPolicy(p,{temporary=false}={}){const min=temporary?8:12;if(typeof p!=='string'||p.length<min||p.length>256||!p.trim())fail(400,`Das ${temporary?'Startpasswort':'Passwort'} muss ${min} bis 256 Zeichen lang sein.`);}
 async function key(password,salt){if(hashing>=2)fail(429,'Bitte kurz warten und erneut versuchen.');hashing++;try{return await derive(password,salt,64,{N:131072,r:8,p:1,maxmem:256*1024*1024});}finally{hashing--;}}
-export async function passwordHash(password){passwordPolicy(password);const salt=randomBytes(16).toString('hex');return `scrypt$${salt}$${(await key(password,salt)).toString('hex')}`;}
+export async function passwordHash(password,options){passwordPolicy(password,options);const salt=randomBytes(16).toString('hex');return `scrypt$${salt}$${(await key(password,salt)).toString('hex')}`;}
+export async function temporaryCredentials(value){
+ const mode=value.passwordMode??'random';
+ if(!['custom','random'].includes(mode))fail(400,'Eigenes oder zufälliges Startpasswort wählen.');
+ const password=mode==='custom'?value.password:token();
+ return {password,hash:await passwordHash(password,{temporary:true})};
+}
 export async function passwordMatches(password,stored){if(typeof password!=='string'||password.length>256)return false;const [,salt,hash]=String(stored).split('$');const result=await key(password,salt||'00000000000000000000000000000000');return Boolean(hash&&hash.length===128&&timingSafeEqual(result,Buffer.from(hash,'hex')));}
 export function text(v,max=200){if(typeof v!=='string'||v.length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v))fail(400,'Ungültiger Text.');return v.trim();}
 export function email(v){const e=text(v,254).toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))fail(400,'Gültige E-Mail-Adresse eingeben.');return e;}
