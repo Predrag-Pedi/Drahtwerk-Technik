@@ -16,9 +16,11 @@ test('landing, username login, developer workspace and individual tool rights th
  async function request(path,method='GET',body,auth={},extra={}){return new Promise((resolve,reject)=>{const req=http.request(endpoint+path,{method,headers:{Host:'localhost:4173','X-Forwarded-Host':'test-space-4173.app.github.dev','X-Forwarded-Proto':'https',Origin:origin,...(body?{'Content-Type':'application/json'}:{}),...auth,...extra}},r=>{const chunks=[];r.on('data',c=>chunks.push(c));r.on('end',()=>{const raw=Buffer.concat(chunks).toString(),headers={get:key=>Array.isArray(r.headers[key])?r.headers[key].join(';'):r.headers[key]};resolve({status:r.statusCode,headers,data:r.headers['content-type']?.includes('application/json')?JSON.parse(raw):raw});});});req.on('error',reject);req.end(body?JSON.stringify(body):undefined);});}
  try{
   await t.test('anonymous visitors see the landing and login, but no dashboard or management page',async()=>{
-   const home=await request('/');assert.equal(home.status,200);assert.match(home.data,/Deine Schaltanlage/);assert.doesNotMatch(home.data,/<video/);
+   const home=await request('/');assert.equal(home.status,200);assert.match(home.data,/<title>SchaltBase/);assert.match(home.data,/data-demo="dispo"/);assert.match(home.data,/data-demo="offers"/);
+   for(const [path,type] of [['/platform/home-demo.mjs','text/javascript'],['/platform/home.css','text/css'],['/platform/brand.css','text/css'],['/platform/demo-dispo.svg','image/svg+xml'],['/platform/demo-schema.svg','image/svg+xml'],['/platform/schaltbase-icon.png','image/png']]){const asset=await request(path);assert.equal(asset.status,200);assert.equal(asset.headers.get('content-type'),type);}
+   assert.equal(JSON.parse((await request('/manifest.webmanifest')).data).name,'SchaltBase');
    assert.match((await request('/login.html')).data,/Benutzername oder E-Mail/);
-   for(const path of ['/index.html','/portal.html','/cad.html']){const r=await request(path);assert.equal(r.status,302);assert.equal(r.headers.get('location'),'/login.html');}
+   for(const path of ['/index.html','/portal.html','/cad.html','/offerten.html']){const r=await request(path);assert.equal(r.status,302);assert.equal(r.headers.get('location'),'/login.html');}
    assert.equal((await request('/',undefined,undefined,{}, {'X-Forwarded-Host':'foreign.test'})).status,400);
   });
   const login=await request('/api/login','POST',{identifier:'Predrag.Test',password});assert.equal(login.status,200);assert.match(login.headers.get('set-cookie'),/__Host-session=.*HttpOnly; SameSite=Strict;.*Secure/);

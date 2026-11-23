@@ -1,4 +1,4 @@
-import {account,serverMode,publicPage,companyProfile,can,canTool} from './client.mjs';
+import {account,serverMode,publicPage,can,canTool} from './client.mjs';
 import {pageModule,pageTool} from './model.mjs';
 import {mountAccountMenu} from './account-menu.mjs';
 if(serverMode){
@@ -7,13 +7,10 @@ if(serverMode){
  else if(account?.user.mustChangePassword&&!publicPage()&&!location.pathname.endsWith('/portal.html'))location.replace('/portal.html?section=personal');
  const ready=()=>{
   if(!account||publicPage())return;
-  const p=companyProfile(),dev=account.user.role==='developer';
+  const dev=account.user.role==='developer';
   const style=document.createElement('link');style.rel='stylesheet';style.href='/platform/account.css';document.head.append(style);
   for(const header of document.querySelectorAll(location.pathname==='/index.html'?'#unused-header':'.dw-header,#editor>.editor-heading')){const link=document.createElement('a');link.href='/index.html';link.textContent='Dashboard';link.className='home';link.style.cssText='font:600 13px Arial;padding:8px 12px;color:inherit;text-decoration:none;border:1px solid currentColor;border-radius:8px';header.append(link);}
-  document.title=document.title.replace(/Standard(?: Technik)?/,p.name||'Planungsportal');
   for(const el of document.querySelectorAll('[data-storage-info]'))el.textContent='Im Betrieb gespeichert. Berechtigte Mitarbeitende können die Projekte auch auf anderen Geräten öffnen. Exporte dienen als zusätzliche Sicherung.';
-  for(const el of document.querySelectorAll('.dw-brand,.suite-identity>div'))el.textContent=p.name||'Planungsportal';
-  for(const el of document.querySelectorAll('.foot'))if(/Drahtwerk|Planungsportal · Ihr Spezialist/i.test(el.textContent))el.textContent=p.name||'';
   for(const dock of document.querySelectorAll('.suite-sidebar-foot,#accountDock'))mountAccountMenu(dock);
   const sidebar=document.querySelector('.suite-sidebar nav');
   if(sidebar&&!sidebar.querySelector('a[href="cad.html"]'))sidebar.insertAdjacentHTML('beforeend','<a class="suite-nav-link" href="cad.html"><span>Schema & Dispo</span></a>');
