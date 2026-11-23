@@ -5,7 +5,7 @@ import {randomUUID} from 'node:crypto';
 import {object,saveObject,publicUser,audit,developerWorkspace} from './db.mjs';
 import {token,digest,fail,passwordHash,passwordMatches,text,loginIdentifier,rateLimit} from './security.mjs';
 import {modules,emptyProfile,profileFields,permissionsFor,pageModule,pageTool,permissionKeys,licenseModule,swissDay} from '../platform/model.mjs';
-import {validRequestHost} from './request-host.mjs';
+import {validRequestHost,validRequestOrigin} from './request-host.mjs';
 const areas={cad:'cad',offers:'offers',heat:'heat',heatTemplate:'heat'};
 const json=(res,value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));};
 function validPermissions(value){if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Berechtigungen fehlen.');return Object.fromEntries(permissionKeys.map(k=>{const v=value[k]??(licenseModule(k)==='workshop'?value.workshop:'none')??'none';if(!['none','read','write'].includes(v))fail(400,'Ungültige Berechtigung.');return [k,v];}));}
@@ -31,7 +31,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    if(path==='/platform/runtime.js'&&method==='GET'){res.setHeader('Content-Type','text/javascript');return res.end('globalThis.__companyMode=true;');}
    if(path.startsWith('/api/')){
     if(!['GET','POST','PUT','PATCH','DELETE'].includes(method))fail(405,'Methode nicht erlaubt.');
-    if(method!=='GET'&&req.headers.origin!==origin)fail(403,'Anfrage stammt nicht aus dieser Anwendung.');
+    if(method!=='GET'&&!validRequestOrigin(req,allowed,codespaceProxyPort))fail(403,'Anfrage stammt nicht aus dieser Anwendung.');
     if(path==='/api/login'&&method==='POST'){
      const b=await body(req),e=loginIdentifier(b.identifier??b.username??b.email);rateLimit(db,'ip:'+digest(req.socket.remoteAddress||''),30);rateLimit(db,'login:'+digest(e));
      const u=db.prepare('SELECT * FROM users WHERE email=?').get(e),ok=await passwordMatches(b.password,u?.password);if(!ok||!u?.enabled)fail(401,'Benutzername oder Passwort ist nicht korrekt.');

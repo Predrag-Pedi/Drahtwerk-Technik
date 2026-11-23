@@ -25,6 +25,10 @@ Wenn auch die Loginseite für Aussenstehende unerreichbar bleiben soll, zuerst e
 
 Der Codespace muss während des Tests laufen. Nach Inaktivität stoppt er automatisch (standardmässig nach 30 Minuten; konfigurierbar). Die maximale Laufzeit einer Sitzung beträgt 12 Stunden. Der Besitzer startet ihn dann erneut. Eine rund um die Uhr laufende Kundenplattform ist Codespaces nicht.
 
+## Herkunftsprüfung im Codespaces-Tunnel
+
+GitHub kann neben `Host` auch `Origin` auf `https://localhost:4173` umschreiben. Diese Anfrage wird nur im ausdrücklich erkannten Codespace akzeptiert: Loopback-Verbindung, richtiger interner Port, exakt passende öffentliche Adresse in `X-Forwarded-Host`, HTTPS, `Sec-Fetch-Site: same-origin` und eine `Referer`-Adresse derselben öffentlichen Anwendung. Ohne diese Merkmale gilt weiterhin die exakte konfigurierte Herkunftsadresse. Der CSRF-Token für angemeldete Änderungen bleibt zusätzlich erforderlich. Keine Freigabe für beliebige localhost-Adressen oder Codespaces-Subdomains.
+
 ## Bisherigen öffentlichen Zugang schliessen
 
 Das aktuelle Repository ist öffentlich. Der neue Login schützt den neuen Backendbetrieb, nicht automatisch die bereits veröffentlichte GitHub-Pages-Einzelplatzversion oder den Quellcode.
