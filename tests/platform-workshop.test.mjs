@@ -9,7 +9,7 @@ import {openDatabase, saveObject} from '../server/db.mjs';
 import {createApp} from '../server/app.mjs';
 import {digest} from '../server/security.mjs';
 import {companyStorageBytes, companyStorageLimit} from '../server/storage.mjs';
-import {standardRails, railLength, csvCell} from '../platform/workshop-model.mjs';
+import {standardRails, railLength, railProfiles, railProfileForDepth, csvCell} from '../platform/workshop-model.mjs';
 
 test('company workshop templates and documents are persistent, isolated and permission checked', async t => {
   const dir = mkdtempSync(join(tmpdir(), 'workshop-test-')), file = join(dir, 'test.sqlite'), db = openDatabase(file);
@@ -25,7 +25,7 @@ test('company workshop templates and documents are persistent, isolated and perm
   const reserve = net.createServer(); await new Promise(r => reserve.listen(0, '127.0.0.1', r)); const port = reserve.address().port; await new Promise(r => reserve.close(r));
   const origin = 'http://127.0.0.1:' + port, server = createApp({db, root: resolve(import.meta.dirname, '..'), origin});
   await new Promise(r => server.listen(port, '127.0.0.1', r));
-  function headers(a) {return {Origin: origin, 'Content-Type': 'application/json', ...(a ? {Cookie: a.cookie, 'X-CSRF-Token': a.csrf, 'X-Company-Id': a.company, 'X-User-Id': a.id} : {})};}
+  function headers(a) {return {Origin: origin, 'Content-Type': 'application/json', Connection: 'close', ...(a ? {Cookie: a.cookie, 'X-CSRF-Token': a.csrf, 'X-Company-Id': a.company, 'X-User-Id': a.id} : {})};}
   async function request(path, method = 'GET', value, a = admin, extra = {}) {
     const response = await fetch(origin + path, {method, headers: {...headers(a), ...extra}, redirect: 'manual', ...(value !== undefined ? {body: JSON.stringify(value)} : {})});
     const bytes = new Uint8Array(await response.arrayBuffer());
@@ -42,7 +42,7 @@ test('company workshop templates and documents are persistent, isolated and perm
         if (tool === 'ew') ew = a.data;
         if (tool === 'spacing') spacing = a.data;
       }
-      assert.equal(rail.value.rows.length, 15);
+      assert.equal(rail.value.profiles[0].rows.length, 15);
       assert.equal(railLength(standardRails[0], {h: 1000}), 960);
       assert.equal(railLength({dimension: 'd', deduction: 50}, {d: 300}), 250);
     });
@@ -56,17 +56,17 @@ test('company workshop templates and documents are persistent, isolated and perm
       assert.equal((await request('/api/records/workshop/rails', 'PUT', payload, writer)).status, 404);
     });
     await t.test('company overrides are shared with its staff, and stale writes cannot undo reset', async () => {
-      rail.value.rows[0].deduction = 75;
+      rail.value.profiles[0].rows[0].deduction = 75;
       const saved = await request(endpoint('rails'), 'PUT', {revision: 0, value: rail.value});
       assert.equal(saved.status, 200); assert.equal(saved.data.source, 'company'); assert.equal(saved.data.revision, 1);
-      assert.equal((await request(endpoint('rails'), 'GET', undefined, member)).data.value.rows[0].deduction, 75);
-      assert.equal((await request(endpoint('rails'), 'GET', undefined, other)).data.value.rows[0].deduction, 40);
+      assert.equal((await request(endpoint('rails'), 'GET', undefined, member)).data.value.profiles[0].rows[0].deduction, 75);
+      assert.equal((await request(endpoint('rails'), 'GET', undefined, other)).data.value.profiles[0].rows[0].deduction, 40);
       assert.equal((await request(endpoint('rails'), 'PUT', {revision: 0, value: rail.value})).status, 409);
       const reset = await request(endpoint('rails'), 'DELETE', {revision: 1});
-      assert.equal(reset.data.source, 'standard'); assert.equal(reset.data.revision, 2); assert.equal(reset.data.value.rows[0].deduction, 40);
+      assert.equal(reset.data.source, 'standard'); assert.equal(reset.data.revision, 2); assert.equal(reset.data.value.profiles[0].rows[0].deduction, 40);
       assert.equal((await request(endpoint('rails'), 'PUT', {revision: 0, value: rail.value})).status, 409);
       assert.equal((await request(endpoint('rails'), 'PUT', {revision: 2, value: rail.value})).status, 200);
-      assert.equal((await request(endpoint('rails'), 'PUT', {revision: 3, value: {rows: [{...rail.value.rows[0], deduction: -1}]}})).status, 400);
+      assert.equal((await request(endpoint('rails'), 'PUT', {revision: 3, value: {profiles: [{id:'depth-165',depth:165,rows: [{...rail.value.profiles[0].rows[0], deduction: -1}]}]}})).status, 400);
     });
     await t.test('wire colors can be customised without changing another company', async () => {
       const value = {groups: [{id: 'custom', name: 'Steuerung', rows: [{id: 'row', name: '24 V', size: '1 mm²', wire: '+', color: 'dunkelblau'}]}]};
@@ -119,6 +119,37 @@ test('company workshop templates and documents are persistent, isolated and perm
       db.prepare("UPDATE users SET role='admin' WHERE id='admin'").run();
       assert.equal((await request(path)).data.revision, 3);
     });
+    await t.test('legacy saved rules become only 165 mm without mutating the database', async () => {
+      const legacy = {rows: [{id:'old',label:'Bestehende Firmenschiene',dimension:'w',deduction:42}]};
+      db.prepare('INSERT INTO workshop_templates VALUES (?,?,?,?,?,?)').run('beta','rails',JSON.stringify(legacy),7,'other',new Date().toISOString());
+      const result = await request(endpoint('rails'),'GET',undefined,other);
+      assert.equal(result.data.revision,7); assert.equal(result.data.source,'company');
+      assert.deepEqual(result.data.value, {version:2,profiles:[{id:'depth-165',depth:165,rows:legacy.rows}]});
+      assert.equal(railProfileForDepth(result.data.value,110),null);
+      assert.deepEqual(JSON.parse(db.prepare("SELECT data FROM workshop_templates WHERE company_id='beta' AND tool='rails'").get().data),legacy);
+      db.prepare("DELETE FROM workshop_templates WHERE company_id='beta' AND tool='rails'").run();
+    });
+    await t.test('depth-specific lists share exact deductions with staff and remain isolated', async () => {
+      const value = railProfiles(rail.value);
+      value.profiles.push({id:'depth-110',depth:110,rows:[{id:'side',label:'Profil für 110',dimension:'w',deduction:65},{id:'cross',label:'Querträger',dimension:'d',deduction:20}]});
+      const saved = await request(endpoint('rails'),'PUT',{revision:3,value});
+      assert.equal(saved.status,200); assert.equal(saved.data.revision,4);
+      const staff = (await request(endpoint('rails'),'GET',undefined,member)).data.value;
+      const small = railProfileForDepth(staff,'110'), normal = railProfileForDepth(staff,'165');
+      assert.equal(small.rows.length,2); assert.equal(normal.rows.length,15);
+      assert.equal(railLength(small.rows[0],{w:800,h:1200,d:110}),735);
+      assert.equal(railLength(small.rows[1],{w:800,h:1200,d:110}),90);
+      assert.equal(railLength(normal.rows[0],{w:800,h:1200,d:165}),1125);
+      for(const unknown of ['',0,120,110.5,'bad']) assert.equal(railProfileForDepth(staff,unknown),null);
+      assert.equal(railProfileForDepth((await request(endpoint('rails'),'GET',undefined,other)).data.value,110),null);
+      assert.equal((await request(endpoint('rails'),'PUT',{revision:3,value})).status,409);
+      for(const profiles of [[],[value.profiles[0],{...value.profiles[1],depth:165}],[{...value.profiles[1],depth:0}],[{...value.profiles[1],depth:110.5}],[{...value.profiles[1],depth:2001}],[{...value.profiles[1],rows:[]}],[{...value.profiles[1],rows:[value.profiles[1].rows[0],value.profiles[1].rows[0]]}]]) {
+        assert.equal((await request(endpoint('rails'),'PUT',{revision:4,value:{profiles}})).status,400);
+      }
+      // An old cached editor must never replace all depths with a flat list.
+      assert.equal((await request(endpoint('rails'),'PUT',{revision:4,value:{rows:standardRails}})).status,400);
+      assert.deepEqual((await request(endpoint('rails'))).data.value,value);
+    });
     await t.test('file storage counts towards the existing company limit', async () => {
       const before = companyStorageBytes(db, 'alpha'); assert.ok(before > 0);
       // A zero-filled SQLite blob uses no large request body and exercises the shared quota.
@@ -134,7 +165,8 @@ test('company workshop templates and documents are persistent, isolated and perm
   } finally {
     await new Promise(r => server.close(r)); db.close();
     const reopened = openDatabase(file);
-    assert.equal(JSON.parse(reopened.prepare("SELECT data FROM workshop_templates WHERE company_id='alpha' AND tool='rails'").get().data).rows[0].deduction, 75);
+    assert.equal(JSON.parse(reopened.prepare("SELECT data FROM workshop_templates WHERE company_id='alpha' AND tool='rails'").get().data).profiles[0].rows[0].deduction, 75);
+    assert.equal(JSON.parse(reopened.prepare("SELECT data FROM workshop_templates WHERE company_id='alpha' AND tool='rails'").get().data).profiles[1].depth, 110);
     assert.ok(reopened.prepare("SELECT COUNT(*) n FROM workshop_files WHERE company_id='alpha'").get().n > 0);
     reopened.close(); rmSync(dir, {recursive: true, force: true});
   }

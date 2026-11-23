@@ -13,6 +13,17 @@ export const standardRails = [
   ['terminals-short', 'Din klemmen nicht durchgezogen', 'w', 268], ['smissline', 'Smissline', 'h', 90],
 ].map(([id, label, dimension, deduction]) => ({id, label, dimension, deduction}));
 
+// Pre-depth templates belong to 165 mm. Reading them never changes stored data.
+export function railProfiles(value = {rows: standardRails}) {
+  return structuredClone(Array.isArray(value.profiles) ? value : {
+    version: 2, profiles: [{id: 'depth-165', depth: 165, rows: value.rows}],
+  });
+}
+export function railProfileForDepth(value, depth) {
+  const mm = Number(depth);
+  return Number.isInteger(mm) && mm > 0 ? railProfiles(value).profiles.find(p => p.depth === mm) ?? null : null;
+}
+
 export function parseWireColors(source) {
   const groups = [];
   let current;

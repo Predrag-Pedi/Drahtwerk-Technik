@@ -1,5 +1,5 @@
 import {api, account, serverMode} from './client.mjs';
-import {standardRails, parseWireColors, standardDocuments, templateTools} from './workshop-model.mjs';
+import {railProfiles, parseWireColors, standardDocuments, templateTools} from './workshop-model.mjs';
 
 export function templateNotice(tool, result, error = '') {
   let notice = document.getElementById('workshopTemplateNotice');
@@ -22,7 +22,7 @@ export async function loadWorkshop(tool) {
   try {
     let result;
     if (serverMode) result = await api('/company/workshop/' + tool);
-    else if (tool === 'rails') result = {value: {rows: structuredClone(standardRails)}, source: 'standard', revision: 0};
+    else if (tool === 'rails') result = {value: railProfiles(), source: 'standard', revision: 0};
     else {
       const path = {wireColors: 'drahtfarben.txt', ew: 'ew-dateien.json', spacing: 'aufbau-dateien.json'}[tool];
       const response = await fetch(path, {cache: 'no-store'});

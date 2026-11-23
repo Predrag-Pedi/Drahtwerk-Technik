@@ -1,29 +1,912 @@
 <!doctype html>
 <html lang="de-CH">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102b4c">
-<meta name="description" content="SchaltBase verbindet Schema, Disposition, Offerten und Werkstattwissen. Entdecke die Werkzeuge für deinen Schaltanlagenbau in kurzen Produktdemos.">
-<title>SchaltBase · Dein Schaltanlagenbau. Eine Plattform.</title>
-<link rel="icon" href="platform/schaltbase-icon.png"><link rel="apple-touch-icon" href="platform/schaltbase-icon.png"><link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="platform/home.css?v=20261123"><link rel="stylesheet" href="platform/brand.css?v=20261123">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b4c">
+<meta name="description" content="SchaltBase für den Schaltanlagenbau: Schema mit Makros, eigenständige Dispo, automatische Dispo-Erzeugung, Offerten und gemeinsame Werkstattwerkzeuge. Entdecke alle Anwendungen in animierten Produktdemos.">
+<title>SchaltBase · Von der Planung bis in die Werkstatt.</title>
+<link rel="icon" href="platform/schaltbase-icon.png">
+<link rel="apple-touch-icon" href="platform/schaltbase-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="platform/home.css?v=20261123-demos">
+<link rel="stylesheet" href="platform/brand.css?v=20261123">
 </head>
 <body>
 <a class="skip-link" href="#inhalt">Zum Inhalt</a>
-<header class="home-header"><a class="home-brand" href="home.html" aria-label="SchaltBase Startseite"><img class="sb-icon" src="platform/schaltbase-icon.png" width="36" height="36" alt="">SchaltBase</a><nav aria-label="Hauptnavigation"><a href="#demo">So funktioniert’s</a><a href="#werkstatt">Werkzeuge</a><a href="#team">Für dein Team</a></nav><a class="login-link" href="login.html">Anmelden <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></a></header>
+<header class="home-header">
+<a class="home-brand" href="home.html" aria-label="SchaltBase Startseite">
+<img class="sb-icon" src="platform/schaltbase-icon.png" width="36" height="36" alt="">SchaltBase</a>
+<nav aria-label="Hauptnavigation">
+<a href="#demo">In Aktion</a>
+<a href="#werkstatt">Werkzeuge</a>
+<a href="#team">Dein Team</a>
+</nav>
+<a class="login-link" href="login.html">Anmelden</a>
+</header>
 <main id="inhalt">
-<section class="hero" aria-labelledby="hero-title"><div class="hero-grid" aria-hidden="true"></div><div class="hero-inner"><div class="hero-copy"><p class="eyebrow light">FÜR DEN SCHALTANLAGENBAU</p><h1 id="hero-title">Von der Idee.<br>Bis in die <span>Werkstatt.</span></h1><p class="hero-description">Schema, Dispo, Offerten und Werkstattwissen.<br>Ein Arbeitsplatz für alles, was deine Schaltanlage weiterbringt.</p><div class="hero-actions"><a class="button primary" href="#demo" data-start-demo><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m7 4 14 8-14 8z"/></svg> SchaltBase in Aktion</a><a class="hero-login" href="login.html">Zum Arbeitsplatz <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></a></div><p class="hero-note">Im Browser. Im Betrieb. Im gleichen Projekt.</p></div>
-<div class="hero-product"><div class="product-top"><img src="platform/schaltbase-icon.png" width="20" height="20" alt=""><strong>SchaltBase</strong><span>Schema & Dispo</span><i>Beispielprojekt</i></div><div class="product-content"><div class="product-rail" aria-hidden="true"><b>⌘</b><b>▤</b><b class="active">▥</b><b>⊞</b></div><div class="product-drawing"><div class="product-tabs"><span>Schema</span><strong>Disposition</strong><span>3D</span></div><img src="platform/demo-dispo.svg" width="1200" height="840" alt="Im Dispo-Werkzeug erzeugter Selbstbaurahmen mit drei Zählergruppen und Gerätereihen"><div class="product-status"><span>● Beispielanlage</span><span>Massstab 1:10</span></div></div></div><div class="product-badge"><span aria-hidden="true"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></span><div><strong>Aus dem Schema in die Dispo</strong><small>Geräte übernehmen. Aufbau weiterplanen.</small></div></div></div></div>
-<div class="hero-bottom"><span>PLANUNG</span><span>SCHEMA & DISPO</span><span>OFFERTEN</span><span>WERKSTATT</span><a href="#demo" aria-label="Produktdemos entdecken">↓</a></div></section>
-<section class="demo-section section-wrap" id="demo" aria-labelledby="demo-heading"><div class="section-heading"><div><p class="eyebrow">WENIGER ERKLÄREN. MEHR ZEIGEN.</p><h2 id="demo-heading">So wird aus einer Idee<br>ein nächster Schritt.</h2></div><p>Schau dir zwei typische Abläufe an.<br>Kurze, animierte Demos mit Beispieldaten – Schritt für Schritt steuerbar.</p></div>
-<div class="demo-tabs" role="tablist" aria-label="Produktdemo auswählen"><button id="tab-dispo" role="tab" aria-selected="true" aria-controls="panel-dispo" data-demo="dispo"><span>01</span> Schema & Dispo <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></button><button id="tab-offers" role="tab" aria-selected="false" aria-controls="panel-offers" tabindex="-1" data-demo="offers"><span>02</span> Offerten <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></button></div>
-<div class="demo-layout"><div class="demo-player" id="demo-player"><div class="demo-window-bar"><span class="window-dots" aria-hidden="true">● ● ●</span><strong id="demo-window-title">SchaltBase / Schema & Dispo</strong><span class="example-tag">ANIMIERTE KURZDEMO</span></div>
-<div id="panel-dispo" role="tabpanel" aria-labelledby="tab-dispo" tabindex="0"><div class="demo-scene" data-scene="dispo-0"><div class="scene-toolbar"><strong>Beispielanlage</strong><span class="selected-label">Schema</span><span>Disposition</span></div><div class="scene-paper"><img src="platform/demo-schema.svg" width="1200" height="840" alt="Schema mit drei Zählergruppen: Allgemein, E-Mobility und Wohnung 1"><span class="scene-callout">1. Geräte und Stromkreise im Schema erfassen</span></div></div><div class="demo-scene" data-scene="dispo-1" hidden><div class="scene-toolbar"><strong>Disposition erstellen</strong><span>Beispielanlage</span></div><div class="config-scene"><div class="config-fields"><small>AUFBAU FESTLEGEN</small><h3>Platz für deine Anlage.</h3><dl><div><dt>Verteilungsart</dt><dd>Selbstbaurahmen</dd></div><div><dt>Breite × Höhe</dt><dd>1008 × 1520 mm</dd></div><div><dt>Reserve</dt><dd>20 %</dd></div></dl><span class="illustrated-button">Disposition erstellen →</span></div><div class="config-devices"><small>GERÄTE AUS DEM SCHEMA</small><div>▣ <span>Zählergruppen</span><b>3</b></div><div>▥ <span>Sicherungen</span><b>3</b></div><div>▤ <span>Leitungsschutzschalter</span><b>12</b></div><p>Geräte und Abmessungen prüfen, dann den Aufbau erzeugen.</p></div></div></div><div class="demo-scene" data-scene="dispo-2" hidden><div class="scene-toolbar"><strong>Beispielanlage</strong><span>Schema</span><span class="selected-label">Disposition</span></div><div class="scene-paper"><img src="platform/demo-dispo.svg" width="1200" height="840" alt="Erzeugte Disposition mit Zählerplatten, Geräten, Schienen und Bemassung"><span class="scene-callout">3. Aufbau prüfen und in der Dispo anpassen</span></div></div></div>
-<div id="panel-offers" role="tabpanel" aria-labelledby="tab-offers" tabindex="0" hidden><div class="demo-scene" data-scene="offers-0"><div class="scene-toolbar"><strong>Neue Offerte</strong><span>Beispieldaten</span></div><div class="offer-project"><span class="offer-doc-icon" aria-hidden="true">▤</span><p class="eyebrow">PROJEKT ERFASSEN</p><h3>Unterverteilung Werkstatt</h3><dl><div><dt>Offerte</dt><dd>BEISPIEL-001</dd></div><div><dt>Kunde</dt><dd>Musterbetrieb</dd></div><div><dt>Anlage</dt><dd>Unterverteilung</dd></div></dl><span class="illustrated-button">Anlage hinzufügen +</span></div></div><div class="demo-scene" data-scene="offers-1" hidden><div class="scene-toolbar"><strong>Unterverteilung Werkstatt</strong><span class="selected-label">Kalkulation</span></div><div class="offer-calculation"><p class="eyebrow">POSITIONEN ZUSAMMENSTELLEN</p><h3>Material und Arbeit. Im Blick.</h3><table><thead><tr><th>Position</th><th>Menge</th><th>CHF</th></tr></thead><tbody><tr><td>Schrank</td><td>1</td><td>680.00</td></tr><tr><td>Leitungsschutzschalter</td><td>12</td><td>264.00</td></tr><tr><td>Montage · CHF 95 / h</td><td>6 h</td><td>570.00</td></tr></tbody></table><div class="offer-total"><span>Beispielsumme, exkl. MwSt.</span><strong>CHF 1’514.00</strong></div></div></div><div class="demo-scene" data-scene="offers-2" hidden><div class="scene-toolbar"><strong>Offerten</strong><span class="selected-label">Übersicht</span></div><div class="offer-saved"><span class="saved-check" aria-hidden="true">✓</span><p class="eyebrow">IM BETRIEB GESPEICHERT</p><h3>Bereit für den nächsten Schritt.</h3><div class="saved-row"><span>▤</span><div><strong>Unterverteilung Werkstatt</strong><small>BEISPIEL-001 · Musterbetrieb</small></div><b>CHF 1’514.00</b></div><p>Berechtigte Mitarbeitende können die Offerte öffnen und weiterbearbeiten.</p><div class="export-options"><span>PDF exportieren</span><span>Text für Bexio kopieren</span></div></div></div></div>
-<div class="demo-controls" hidden data-demo-controls><button type="button" id="demo-play" aria-label="Demo abspielen"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m7 4 14 8-14 8z"/></svg><span>Abspielen</span></button><label class="demo-timeline"><span class="sr-only">Position in der Demo</span><input id="demo-progress" type="range" min="0" max="15000" step="100" value="0" aria-valuetext="0 von 15 Sekunden"></label><output id="demo-time" aria-live="off">0:00 / 0:15</output><button id="demo-restart" type="button" aria-label="Demo von vorne starten">↺</button></div></div>
-<div class="demo-explanation"><p class="eyebrow" id="demo-kicker">SCHEMA & DISPO</p><h3 id="demo-title">Vom Stromkreis <br>zum Aufbau.</h3><p id="demo-description">Geräte im Schema erfassen, den Rahmen konfigurieren und die Disposition als Grundlage für die weitere Planung erzeugen.</p><ol class="demo-steps" id="demo-steps"><li><button data-step="0" aria-current="step"><span>01</span><div><strong>Schema aufbauen</strong><small>Geräte und Stromkreise erfassen.</small></div></button></li><li><button data-step="1"><span>02</span><div><strong>Aufbau definieren</strong><small>Abmessungen und Reserve festlegen.</small></div></button></li><li><button data-step="2"><span>03</span><div><strong>Dispo weiterplanen</strong><small>Ergebnis prüfen und anpassen.</small></div></button></li></ol><p class="demo-disclaimer">Illustrative Abläufe. Die Zeichnungen stammen aus dem Dispo-Werkzeug; Beispieldaten sind keine technische Auslegung oder Preisempfehlung.</p></div></div><noscript><p>Für die animierte Wiedergabe bitte JavaScript aktivieren. Die Schritte der Dispo-Demo sind oben beschrieben.</p></noscript></section>
-<section class="workshop-section" id="werkstatt"><div class="section-wrap workshop-layout"><div><p class="eyebrow">VOM BÜRO AN DEN WERKTISCH</p><h2>Das Wissen, das du<br>gerade brauchst.</h2><p class="section-description">Abstände nachschlagen, Schienen berechnen oder die passenden EW-Vorschriften öffnen. Deine täglichen Helfer bleiben zusammen – auch auf dem Tablet.</p><a class="text-link" href="login.html">Werkzeuge öffnen <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></a></div><div class="workshop-list"><div><span>01</span><div><h3>Schienen & Aufbau</h3><p>Schienenrechner und Aufbauabstände für die Werkstatt.</p></div><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></div><div><span>02</span><div><h3>Vorschriften & Tabellen</h3><p>EW-Unterlagen, Leiterfarben und technische Referenzen.</p></div><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></div><div><span>03</span><div><h3>Wärme & Dokumentation</h3><p>Verlustleistungen erfassen und Berechnungen dokumentieren.</p></div><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></div></div></div></section>
-<section class="team-section section-wrap" id="team"><div class="team-visual" aria-hidden="true"><div class="team-hub"><img class="sb-icon" src="platform/schaltbase-icon.png" width="42" height="42" alt=""><strong>SchaltBase</strong><small>Dein Betrieb</small></div><div class="team-roles"><span>Planung</span><span>Werkstatt</span><span>Büro</span></div><div class="team-record"><span>▤</span><div><strong>Ein gemeinsamer Projektstand</strong><small>Für die berechtigten Mitarbeitenden.</small></div><b>✓</b></div></div><div><p class="eyebrow">DEINE FIRMA. DEINE ABLÄUFE.</p><h2>Zusammen arbeiten.<br>Klar organisiert.</h2><p class="section-description">Projekte werden im Betrieb gespeichert. Zugriffe lassen sich nach Aufgabe vergeben, Werkstattvorlagen an eure Arbeitsweise anpassen.</p><ul class="team-benefits"><li>Persönliche Benutzerkonten und Berechtigungen</li><li>Gemeinsame Offerten und Planungsprojekte</li><li>Firmenvorlagen auf Basis eines gemeinsamen Standards</li></ul></div></section>
-<section class="closing"><p class="eyebrow light">DEIN NÄCHSTES PROJEKT WARTET</p><h2>Alles bereit.<br>Jetzt bist du dran.</h2><a class="button primary" href="login.html">Bei SchaltBase anmelden <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></a><p>Der Arbeitsplatz ist nur mit einem freigeschalteten Benutzerkonto zugänglich.</p></section>
-</main><footer class="home-footer"><a class="home-brand" href="home.html"><img class="sb-icon" src="platform/schaltbase-icon.png" width="30" height="30" alt="">SchaltBase</a><span>Planen. Bauen. Dokumentieren.</span><a href="login.html">Anmelden <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M6 5h13v13"/></svg></a></footer>
-<script type="module" src="platform/home-demo.mjs?v=20261123"></script>
-</body></html>
+<section class="hero" aria-labelledby="hero-title">
+<div class="hero-grid" aria-hidden="true">
+</div>
+<div class="hero-inner">
+<div class="hero-copy">
+<p class="eyebrow light">DEINE BASIS IM SCHALTANLAGENBAU</p>
+<h1 id="hero-title">Gute Planung.<br>
+<span>Starker Aufbau.</span>
+</h1>
+<p class="hero-description">Vom ersten Makro bis zur fertigen Zuschnittliste. Schema, Dispo, Offerten und Werkstattwissen – verbunden in SchaltBase.</p>
+<div class="hero-actions">
+<a class="button primary" href="#demo">Werkzeuge in Aktion erleben</a>
+<a class="hero-login" href="login.html">Zum Arbeitsplatz</a>
+</div>
+<div class="hero-pills">
+<span>Im Browser</span>
+<span>Im Betrieb geteilt</span>
+<span>Auch am Tablet</span>
+</div>
+</div>
+<div class="hero-product">
+<div class="product-top">
+<img src="platform/schaltbase-icon.png" width="24" height="24" alt="">
+<strong>SchaltBase</strong>
+<span>Planung in Bewegung</span>
+</div>
+<div class="clip hero-clip" id="hero-clip" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Schema mit Makros" data-detail="">
+<div class="drawing-paper">
+<img class="" src="platform/demos/schema-1.svg" alt="Makros auswählen und platzieren" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Makros auswählen und platzieren</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Planung im Schema" data-detail="">
+<div class="drawing-paper">
+<img class="" src="platform/demos/schema-3.svg" alt="Stromkreise erfassen und verbinden" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Stromkreise erfassen und verbinden</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Aufbau vorbereiten" data-detail="">
+<div class="drawing-paper">
+<img class="" src="platform/demos/dispo-frame.svg" alt="Rahmen und Schienen anlegen" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Rahmen und Schienen anlegen</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Vom Schema in die Dispo" data-detail="">
+<div class="drawing-paper">
+<img class="" src="platform/demos/dispo-complete.svg" alt="Dispo erzeugen und weiterplanen" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Dispo erzeugen und weiterplanen</span>
+</div>
+</div>
+</div>
+<div class="mini-controls">
+<span data-clip-caption>Schema mit Makros</span>
+<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
+</div>
+</div>
+<div class="product-sticker">
+<span>Schema</span>
+<b>+</b>
+<span>Dispo</span>
+<small>Ein Projekt. Viele Möglichkeiten.</small>
+</div>
+</div>
+</div>
+<div class="hero-bottom">
+<span>PLANEN</span>
+<span>KALKULIEREN</span>
+<span>BAUEN</span>
+<button type="button" id="motion-toggle" hidden>Animationen pausieren</button>
+</div>
+</section>
+<section class="section-wrap demo-section" id="demo" aria-labelledby="demo-heading">
+<div class="section-heading">
+<div>
+<p class="eyebrow">SCHAU DEINEN WERKZEUGEN BEI DER ARBEIT ZU</p>
+<h2 id="demo-heading">Für jeden Schritt.<br>Das passende Werkzeug.</h2>
+</div>
+<p>Die Vorführungen starten automatisch. Wähle eine Anwendung und sieh dir den Ablauf an – mit Pause und einzelnen Schritten.</p>
+</div>
+<div class="demo-tabs" role="tablist" aria-label="Anwendung auswählen">
+<button id="tab-schema" type="button" role="tab" aria-selected="true" aria-controls="panel-schema" tabindex="0" data-demo="schema">Schema</button>
+<button id="tab-dispo" type="button" role="tab" aria-selected="false" aria-controls="panel-dispo" tabindex="-1" data-demo="dispo">Dispo</button>
+<button id="tab-together" type="button" role="tab" aria-selected="false" aria-controls="panel-together" tabindex="-1" data-demo="together">Schema + Dispo</button>
+<button id="tab-offers" type="button" role="tab" aria-selected="false" aria-controls="panel-offers" tabindex="-1" data-demo="offers">Offerten</button>
+</div>
+<div class="demo-layout">
+<div class="demo-player" id="demo-player">
+<div class="demo-window-bar">
+<span class="window-dots" aria-hidden="true">
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+</span>
+<strong id="demo-window-title">SchaltBase / Schema</strong>
+<span>BEISPIELPROJEKT</span>
+</div>
+<div id="panel-schema" role="tabpanel" aria-labelledby="tab-schema" tabindex="0" data-title="Mit Makros schneller zum Schema." data-description="Dein Schema-Werkzeug funktioniert eigenständig: Vorlagen auswählen, anpassen und auf dem Blatt platzieren. Stromkreise und Beschriftungen bleiben bearbeitbar." >
+<div class="clip main-clip" id="clip-schema" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Makro auswählen" data-detail="Vorlagenbibliothek statt jedes Symbol neu zeichnen.">
+<div class="macro-browser">
+<aside>
+<span class="mini-kicker">MAKROBIBLIOTHEK</span>
+<strong>Schema</strong>
+<span>Messung</span>
+<span class="chosen">LS-Abgänge</span>
+<span>FI / FI-LS</span>
+<span>Steuerung</span>
+</aside>
+<div class="macro-cards">
+<div>
+<img class="" src="platform/demos/macro.svg" alt="Vorlage eines LS-Abgangs mit Anschlüssen" width="1000" height="700" loading="lazy">
+<strong>LS · 3L/N/PE</strong>
+<small>Mit Klemmen und Anschlüssen</small>
+</div>
+<div class="selected-macro">
+<img class="" src="platform/demos/macro.svg" alt="Ausgewähltes Schema-Makro" width="1000" height="700" loading="lazy">
+<strong>Makro auswählen</strong>
+<small>Werte individuell anpassen</small>
+</div>
+</div>
+<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
+<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
+</svg>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Werte anpassen" data-detail="Strom, Charakteristik und Strompfad festlegen.">
+<div class="macro-config">
+<div class="macro-large">
+<img class="" src="platform/demos/macro.svg" alt="LS-Makro aus der vorhandenen Vorlagenbibliothek" width="1000" height="700" loading="lazy">
+</div>
+<div>
+<span class="mini-kicker">MAKRO KONFIGURIEREN</span>
+<h4>Dein Abgang.<br>Deine Angaben.</h4>
+<div class="mock-field typed">
+<small>Bemessungsstrom</small>
+<strong>16 A</strong>
+</div>
+<div class="mock-field ">
+<small>Charakteristik</small>
+<strong>C</strong>
+</div>
+<div class="mock-field ">
+<small>Strompfad</small>
+<strong>4</strong>
+</div>
+<span class="mock-action">Auf Pfad platzieren</span>
+</div>
+<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
+<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
+</svg>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Im Schema platzieren" data-detail="Das Makro vor dem Einsetzen an der gewünschten Stelle sehen.">
+<div class="placement-scene">
+<div class="drawing-paper">
+<img class="" src="platform/demos/schema-1.svg" alt="Schema · Seite 12" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Schema · Seite 12</span>
+</div>
+<div class="ghost-macro">
+<img class="" src="platform/demos/macro.svg" alt="Vorschau vor dem Platzieren" width="1000" height="700" loading="lazy">
+</div>
+<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
+<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
+</svg>
+<span class="canvas-tip">Vorschau am Mauszeiger · Pfad wählen</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Schema weiterbearbeiten" data-detail="Weitere Abgänge ergänzen, verbinden und beschriften.">
+<div class="placement-scene">
+<div class="drawing-paper">
+<img class="" src="platform/demos/schema-3.svg" alt="Makros platziert · Kennzeichen zugeordnet" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Makros platziert · Kennzeichen zugeordnet</span>
+</div>
+<span class="success-note">LS-Abgänge & Messung im gleichen Schema</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="panel-dispo" role="tabpanel" aria-labelledby="tab-dispo" tabindex="0" data-title="Dein Aufbau. Bis ins Detail." data-description="Plane deine Disposition auch ohne fertiges Schema. Rahmen, Platten, Schienen und Geräte lassen sich im eigenen Aufbau anordnen." hidden>
+<div class="clip main-clip" id="clip-dispo" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Rahmen festlegen" data-detail="Dispo auch ohne ein fertiges Schema aufbauen.">
+<div class="manual-config">
+<div>
+<span class="mini-kicker">DISPO OHNE SCHEMA STARTEN</span>
+<h4>Mit dem Rahmen<br>beginnt dein Aufbau.</h4>
+<div class="mock-field ">
+<small>Verteilungsart</small>
+<strong>Selbstbaurahmen</strong>
+</div>
+<div class="mock-field ">
+<small>Breite × Höhe × Tiefe</small>
+<strong>1008 × 1520 × 165 mm</strong>
+</div>
+<span class="mock-action">Rahmen erstellen</span>
+</div>
+<div class="drawing-paper">
+<img class="" src="platform/demos/dispo-frame.svg" alt="Rahmen und Schienen" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Rahmen und Schienen</span>
+</div>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Bauteile anordnen" data-detail="Platten, Schienen und Kanäle für deinen Aufbau platzieren.">
+<div class="parts-scene">
+<aside>
+<strong>Bauteile</strong>
+<span>Rahmen</span>
+<span class="chosen">Zählerplatte</span>
+<span>DIN-Schiene</span>
+<span>Kanal</span>
+</aside>
+<div class="drawing-paper">
+<img class="" src="platform/demos/dispo-plates.svg" alt="Platten & Schienen anordnen" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Platten & Schienen anordnen</span>
+</div>
+<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
+<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
+</svg>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Geräte platzieren" data-detail="Abmessungen prüfen, Geräte ausrichten und den Aufbau weiterbearbeiten.">
+<div class="drawing-paper">
+<img class="" src="platform/demos/dispo-complete.svg" alt="Geräte einsetzen · Aufbau prüfen" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Geräte einsetzen · Aufbau prüfen</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="panel-together" role="tabpanel" aria-labelledby="tab-together" tabindex="0" data-title="Einzeln praktisch. Zusammen noch besser." data-description="Erfasse die Geräte im Schema und erzeuge daraus die Disposition. So kannst du den Aufbau auf Basis deiner Planung weiterentwickeln." hidden>
+<div class="clip main-clip" id="clip-together" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Schema als Ausgangspunkt" data-detail="Die erfassten Geräte bilden die Grundlage für die Disposition.">
+<div class="connected-scene">
+<span class="flow-label">SCHEMA</span>
+<div class="drawing-paper">
+<img class="" src="platform/demos/schema-source.svg" alt="Geräte und Stromkreise erfassen" width="1000" height="700" loading="lazy">
+<span class="drawing-caption">Geräte und Stromkreise erfassen</span>
+</div>
+<span class="transfer-line">
+</span>
+<span class="transfer-destination">DISPO</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Dispo erzeugen" data-detail="Abmessungen und Reserve festlegen, Geräte übernehmen.">
+<div class="generate-scene">
+<div>
+<span class="mini-kicker">DISPOSITION ERZEUGEN</span>
+<h4>Aus Geräten<br>wird ein Aufbau.</h4>
+<div class="mock-field ">
+<small>Rahmen</small>
+<strong>1008 × 1520 mm</strong>
+</div>
+<div class="mock-field ">
+<small>Reserve</small>
+<strong>20 %</strong>
+</div>
+<span class="mock-action">Disposition erstellen</span>
+</div>
+<div class="device-stack">
+<span>Messung</span>
+<span>Sicherungen</span>
+<span>LS-Abgänge</span>
+<div class="build-progress">
+<i>
+</i>
+</div>
+<small>Geräte übernehmen und anordnen</small>
+</div>
+<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
+<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
+</svg>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Zusammen weiterplanen" data-detail="Schema und Dispo bleiben im gleichen Planungsprojekt. Den erzeugten Aufbau fachlich prüfen und anpassen.">
+<div class="result-pair">
+<div>
+<img class="" src="platform/demos/schema-source.svg" alt="Ausgangspunkt: Schema mit Zählergruppen" width="1000" height="700" loading="lazy">
+<span>Schema</span>
+</div>
+<div>
+<img class="" src="platform/demos/dispo-complete.svg" alt="Ergebnis: Disposition mit Platten und Geräten" width="1000" height="700" loading="lazy">
+<span>Disposition</span>
+</div>
+</div>
+<span class="success-note">Ergebnis prüfen und individuell weiterplanen</span>
+</div>
+</div>
+</div>
+</div>
+<div id="panel-offers" role="tabpanel" aria-labelledby="tab-offers" tabindex="0" data-title="Vom ersten Artikel bis zur Offerte." data-description="Anlagen, Material und Arbeitszeit kalkulieren. Offerten zentral für den Betrieb speichern und für den nächsten Schritt ausgeben." hidden>
+<div class="clip main-clip" id="clip-offers" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Projekt erfassen" data-detail="Kunde, Offertennummer und Anlage anlegen.">
+<div class="offer-project">
+<span class="mini-kicker">NEUE OFFERTE</span>
+<h4>Unterverteilung Werkstatt</h4>
+<div class="mock-field typed">
+<small>Offertennummer</small>
+<strong>BEISPIEL-001</strong>
+</div>
+<div class="mock-field ">
+<small>Kunde</small>
+<strong>Musterbetrieb</strong>
+</div>
+<div class="mock-field ">
+<small>Anlage</small>
+<strong>Unterverteilung</strong>
+</div>
+<span class="mock-action">Anlage hinzufügen</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Positionen kalkulieren" data-detail="Geräte, Schränke, Material und Arbeitszeit zusammenstellen.">
+<div class="offer-calc">
+<span class="mini-kicker">MATERIAL + ARBEIT</span>
+<h4>Eine nachvollziehbare Kalkulation.</h4>
+<table class="mock-table stagger">
+<thead>
+<tr>
+<th>Position</th>
+<th>Menge</th>
+<th>CHF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Schrank</td>
+<td>1</td>
+<td>680.00</td>
+</tr>
+<tr>
+<td>Leitungsschutzschalter</td>
+<td>12</td>
+<td>264.00</td>
+</tr>
+<tr>
+<td>Montage · CHF 95/h</td>
+<td>6 h</td>
+<td>570.00</td>
+</tr>
+</tbody>
+</table>
+<div class="offer-total">
+<span>Beispiel, exkl. MwSt.</span>
+<strong>CHF 1’514.00</strong>
+</div>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Speichern &amp; ausgeben" data-detail="Im Team weiterbearbeiten oder als PDF und Text exportieren.">
+<div class="offer-save">
+<span class="check-circle">✓</span>
+<h4>Im Betrieb gespeichert.</h4>
+<div class="saved-project">
+<strong>Unterverteilung Werkstatt</strong>
+<span>BEISPIEL-001</span>
+<b>CHF 1’514.00</b>
+</div>
+<p>Berechtigte Mitarbeitende können gemeinsam weiterarbeiten.</p>
+<div class="export-chips">
+<span>PDF</span>
+<span>Text für Bexio</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="demo-controls" hidden data-demo-controls>
+<button type="button" id="demo-play" aria-label="Demo pausieren">Pause</button>
+<label class="demo-timeline">
+<span class="sr-only">Position in der Demo</span>
+<input id="demo-progress" type="range" min="0" max="16000" step="100" value="0">
+</label>
+<output id="demo-time" aria-live="off">0:00 / 0:16</output>
+<button id="demo-restart" type="button" aria-label="Demo von vorne starten">↺</button>
+</div>
+</div>
+<div class="demo-explanation">
+<p class="eyebrow" id="demo-kicker">SCHEMA</p>
+<h3 id="demo-title">Mit Makros schneller zum Schema.</h3>
+<p id="demo-description">Dein Schema-Werkzeug funktioniert eigenständig: Vorlagen auswählen, anpassen und auf dem Blatt platzieren. Stromkreise und Beschriftungen bleiben bearbeitbar.</p>
+<ol id="demo-steps" class="demo-steps">
+</ol>
+<label class="cycle-choice">
+<input type="checkbox" id="demo-cycle" checked> Anwendungen nacheinander zeigen</label>
+</div>
+</div>
+<p class="demo-note">Animierte Produktbeispiele mit Musterwerten und Zeichnungen aus dem CAD-Werkzeug. Keine Kundenprojekte. Technische Angaben und Kalkulationen im eigenen Projekt prüfen.</p>
+<noscript>
+<p>Für die animierten Vorführungen bitte JavaScript aktivieren. Die Werkzeugübersicht ist auch ohne Animation verfügbar.</p>
+</noscript>
+</section>
+<section class="workshop-section" id="werkstatt" aria-labelledby="workshop-heading">
+<div class="section-wrap">
+<div class="section-heading">
+<div>
+<p class="eyebrow">WISSEN GRIFFBEREIT. ARBEIT IM FLUSS.</p>
+<h2 id="workshop-heading">Deine ganze Werkstatt.<br>Mit einem Klick dabei.</h2>
+</div>
+<p>Berechnen, nachschlagen und dokumentieren. Die Helfer für deinen Arbeitsalltag – mit gemeinsamen Vorlagen für deinen Betrieb.</p>
+</div>
+<div class="workshop-grid">
+<article class="tool-card" id="tool-rails">
+<div class="tool-preview">
+<div class="tool-window-title">Schienenrechner<span>PRODUKTDEMO</span>
+</div>
+<div class="clip mini-clip" id="clip-rails" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="165 mm · Standard" data-detail="">
+<div class="mock-field ">
+<small>Rahmenbreite</small>
+<strong>800 mm</strong>
+</div>
+<div class="mock-field ">
+<small>Verteilungstiefe</small>
+<strong>165 mm</strong>
+</div>
+<table class="mock-table ">
+<thead>
+<tr>
+<th>Schiene</th>
+<th>Abzug</th>
+<th>Länge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DIN</td>
+<td>15 mm</td>
+<td>785 mm</td>
+</tr>
+<tr>
+<td>Galip</td>
+<td>30 mm</td>
+<td>770 mm</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="110 mm · Beispiel-Firmenvorlage" data-detail="">
+<div class="mock-field ">
+<small>Rahmenbreite</small>
+<strong>800 mm</strong>
+</div>
+<div class="mock-field typed">
+<small>Verteilungstiefe</small>
+<strong>110 mm</strong>
+</div>
+<table class="mock-table ">
+<thead>
+<tr>
+<th>Eigene Schiene</th>
+<th>Abzug</th>
+<th>Länge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Profil A</td>
+<td>65 mm</td>
+<td>735 mm</td>
+</tr>
+<tr>
+<td>Profil B</td>
+<td>30 mm</td>
+<td>770 mm</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Speichern &amp; gemeinsam verwenden" data-detail="">
+<div class="mini-success">✓</div>
+<h4>Eine Vorlage.<br>Für die ganze Firma.</h4>
+<div class="depth-pills">
+<span>110 mm</span>
+<span>165 mm</span>
+</div>
+<p>Eigene Schienen und Abzüge je Tiefe.</p>
+</div>
+</div>
+<div class="mini-controls">
+<span data-clip-caption>165 mm · Standard</span>
+<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
+</div>
+</div>
+</div>
+<div class="tool-copy">
+<p class="eyebrow">Schienenrechner</p>
+<h3>Masse hinein. Zuschnitt heraus.</h3>
+<p>Je Verteilungstiefe die passenden Schienen mit euren Abzügen. Stückzahlen ergänzen, Liste drucken oder als CSV exportieren.</p>
+</div>
+</article>
+<article class="tool-card" id="tool-ew">
+<div class="tool-preview">
+<div class="tool-window-title">EW-Vorschriften<span>PRODUKTDEMO</span>
+</div>
+<div class="clip mini-clip" id="clip-ew" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="EW auswählen" data-detail="">
+<div class="search-mock">Elektrizitätswerk suchen<span class="typing-dot">
+</span>
+</div>
+<div class="folder-list">
+<span class="chosen">AEW</span>
+<span>EKZ</span>
+<span>Eigene Unterlagen</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Unterlagen finden" data-detail="">
+<div class="search-mock">AEW</div>
+<div class="document-list">
+<span>
+<b>PDF</b> Werkvorschriften</span>
+<span>
+<b>PDF</b> Zähleranschluss</span>
+<span>
+<b>PDF</b> Ergänzende Unterlagen</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="PDF direkt im Browser öffnen" data-detail="">
+<div class="paper-mock">
+<b>PDF</b>
+<strong>Werkvorschriften</strong>
+<small>Beispiel einer Dokumentansicht</small>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<span class="paper-highlight">
+</span>
+</div>
+</div>
+</div>
+<div class="mini-controls">
+<span data-clip-caption>EW auswählen</span>
+<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
+</div>
+</div>
+</div>
+<div class="tool-copy">
+<p class="eyebrow">EW-Vorschriften</p>
+<h3>Die passende Vorschrift finden.</h3>
+<p>EW auswählen, hinterlegte PDFs öffnen und firmeneigene Unterlagen ergänzen. Alles an einem Ort für die Werkstatt.</p>
+</div>
+</article>
+<article class="tool-card" id="tool-spacing">
+<div class="tool-preview">
+<div class="tool-window-title">Aufbauabstände<span>PRODUKTDEMO</span>
+</div>
+<div class="clip mini-clip" id="clip-spacing" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Zeichnung auswählen" data-detail="">
+<div class="spacing-illustration">
+<div class="spacing-plate">Zählerplatte</div>
+<div class="spacing-line">
+<span>Aufbauabstand</span>
+</div>
+<div class="spacing-rail">
+</div>
+<div class="spacing-rail">
+</div>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Abstände nachschlagen" data-detail="">
+<div class="spacing-illustration focus-spacing">
+<div class="spacing-plate">Zählerplatte</div>
+<div class="spacing-line">
+<span>Detail ansehen</span>
+</div>
+<div class="spacing-rail">
+</div>
+<div class="spacing-rail">
+</div>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Firmenunterlagen ergänzen" data-detail="">
+<div class="mini-success">✓</div>
+<h4>Eure Zeichnungen.<br>Für eure Werkstatt.</h4>
+<p>Eigene Unterlagen ergänzen und im Betrieb teilen.</p>
+</div>
+</div>
+<div class="mini-controls">
+<span data-clip-caption>Zeichnung auswählen</span>
+<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
+</div>
+</div>
+</div>
+<div class="tool-copy">
+<p class="eyebrow">Aufbauabstände</p>
+<h3>Ein Blick auf das richtige Detail.</h3>
+<p>Technische Zeichnungen und Aufbauabstände nachschlagen. Eigene Zeichnungen im Betrieb zur Verfügung stellen.</p>
+</div>
+</article>
+<article class="tool-card" id="tool-colors">
+<div class="tool-preview">
+<div class="tool-window-title">Drahtfarben<span>PRODUKTDEMO</span>
+</div>
+<div class="clip mini-clip" id="clip-colors" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Anwendung nachschlagen" data-detail="">
+<div class="wire-preview">
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+</div>
+<table class="mock-table ">
+<thead>
+<tr>
+<th>Anwendung</th>
+<th>Leiterfarbe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Steuerung</td>
+<td>Firmeneintrag</td>
+</tr>
+<tr>
+<td>Versorgung</td>
+<td>Firmeneintrag</td>
+</tr>
+<tr>
+<td>Signalisierung</td>
+<td>Firmeneintrag</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Farben &amp; Angaben anpassen" data-detail="">
+<span class="mini-kicker">FIRMENVORLAGE</span>
+<h4>Eigene Regeln.<br>Ein gemeinsamer Stand.</h4>
+<div class="mock-field ">
+<small>Kategorie</small>
+<strong>Steuerung</strong>
+</div>
+<div class="mock-field typed">
+<small>Anwendung / Querschnitt</small>
+<strong>Eintrag bearbeiten</strong>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Im Betrieb teilen" data-detail="">
+<div class="mini-success">✓</div>
+<h4>Für das Team<br>gespeichert.</h4>
+<p>Mitarbeitende sehen die Farben und Angaben ihrer Firma.</p>
+</div>
+</div>
+<div class="mini-controls">
+<span data-clip-caption>Anwendung nachschlagen</span>
+<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
+</div>
+</div>
+</div>
+<div class="tool-copy">
+<p class="eyebrow">Drahtfarben</p>
+<h3>Ein gemeinsamer Standard im Team.</h3>
+<p>Anwendungen, Querschnitte und Leiterfarben übersichtlich nachschlagen. Firmenvorgaben zentral anpassen.</p>
+</div>
+</article>
+<article class="tool-card" id="tool-tables">
+<div class="tool-preview">
+<div class="tool-window-title">Technische Tabellen<span>PRODUKTDEMO</span>
+</div>
+<div class="clip mini-clip" id="clip-tables" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Litzen · Strombelastbarkeit nachschlagen" data-detail="">
+<span class="mini-kicker">LITZENQUERSCHNITTE</span>
+<div class="mock-field ">
+<small>Litzenart</small>
+<strong>H05Z-K</strong>
+</div>
+<div class="mock-field typed">
+<small>Gesuchter Strom</small>
+<strong>Eingabe in A</strong>
+</div>
+<div class="reference-rows">
+<span>Querschnitt</span>
+<span>Tabellenwert</span>
+<span>Passende Zeilen hervorheben</span>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Kupfer · Dimensionen vergleichen" data-detail="">
+<span class="mini-kicker">KUPFERSCHIENEN</span>
+<div class="mock-field ">
+<small>Schienendimension</small>
+<strong>Breite × Dicke</strong>
+</div>
+<div class="mock-field ">
+<small>Gesuchter Strom</small>
+<strong>Eingabe in A</strong>
+</div>
+<div class="copper-bars">
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+</div>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Smissline · Schienen &amp; Platzeinheiten" data-detail="">
+<span class="mini-kicker">ABB SMISSLINE</span>
+<div class="mock-field ">
+<small>Stromschiene</small>
+<strong>40 A / 100 A</strong>
+</div>
+<div class="mock-field typed">
+<small>Benötigte Platzeinheiten</small>
+<strong>Auswahl eingeben</strong>
+</div>
+<div class="smissline-strip">
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+<i>
+</i>
+</div>
+</div>
+</div>
+<div class="mini-controls">
+<span data-clip-caption>Litzen · Strombelastbarkeit nachschlagen</span>
+<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
+</div>
+</div>
+</div>
+<div class="tool-copy">
+<p class="eyebrow">Technische Tabellen</p>
+<h3>Litzen. Kupfer. Smissline.</h3>
+<p>Strombelastbarkeit für Litzen und Kupferschienen sowie Schienenlängen und Platzeinheiten für ABB Smissline.</p>
+</div>
+</article>
+<article class="tool-card" id="tool-heat">
+<div class="tool-preview">
+<div class="tool-window-title">Wärmeberechnung<span>PRODUKTDEMO</span>
+</div>
+<div class="clip mini-clip" id="clip-heat" data-clip>
+<div class="clip-stage">
+<div class="clip-frame " data-frame data-caption="Projekt &amp; Unterlagen erfassen" data-detail="">
+<span class="mini-kicker">WÄRMEBERECHNUNG</span>
+<div class="import-pair">
+<span>Schema<br>
+<b>PDF</b>
+</span>
+<span>Dispo<br>
+<b>PDF</b>
+</span>
+</div>
+<p>Unterlagen einlesen und Anlagendaten erfassen.</p>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Werte kontrollieren" data-detail="">
+<span class="mini-kicker">VERLUSTLEISTUNG</span>
+<div class="heat-bars">
+<span>
+<b>Geräte</b>
+<i>
+</i>
+</span>
+<span>
+<b>Zuordnung</b>
+<i>
+</i>
+</span>
+<span>
+<b>Zuschlag</b>
+<i>
+</i>
+</span>
+</div>
+<p>Erkannte Werte prüfen und ergänzen.</p>
+</div>
+<div class="clip-frame " data-frame hidden data-caption="Speichern &amp; dokumentieren" data-detail="">
+<div class="mini-success">✓</div>
+<h4>Berechnung<br>dokumentieren.</h4>
+<div class="export-chips">
+<span>Excel</span>
+<span>PDF</span>
+</div>
+<p>Projekt speichern und Ergebnisse ausgeben.</p>
+</div>
+</div>
+<div class="mini-controls">
+<span data-clip-caption>Projekt &amp; Unterlagen erfassen</span>
+<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
+</div>
+</div>
+</div>
+<div class="tool-copy">
+<p class="eyebrow">Wärmeberechnung</p>
+<h3>Von Unterlagen zur Dokumentation.</h3>
+<p>Schema und Dispo einlesen, Geräte und Verlustleistungen prüfen und die Berechnung mit Excel- und PDF-Ausgabe dokumentieren.</p>
+</div>
+</article>
+</div>
+<p class="reference-note">Technische Tabellen und Beispieldarstellungen unterstützen die Arbeit. Die aktuellen Vorschriften, Herstellerangaben und die fachgerechte Auslegung bleiben massgebend.</p>
+</div>
+</section>
+<section class="team-section section-wrap" id="team">
+<div class="team-visual">
+<div class="team-hub">
+<img class="sb-icon" src="platform/schaltbase-icon.png" width="52" height="52" alt="">
+<strong>Ein Betrieb.<br>Ein gemeinsamer Stand.</strong>
+</div>
+<div class="team-roles">
+<span>Planung</span>
+<span>Werkstatt</span>
+<span>Büro</span>
+</div>
+<div class="team-record">
+<span class="mini-check">✓</span>
+<div>
+<strong>Schienenregeln · 110 & 165 mm</strong>
+<small>Firmenvorlagen für alle berechtigten Mitarbeitenden</small>
+</div>
+</div>
+<div class="team-record">
+<span class="mini-check">✓</span>
+<div>
+<strong>Projekte & Offerten</strong>
+<small>Gemeinsam gespeichert. Persönliche Zugriffe.</small>
+</div>
+</div>
+</div>
+<div>
+<p class="eyebrow">DEINE FIRMA. DEINE ABLÄUFE.</p>
+<h2>So individuell<br>wie euer Betrieb.</h2>
+<p class="section-description">Euer Wissen bleibt im Team. Firmenadministratoren pflegen eigene Schienenregeln, Farben und Unterlagen. Mitarbeitende greifen mit ihrem persönlichen Konto darauf zu.</p>
+<ul class="team-benefits">
+<li>Schienenlisten und Abzüge je Verteilungstiefe</li>
+<li>Eigene EW-Unterlagen und Aufbauzeichnungen</li>
+<li>Gemeinsame Projekte und Offerten im Betrieb</li>
+<li>Persönliche Konten und passende Berechtigungen</li>
+</ul>
+</div>
+</section>
+<section class="closing">
+<p class="eyebrow light">VON DER PLANUNG BIS IN DIE WERKSTATT</p>
+<h2>Alles an seinem Platz.<br>Auch dein nächstes Projekt.</h2>
+<a class="button primary" href="login.html">Bei SchaltBase anmelden</a>
+<p>Der Arbeitsplatz ist nur mit einem freigeschalteten Benutzerkonto zugänglich.</p>
+</section>
+</main>
+<footer class="home-footer">
+<a class="home-brand" href="home.html">
+<img class="sb-icon" src="platform/schaltbase-icon.png" width="30" height="30" alt="">SchaltBase</a>
+<span>Planen. Bauen. Dokumentieren.</span>
+<a href="login.html">Anmelden</a>
+</footer>
+<script type="module" src="platform/home-demo.mjs?v=20261123-demos">
+</script>
+</body>
+</html>

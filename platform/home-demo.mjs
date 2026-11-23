@@ -1,26 +1,111 @@
-// Public, illustrative tours only. Never open or modify a customer's project.
-const tours={
- dispo:{title:'SchaltBase / Schema & Dispo',kicker:'SCHEMA & DISPO',heading:'Vom Stromkreis zum Aufbau.',description:'Geräte im Schema erfassen, den Rahmen konfigurieren und die Disposition als Grundlage für die weitere Planung erzeugen.',steps:[['Schema aufbauen','Geräte und Stromkreise erfassen.'],['Aufbau definieren','Abmessungen und Reserve festlegen.'],['Dispo weiterplanen','Ergebnis prüfen und anpassen.']]},
- offers:{title:'SchaltBase / Offerten',kicker:'OFFERTEN',heading:'Aus Positionen wird ein Angebot.',description:'Projekt anlegen, Material und Arbeit kalkulieren und die Offerte für die weitere Bearbeitung im Betrieb speichern.',steps:[['Projekt anlegen','Kunde und Anlage erfassen.'],['Positionen kalkulieren','Material und Arbeit zusammenstellen.'],['Speichern & weitergeben','Gemeinsam weiterarbeiten und exportieren.']]}
-};
-const $=id=>document.getElementById(id),tabs=[...document.querySelectorAll('[data-demo]')],steps=[...document.querySelectorAll('[data-step]')],scenes=[...document.querySelectorAll('[data-scene]')];
-const playIcon='<svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m7 4 14 8-14 8z"/></svg>',pauseIcon='<svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>';
-const duration=15000,stepDuration=5000;
-let tour='dispo',elapsed=0,playing=false,previous=0,frame=0,activeStep=-1;
-const time=ms=>'0:'+String(Math.floor(ms/1000)).padStart(2,'0');
-function draw(){
- const step=Math.min(2,Math.floor(elapsed/stepDuration));
- if(step!==activeStep){activeStep=step;for(const scene of scenes)scene.hidden=scene.dataset.scene!==`${tour}-${step}`;for(const button of steps){if(Number(button.dataset.step)===step)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');}}
- $('demo-progress').value=elapsed;$('demo-progress').setAttribute('aria-valuetext',`${Math.floor(elapsed/1000)} von 15 Sekunden`);$('demo-time').textContent=`${time(elapsed)} / 0:15`;
+// Public, silent illustrative walkthroughs. No customer APIs or project writes.
+const $ = id => document.getElementById(id);
+const stepMs = 4000, reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const clips = [...document.querySelectorAll('[data-clip]')].map(el => ({
+  el, frames: [...el.querySelectorAll('[data-frame]')], elapsed: 0, index: -1, visible: false, paused: false,
+}));
+const tabs = [...document.querySelectorAll('[data-demo]')];
+let selected = 'schema', globalPaused = reducedMotion.matches, frameId = 0, lastTime = 0;
+const active = () => clips.find(c => c.el.id === 'clip-' + selected);
+const mainClip = c => c.el.classList.contains('main-clip');
+const eligible = c => !mainClip(c) || c === active();
+const running = c => c.visible && eligible(c) && !c.paused && !globalPaused && !document.hidden;
+const seconds = ms => '0:' + String(Math.floor(ms / 1000)).padStart(2, '0');
+function draw(c) {
+  const index = Math.min(c.frames.length - 1, Math.floor(c.elapsed / stepMs));
+  if (c.index !== index) {
+    c.index = index;
+    c.frames.forEach((f, i) => {f.hidden = i !== index;});
+    const caption = c.el.querySelector('[data-clip-caption]');
+    if (caption) caption.textContent = c.frames[index].dataset.caption;
+    if (c === active()) for (const step of document.querySelectorAll('[data-step]')) {
+      if (Number(step.dataset.step) === index) step.setAttribute('aria-current', 'step');
+      else step.removeAttribute('aria-current');
+    }
+  }
+  if (c === active()) {
+    const duration = c.frames.length * stepMs;
+    $('demo-progress').max = duration; $('demo-progress').value = c.elapsed;
+    $('demo-progress').setAttribute('aria-valuetext', `${Math.floor(c.elapsed / 1000)} von ${duration / 1000} Sekunden`);
+    $('demo-time').textContent = `${seconds(c.elapsed)} / ${seconds(duration)}`;
+  }
 }
-function pause(){playing=false;cancelAnimationFrame(frame);$('demo-play').innerHTML=playIcon+'<span>Abspielen</span>';$('demo-play').setAttribute('aria-label','Demo abspielen');}
-function tick(now){if(!playing)return;elapsed=Math.min(duration,elapsed+now-previous);previous=now;draw();if(elapsed>=duration)pause();else frame=requestAnimationFrame(tick);}
-function play(){if(playing)return;if(elapsed>=duration)elapsed=0;playing=true;previous=performance.now();$('demo-play').innerHTML=pauseIcon+'<span>Pause</span>';$('demo-play').setAttribute('aria-label','Demo pausieren');frame=requestAnimationFrame(tick);}
-function select(name){pause();tour=name;elapsed=0;activeStep=-1;const data=tours[name];for(const tab of tabs){const selected=tab.dataset.demo===name;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;$('panel-'+tab.dataset.demo).hidden=!selected;}$('demo-window-title').textContent=data.title;$('demo-kicker').textContent=data.kicker;$('demo-title').textContent=data.heading;$('demo-description').textContent=data.description;steps.forEach((button,i)=>{button.querySelector('strong').textContent=data.steps[i][0];button.querySelector('small').textContent=data.steps[i][1];});draw();}
-for(const tab of tabs){tab.addEventListener('click',()=>select(tab.dataset.demo));tab.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const target=e.key==='Home'?tabs[0]:e.key==='End'?tabs.at(-1):tabs[(tabs.indexOf(tab)+1)%tabs.length];select(target.dataset.demo);target.focus();});}
-for(const step of steps)step.addEventListener('click',()=>{pause();elapsed=Number(step.dataset.step)*stepDuration;draw();});
-$('demo-play').addEventListener('click',()=>playing?pause():play());$('demo-restart').addEventListener('click',()=>{pause();elapsed=0;draw();});$('demo-progress').addEventListener('input',e=>{pause();elapsed=Number(e.target.value);draw();});
-// Motion starts only after an explicit play action; do not run hidden tours.
-document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});new IntersectionObserver(entries=>{if(!entries[0].isIntersecting)pause();},{threshold:0}).observe($('demo-player'));
-document.querySelector('[data-start-demo]').addEventListener('click',()=>{select('dispo');});
-document.querySelector('[data-demo-controls]').hidden=false;draw();
+function sync() {
+  for (const c of clips) {
+    const playing = running(c), button = c.el.querySelector('[data-clip-toggle]');
+    c.el.classList.toggle('is-playing', playing); c.el.classList.toggle('is-still', !!c.still);
+    if (button) {button.textContent = c.paused || globalPaused ? 'Abspielen' : 'Pause'; button.setAttribute('aria-label', (c.paused || globalPaused ? 'Vorführung abspielen: ' : 'Vorführung pausieren: ') + c.frames[0].dataset.caption);}
+  }
+  const paused = active().paused || globalPaused;
+  $('demo-play').textContent = paused ? 'Abspielen' : 'Pause';
+  $('demo-play').setAttribute('aria-label', paused ? 'Demo abspielen' : 'Demo pausieren');
+  $('motion-toggle').textContent = globalPaused ? 'Animationen abspielen' : 'Animationen pausieren';
+  if (clips.some(running) && !frameId) {lastTime = performance.now(); frameId = requestAnimationFrame(tick);}
+  else if (!clips.some(running) && frameId) {cancelAnimationFrame(frameId); frameId = 0;}
+}
+function tick(now) {
+  frameId = 0;
+  const delta = Math.max(0, Math.min(250, now - lastTime)); lastTime = now;
+  let nextTour = false;
+  for (const c of clips) if (running(c)) {
+    const duration = c.frames.length * stepMs;
+    c.elapsed += delta;
+    if (c.elapsed >= duration) {
+      c.elapsed %= duration;
+      if (c === active() && $('demo-cycle').checked) nextTour = true;
+    }
+    draw(c);
+  }
+  if (nextTour) select(tabs[(tabs.findIndex(t => t.dataset.demo === selected) + 1) % tabs.length].dataset.demo);
+  if (!frameId && clips.some(running)) frameId = requestAnimationFrame(tick);
+}
+function select(name, manual = false) {
+  selected = name;
+  if (manual) $('demo-cycle').checked = false;
+  for (const tab of tabs) {
+    const chosen = tab.dataset.demo === name;
+    tab.setAttribute('aria-selected', String(chosen)); tab.tabIndex = chosen ? 0 : -1;
+    $('panel-' + tab.dataset.demo).hidden = !chosen;
+  }
+  const panel = $('panel-' + name), c = active(); c.elapsed = 0; c.index = -1;
+  $('demo-window-title').textContent = 'SchaltBase / ' + tabs.find(t => t.dataset.demo === name).textContent;
+  $('demo-kicker').textContent = tabs.find(t => t.dataset.demo === name).textContent;
+  $('demo-title').textContent = panel.dataset.title;
+  $('demo-description').textContent = panel.dataset.description;
+  $('demo-steps').replaceChildren(...c.frames.map((f, i) => {
+    const li = document.createElement('li'), button = document.createElement('button'), number = document.createElement('span'), content = document.createElement('div'), title = document.createElement('strong'), detail = document.createElement('small');
+    button.type = 'button'; button.dataset.step = i; number.textContent = String(i + 1).padStart(2, '0'); title.textContent = f.dataset.caption; detail.textContent = f.dataset.detail;
+    content.append(title, detail); button.append(number, content); li.append(button);
+    button.onclick = () => {c.paused = true; c.still = true; $('demo-cycle').checked = false; c.elapsed = i * stepMs; draw(c); sync();};
+    return li;
+  }));
+  draw(c); sync();
+}
+for (const tab of tabs) {
+  tab.onclick = () => select(tab.dataset.demo, true);
+  tab.onkeydown = e => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+    e.preventDefault();
+    const i = tabs.indexOf(tab), next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowLeft' ? -1 : 1) + tabs.length) % tabs.length;
+    select(tabs[next].dataset.demo, true); tabs[next].focus();
+  };
+}
+function toggle(c) {
+  if (globalPaused || c.paused) {globalPaused = false; c.paused = false; c.still = false;} else c.paused = true;
+  sync();
+}
+for (const c of clips) {draw(c); c.el.querySelector('[data-clip-toggle]')?.addEventListener('click', () => toggle(c));}
+$('demo-play').onclick = () => toggle(active());
+$('demo-restart').onclick = () => {const c = active(); c.elapsed = 0; c.index = -1; draw(c); sync();};
+$('demo-progress').oninput = e => {const c = active(); c.paused = true; c.still = true; $('demo-cycle').checked = false; c.elapsed = Number(e.target.value); draw(c); sync();};
+$('motion-toggle').onclick = () => {globalPaused = !globalPaused; sync();};
+document.addEventListener('visibilitychange', sync);
+reducedMotion.addEventListener('change', e => {globalPaused = e.matches; sync();});
+const observer = new IntersectionObserver(entries => {
+  for (const entry of entries) {const c = clips.find(c => c.el === entry.target); c.visible = entry.isIntersecting;}
+  sync();
+}, {threshold: 0});
+for (const c of clips) observer.observe(c.el);
+$('motion-toggle').hidden = false;
+document.querySelector('[data-demo-controls]').hidden = false;
+select('schema');
