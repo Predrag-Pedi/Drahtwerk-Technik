@@ -19,8 +19,16 @@ export function openDatabase(path){
  `);
  // Keep author references when removing an account; existing installations migrate on startup.
  if(!db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='deleted_at'))db.exec('ALTER TABLE users ADD COLUMN deleted_at TEXT');
- db.exec('PRAGMA user_version=3');
+
  for(const p of initialPlans)db.prepare('INSERT OR IGNORE INTO plans VALUES (?,?)').run(p.id,JSON.stringify(p));
+ // One-time addition to built-in packages. Existing users still need explicit report rights.
+ if(db.prepare('PRAGMA user_version').get().user_version<4){
+  for(const id of ['basis','planung','komplett']){
+   const row=db.prepare('SELECT data FROM plans WHERE id=?').get(id);
+   if(row){const plan=JSON.parse(row.data);if(!plan.modules.includes('reports')){plan.modules.push('reports');db.prepare('UPDATE plans SET data=? WHERE id=?').run(JSON.stringify(plan),id);}}
+  }
+  db.exec('PRAGMA user_version=4');
+ }
  return db;
 }
 export const rows=(db,table)=>db.prepare(`SELECT * FROM ${table}`).all(); // table is internal, never request data

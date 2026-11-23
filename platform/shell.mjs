@@ -22,7 +22,8 @@ if(serverMode){
   const module=pageModule(location.pathname.slice(1)),readOnly=module&&!can(module,true);
   const update=()=>{
    if(readOnly)for(const el of document.querySelectorAll('#newProject,#importProject,#demoProject,#frameDemo,#contactDemo,#projectList [data-remove],#new,#emptyAction,#deleteOffer,#duplicate,#restore')){el.disabled=true;el.title='Lesezugriff';}
-   for(const a of document.querySelectorAll('a[href]')){let url;try{url=new URL(a.href);}catch{continue;}if(url.origin!==location.origin)continue;const tool=pageTool(url.pathname.replace(/^\//,''),url.hash);if(tool&&!canTool(tool)){a.hidden=true;a.style.setProperty('display','none','important');}}
+   for(const a of document.querySelectorAll('a[href]')){let url;try{url=new URL(a.href);}catch{continue;}if(url.origin!==location.origin)continue;const tool=pageTool(url.pathname.replace(/^\//,''),url.hash);if(tool&&!canTool(tool)){a.dataset.accessHidden='true';a.hidden=true;a.style.setProperty('display','none','important');}}
+   for(const label of document.querySelectorAll('.suite-sidebar .suite-nav-label')){let visible=false;for(let item=label.nextElementSibling;item&&!item.classList.contains('suite-nav-label');item=item.nextElementSibling){if(item.matches('a,button')&&!item.hidden&&item.style.display!=='none')visible=true;}label.hidden=!visible;}
    for(const tiles of document.querySelectorAll('.suite-index .tiles')){const n=[...tiles.querySelectorAll('.tile')].filter(a=>!a.hidden).length,heading=tiles.previousElementSibling;tiles.hidden=!n;if(heading?.classList.contains('suite-section-heading')){heading.hidden=!n;const count=heading.querySelector(':scope > span'),label=`${n} ${n===1?'Werkzeug':'Werkzeuge'}`;if(count&&count.textContent!==label)count.textContent=label;}}
   };update();new MutationObserver(update).observe(document.body,{childList:true,subtree:true});
   if(location.pathname==='/technik.html'){

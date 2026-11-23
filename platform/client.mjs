@@ -1,7 +1,7 @@
 import {emptyProfile} from './model.mjs';
 export const serverMode=globalThis.__companyMode===true;
 export let account=null;
-export const publicPage=()=>typeof location!=='undefined'&&['/','/home.html','/login.html'].includes(location.pathname);
+export const publicPage=()=>typeof location!=='undefined'&&(['/','/home.html','/login.html'].includes(location.pathname)||location.pathname.startsWith('/produkte/'));
 export async function api(path,{method='GET',body}={}){
  const response=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...(body!==undefined?{'Content-Type':'application/json'}:{}),...(account?{'X-CSRF-Token':account.csrf,'X-Company-Id':account.company?.id||'','X-User-Id':account.user.id}:{})},...(body!==undefined?{body:JSON.stringify(body)}:{})});
  const result=await response.json();if(!response.ok){const e=Object.assign(Error(result.error||'Anfrage fehlgeschlagen.'),{status:response.status});if(response.status===401&&path!=='/login'&&typeof document!=='undefined'&&!publicPage()){document.dispatchEvent(new CustomEvent('account-expired'));location.replace('/login.html');}throw e;}return result;
