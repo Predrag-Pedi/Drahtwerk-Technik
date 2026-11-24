@@ -46,6 +46,20 @@ test('company platform enforces identity, tenant boundaries, licences and concur
   assert.equal((await request('/api/company','PUT',{logo:'data:image/svg+xml;base64,PHN2Zz4='},admin)).status,400);
   assert.equal((await request('/api/company','PUT',{logo:'data:image/jpeg;base64,AA=='},admin)).status,400);
  });
+ await t.test('protected HTML carries only its checked session, with safely escaped user text and no caching',async()=>{
+  const malicious="Drahtwerk $& $' $` </script><script>window.injected=true</script>&\u2028";
+  await request('/api/company','PUT',{name:malicious},admin);
+  for(const auth of [member,other]){
+   const page=await request('/schienenrechner.html','GET',undefined,auth),expected=(await request('/api/session','GET',undefined,auth)).data;
+   assert.equal(page.status,200);assert.equal(page.headers.get('cache-control'),'no-store');
+   const embedded=page.data.match(/<script type="application\/json" id="schaltbase-session">([^]*?)<\/script>/)?.[1];
+   assert.ok(embedded);assert.deepEqual(JSON.parse(embedded),expected);assert.doesNotMatch(embedded,/[<>&\u2028]/);
+   assert.doesNotMatch(embedded,/scrypt\$|"password"|"hash"/);
+  }
+  for(const path of ['/home.html','/login.html']){const page=await request(path,'GET',undefined,member);assert.doesNotMatch(page.data,/id="schaltbase-session"/);assert.ok(!page.data.includes(member.csrf));}
+  assert.equal((await request('/schienenrechner.html')).status,302);
+  await request('/api/company','PUT',{name:'Alpha AG',city:'Baden'},admin);
+ });
  await t.test('all project areas isolate identical IDs; forged company selection is rejected',async()=>{
   for(const area of ['cad','offers','heat','heatTemplate']){
    assert.equal((await request('/api/records/'+area+'/same','PUT',{revision:0,value:{name:'Alpha secret'},companyId:c2.id},member)).status,200);

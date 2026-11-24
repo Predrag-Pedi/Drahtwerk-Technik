@@ -11,6 +11,9 @@ import {workshopHandler} from './workshop.mjs';
 import {companyStorageBytes,companyStorageLimit} from './storage.mjs';
 const areas={cad:'cad',offers:'offers',heat:'heat',heatTemplate:'heat',reports:'reports'};
 const json=(res,value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));};
+const sessionPayload=s=>({user:s.user,company:s.company,plan:s.plan,permissions:s.permissions,csrf:s.csrf,expiresAt:new Date(s.expires).toISOString()});
+// Escape HTML delimiters even inside a non-executable JSON script element.
+const sessionMarkup=s=>'<script type="application/json" id="schaltbase-session">'+JSON.stringify(sessionPayload(s)).replace(/[<>&\u2028\u2029]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'))+'</script>';
 function validPermissions(value){if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Berechtigungen fehlen.');return Object.fromEntries(permissionKeys.map(k=>{const v=value[k]??(licenseModule(k)==='workshop'?value.workshop:'none')??'none';if(!['none','read','write'].includes(v))fail(400,'Ungültige Berechtigung.');return [k,v];}));}
 function day(value){const s=text(value,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s).toISOString().slice(0,10)!==s)fail(400,'Ungültiges Datum.');return s;}
 function profile(value){const p=emptyProfile();for(const k of Object.keys(profileFields))p[k]=text(value?.[k]??'',k==='street'?400:200);const logo=value?.logo||'';if(logo&&!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(logo)||logo.length>700000)fail(400,'Logo: PNG, JPEG oder WebP, maximal 500 KB.');if(logo){const bytes=Buffer.from(logo.split(',')[1],'base64'),kind=logo.split(';')[0];if(kind.endsWith('png')&&!bytes.subarray(0,8).equals(Buffer.from('89504e470d0a1a0a','hex'))||kind.endsWith('jpeg')&&(bytes.length<2||bytes.readUInt16BE(0)!==0xffd8)||kind.endsWith('webp')&&!(bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP'))fail(400,'Ungültige Bilddatei.');}p.logo=logo;return p;}
@@ -32,7 +35,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    if(!validRequestHost(req,allowed,codespaceProxyPort))fail(400,'Unbekannter Host.');
    const url=new URL(req.url,origin),path=decodeURIComponent(url.pathname),method=req.method;
    if(path==='/health'&&method==='GET')return json(res,{ok:true,service:'company-planning-platform'});
-   if(path==='/platform/runtime.js'&&method==='GET'){res.setHeader('Content-Type','text/javascript');return res.end('globalThis.__companyMode=true;');}
+   if(path==='/platform/runtime.js'&&method==='GET'){res.setHeader('Content-Type','text/javascript');return res.end('globalThis.__companyMode=true;\n'+await readFile(resolve(root,'platform/startup.js'),'utf8'));}
    if(path.startsWith('/api/')){
     if(!['GET','POST','PUT','PATCH','DELETE'].includes(method))fail(405,'Methode nicht erlaubt.');
     if(method!=='GET'&&!validRequestOrigin(req,allowed,codespaceProxyPort))fail(403,'Anfrage stammt nicht aus dieser Anwendung.');
@@ -44,7 +47,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
     }
     const s=session(req);if(!s)fail(401,'Bitte anmelden.');
     if(method!=='GET'&&req.headers['x-csrf-token']!==s.csrf)fail(403,'Sicherheitsprüfung fehlgeschlagen. Seite neu laden.');
-    if(path==='/api/session'&&method==='GET')return json(res,{user:s.user,company:s.company,plan:s.plan,permissions:s.permissions,csrf:s.csrf,expiresAt:new Date(s.expires).toISOString()});
+    if(path==='/api/session'&&method==='GET')return json(res,sessionPayload(s));
     if(path==='/api/logout'&&method==='POST'){db.prepare('DELETE FROM sessions WHERE hash=?').run(s.hash);cookie(res,'',0);return json(res,{ok:true});}
     if(path==='/api/password'&&method==='POST'){const b=await body(req),u=db.prepare('SELECT * FROM users WHERE id=?').get(s.user.id);rateLimit(db,'password:'+s.user.id,5);if(!await passwordMatches(b.currentPassword,u.password))fail(400,'Aktuelles Passwort ist nicht korrekt.');if(b.password===b.currentPassword)fail(400,'Ein neues Passwort wählen.');const hash=await passwordHash(b.password),current=session(req),latest=db.prepare('SELECT password FROM users WHERE id=? AND deleted_at IS NULL').get(u.id);if(!current||current.user.id!==u.id||latest?.password!==u.password)fail(401,'Bitte erneut anmelden.');db.prepare('UPDATE users SET password=?,must_change=0 WHERE id=?').run(hash,u.id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(u.id);cookie(res,'',0);audit(db,u.id,u.company_id,'password.changed');return json(res,{ok:true});}
     if((path.startsWith('/api/records/')||path.startsWith('/api/company'))&&(req.headers['x-company-id']!==(s.company?.id||'')||req.headers['x-user-id']!==s.user.id))fail(409,'Anmeldung oder Betrieb wurde in einem anderen Fenster gewechselt. Bitte neu laden.');
@@ -103,7 +106,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    // Workshop assets have no record API but obey the same licence check.
    const file=await realpath(resolve(root,name)).catch(()=>null);if(!file||!file.startsWith(resolve(root)+sep))fail(404,'Datei nicht gefunden.');const info=await stat(file);if(!info.isFile())fail(404,'Datei nicht gefunden.');
    let bytes=await readFile(file),type={'.html':'text/html; charset=utf-8','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.pdf':'application/pdf','.webmanifest':'application/manifest+json','.txt':'text/plain'}[extname(file)]||'application/octet-stream';
-   if(name.endsWith('.html')){let html=bytes.toString();html=html.replace(/<head>/i,'<head><script src="/platform/runtime.js"></script><script type="module" src="/platform/shell.mjs"></script>');html=html.replace(/if\((['"]serviceWorker['"] in navigator|['"]serviceWorker['"]in navigator)/g,'if(!globalThis.__companyMode&&($1)').replaceAll('DRAHTWERK','SchaltBase').replaceAll('Drahtwerk','SchaltBase').replaceAll('TinLine','');bytes=Buffer.from(html);}
+   if(name.endsWith('.html')){let html=bytes.toString();html=html.replace(/if\((['"]serviceWorker['"] in navigator|['"]serviceWorker['"]in navigator)/g,'if(!globalThis.__companyMode&&($1)').replaceAll('DRAHTWERK','SchaltBase').replaceAll('Drahtwerk','SchaltBase').replaceAll('TinLine','');html=html.replace(/<head>/i,()=>'<head>'+(s&&(module||tool||privatePage)?sessionMarkup(s):'')+'<script src="/platform/runtime.js"></script><script type="module" src="/platform/shell.mjs"></script>');bytes=Buffer.from(html);}
    res.setHeader('Content-Type',type);res.setHeader('Content-Length',bytes.length);res.end(method==='HEAD'?undefined:bytes);
   }catch(error){const status=error.status||500;if(!res.headersSent)json(res,{error:status===500?'Interner Fehler. Bitte erneut versuchen.':error.message},status);else res.end();if(status===500)console.error('Request failed:',error.code||error.name);}
  });

@@ -91,7 +91,7 @@ test('successful requests keep their options and release cancellation listeners'
 test('workshop API requests use the current server session and preserve permission errors', async t => {
   let company = 'alpha', user = 'employee', status = 200, options;
   t.mock.method(globalThis, 'fetch', async (url, init) => {
-    if (url === '/api/session') return Response.json({user:{id:user}, company:{id:company}, csrf:'csrf-'+user});
+    if (url === '/api/session') return Response.json({user:{id:user}, company:{id:company}, csrf:'csrf-'+user,permissions:{rails:'write'}});
     options = init;
     return Response.json(status === 200 ? {value:railProfiles(),revision:1,source:'company'} : {error:'Kein Schreibrecht.'}, {status});
   });

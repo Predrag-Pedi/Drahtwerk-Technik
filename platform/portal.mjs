@@ -14,7 +14,7 @@ function modal(title,html,handler,label='Speichern'){$('dialogTitle').textConten
 $('closeDialog').onclick=()=>$('editor').close();$('editor').addEventListener('close',()=>{$('fields').replaceChildren();submit=null;});
 $('editForm').onsubmit=async e=>{e.preventDefault();if(!submit)return;const b=$('submitDialog');b.disabled=true;try{await submit(new FormData(e.currentTarget));}catch(error){$('formError').textContent=error.message;}finally{b.disabled=false;}};
 $('logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:{}});location.replace('/');}catch(e){notify(e.message);}};
-async function load(){if(developer())admin=await api('/admin');if(manager()&&account.company)users=await api('/company/users');}
+async function load(){if(developer())admin=await api('/admin',{timeoutMs:15000});if(manager()&&account.company)users=await api('/company/users',{timeoutMs:15000});}
 const workshopAccess=()=>account?.company&&Object.keys(templateTools).some(k=>account.permissions[k]==='write');
 function navigation(){const links=[...(workshopAccess()?[['workshop','Werkstattvorlagen']]:[]),...(account.company&&!account.company.internalWorkspace&&manager()?[['company','Firmendaten'],['users','Mitarbeitende']]:[]),...(developer()?[['businesses','Betriebe & Lizenzen'],['allUsers','Alle Benutzer'],['plans','Abomodelle'],['audit','Änderungsprotokoll']]:[]),['personal','Mein Konto']];$('portalNav').innerHTML=links.map(([id,label])=>`<button data-section="${id}" ${id===section?'aria-current="page"':''}>${label}</button>`).join('');}
 const heading=(title,description,action='')=>`<div class="page-head"><div><p class="eyebrow">FIRMENPORTAL</p><h1>${title}</h1><p class="muted">${description}</p></div>${action}</div>`;

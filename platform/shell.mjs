@@ -2,7 +2,8 @@ import {account,serverMode,publicPage,can,canTool} from './client.mjs';
 import {pageModule,pageTool} from './model.mjs';
 import {mountAccountMenu} from './account-menu.mjs';
 if(serverMode){
- if('serviceWorker' in navigator)for(const r of await navigator.serviceWorker.getRegistrations())await r.unregister();
+ // Old offline registrations must never delay the account menu or permissions.
+ if('serviceWorker' in navigator)Promise.resolve().then(()=>navigator.serviceWorker.getRegistrations()).then(rs=>Promise.all(rs.map(r=>r.unregister()))).catch(error=>console.warn('Offline-Registrierung konnte nicht entfernt werden.',error));
  if(!account&&!publicPage())location.replace('/login.html');
  else if(account?.user.mustChangePassword&&!publicPage()&&!location.pathname.endsWith('/portal.html'))location.replace('/portal.html?section=personal');
  const ready=()=>{
