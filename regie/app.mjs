@@ -6,15 +6,19 @@ const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,
 const labels={draft:'Entwurf',signed:'Unterschrieben',invoiced:'Abgerechnet'},fmt=n=>new Intl.NumberFormat('de-CH',{maximumFractionDigits:2}).format(n),day=d=>d.split('-').reverse().join('.');
 let records=[],current=null,id=null,dirty=false,busy=false,signaturePad=null;
 const writable=()=>can('reports',true),editable=()=>writable()&&!reportIsSigned(current);
-const message=(s,error=false)=>{$('reportStatus').textContent=s;$('reportStatus').classList.toggle('error',error);};
+const message=(s,error=false)=>{for(const key of ['reportStatus','reportEditorStatus']){$(key).textContent=s;$(key).classList.toggle('error',error);}};
 const newReport=()=>({version:1,status:'draft',number:'R-'+swissDay().replaceAll('-','')+'-'+crypto.randomUUID().slice(0,6).toUpperCase(),date:swissDay(),customer:'',customerAddress:'',contact:'',location:'',project:'',employee:account?.user.name||'',km:0,travelHours:0,expenses:0,completed:true,notes:'',work:[{date:swissDay(),employee:account?.user.name||'',activity:'',hours:0}],materials:[]});
 const field=(name,label,value='',type='text',wide=false)=>`<label class="${wide?'wide':''}">${label}<input name="${name}" type="${type}" value="${esc(value)}" ${type==='number'?'min="0" step="0.01"':''} ${type==='text'?'maxlength="600"':''}></label>`;
 const textField=(name,label,value,max=5000)=>`<label class="wide">${label}<textarea name="${name}" rows="2" maxlength="${max}">${esc(value)}</textarea></label>`;
 function list(){
  const q=$('reportSearch').value.trim().toLocaleLowerCase(),filter=$('reportFilter').value;
- const rows=records.filter(x=>(!filter||x.value.status===filter)&&[x.value.number,x.value.customer,x.value.location,x.value.project].join(' ').toLocaleLowerCase().includes(q)).sort((a,b)=>b.value.date.localeCompare(a.value.date)||a.value.number.localeCompare(b.value.number));
- $('reportCount').textContent=`${records.length} ${records.length===1?'Rapport':'Rapporte'}`;
- $('reportList').innerHTML=rows.map(x=>`<button type="button" data-open="${esc(x.id)}" class="report-list-item ${id===x.id?'selected':''}" ${id===x.id?'aria-current="true"':''}><span class="report-list-meta">${esc(x.value.number)}<span class="report-badge ${x.value.status}">${labels[x.value.status]}</span></span><strong>${esc(x.value.customer||'Kunde noch offen')}</strong><small>${day(x.value.date)} · ${esc(x.value.location||'Einsatzort noch offen')}</small></button>`).join('')||'<div class="report-list-empty"><strong>Noch kein passender Rapport</strong><p>Erfasse Arbeiten und Material direkt beim Kunden.</p></div>';
+ const rows=records.filter(x=>(!filter||x.value.status===filter)&&[x.value.number,x.value.customer,x.value.contact,x.value.location,x.value.project,x.value.employee].join(' ').toLocaleLowerCase().includes(q)).sort((a,b)=>b.value.date.localeCompare(a.value.date)||a.value.number.localeCompare(b.value.number));
+ $('reportTotalCount').textContent=records.length;
+ for(const [key,status] of [['Draft','draft'],['Signed','signed'],['Invoiced','invoiced']])$('report'+key+'Count').textContent=records.filter(x=>x.value.status===status).length;
+ $('reportCount').textContent=rows.length===records.length?String(records.length):`${rows.length} von ${records.length}`;
+ $('reportEmpty').hidden=records.length>0;
+ $('reportList').innerHTML=rows.length?`<table class="report-table"><caption class="sr-only">Gespeicherte Regierapporte mit Kunde, Einsatzort, Datum, Aufwand und Status</caption><thead><tr><th scope="col">Rapport / Auftrag</th><th scope="col">Kunde / Einsatzort</th><th scope="col">Datum</th><th scope="col">Aufwand</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Rapport öffnen</span></th></tr></thead><tbody>${rows.map(x=>{const r=x.value,t=reportTotals(r);return `<tr><th scope="row" class="report-identity"><span class="report-number">${esc(r.number||'Ohne Nummer')}</span><strong>${esc(r.project||'Auftrag noch offen')}</strong><small>${esc(r.employee||'Mitarbeiter noch offen')}</small></th><td class="report-customer" data-label="Kunde / Einsatzort"><strong>${esc(r.customer||'Kunde noch offen')}</strong><span>${esc(r.location||'Einsatzort noch offen')}</span>${r.contact?`<small>${esc(r.contact)}</small>`:''}</td><td class="report-date" data-label="Datum"><time datetime="${esc(r.date)}">${day(r.date)}</time></td><td class="report-effort" data-label="Aufwand"><strong>${fmt(t.hours)} h Arbeit</strong><span>${fmt(t.km)} km · ${fmt(t.travelHours)} h Fahrt</span><small>${r.materials.length} ${r.materials.length===1?'Materialposition':'Materialpositionen'}</small></td><td class="report-state-cell" data-label="Status"><span class="report-badge ${esc(r.status)}">${labels[r.status]}</span></td><td class="report-open-cell"><button type="button" data-open="${esc(x.id)}" aria-label="Rapport ${esc(r.number||'ohne Nummer')} öffnen">Öffnen</button></td></tr>`;}).join('')}</tbody></table>`:records.length?'<div class="report-list-empty"><h3>Keine passenden Rapporte</h3><p>Versuche einen anderen Suchbegriff oder zeige wieder alle Status an.</p><button type="button" id="resetReportFilters" class="secondary">Filter zurücksetzen</button></div>':'';
+ $('resetReportFilters')?.addEventListener('click',()=>{$('reportSearch').value='';$('reportFilter').value='';list();$('reportSearch').focus();});
 }
 function collect(){
  if(!current||!editable())return current;
@@ -26,7 +30,7 @@ function collect(){
 }
 function totals(){const r=collect(),t=reportTotals(r);$('reportTotals').innerHTML=`<span><strong>${fmt(t.hours)} h</strong> Arbeit</span><span><strong>${fmt(t.km)} km</strong> Anfahrt</span><span><strong>${fmt(t.travelHours)} h</strong> Fahrzeit</span><span><strong>CHF ${fmt(t.expenses)}</strong> Spesen</span>`;}
 function form(){
- $('reportEmpty').hidden=!!current;$('reportEditor').hidden=!current;if(!current)return;
+ if(!current){if($('reportEditor').open)$('reportEditor').close();return;}
  const r=current,locked=!editable();$('reportTitle').textContent=r.number||'Neuer Rapport';$('reportState').textContent=labels[r.status];$('reportState').className='report-badge '+r.status;
  $('reportForm').innerHTML=`<fieldset ${locked?'disabled':''}><section class="report-section"><div class="report-section-title"><span>01</span><div><h2>Auftrag & Kunde</h2><p>Wer hat die Arbeiten beauftragt und wo wurden sie ausgeführt?</p></div></div><div class="report-fields">${field('number','Rapportnummer',r.number)}${field('date','Rapportdatum',r.date,'date')}${field('customer','Kunde / Firma',r.customer)}${field('contact','Kontaktperson',r.contact)}${field('customerNumber','Kundennummer',r.customerNumber)}${field('customerEmail','E-Mail Kunde',r.customerEmail)}${field('customerPhone','Telefon Kunde',r.customerPhone)}${textField('customerAddress','Kundenadresse',r.customerAddress,600)}${field('location','Einsatzort / Objektadresse',r.location,'text',true)}${field('project','Projekt / Auftragsnummer',r.project)}${field('employee','Verantwortlicher Mitarbeiter',r.employee)}</div></section>
  <section class="report-section"><div class="report-section-title"><span>02</span><div><h2>Ausgeführte Tätigkeiten</h2><p>Beschreibe die Arbeit pro Mitarbeiter und Datum.</p></div></div><div class="report-rows">${r.work.map((x,i)=>`<div class="report-work-row"><div class="report-row-head"><strong>Arbeit ${i+1}</strong><button type="button" class="text-button" data-remove-work="${i}" aria-label="Arbeit ${i+1} entfernen">Entfernen</button></div><div class="report-fields three">${field(`w${i}_date`,'Datum',x.date,'date')}${field(`w${i}_employee`,'Mitarbeiter',x.employee)}${field(`w${i}_hours`,'Arbeitszeit (h)',x.hours,'number')}${textField(`w${i}_activity`,'Ausgeführte Tätigkeit',x.activity,4000)}</div></div>`).join('')}</div><button type="button" id="addWork" class="secondary">Tätigkeit hinzufügen</button></section>
@@ -40,13 +44,17 @@ function form(){
 }
 function signatureSvg(paths,aspectRatio=700/220){const height=700/aspectRatio;return `<svg class="signature-image" viewBox="0 0 700 ${height}" role="img" aria-label="Kundenunterschrift"><g fill="none" stroke="#122b40" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${paths.map(p=>`<path d="${p.map((q,i)=>(i?'L':'M')+(q[0]*700).toFixed(2)+' '+(q[1]*height).toFixed(2)).join(' ')}"/>`).join('')}</g></svg>`;}
 function leave(){return !dirty||confirm('Ungespeicherte Änderungen verwerfen?');}
-async function open(idToOpen){if(busy||!leave())return;try{await run(async()=>{const r=await readRecord('reports',idToOpen);if(!r)throw Error('Dieser Rapport wurde inzwischen entfernt.');current=r;id=idToOpen;dirty=false;form();list();message('');});}catch{}}
-function fresh(){if(busy||!writable()||!leave())return;current=newReport();id=crypto.randomUUID();dirty=true;form();list();message('Neuer Entwurf · noch nicht gespeichert.');$('reportEditor').scrollIntoView({block:'start',behavior:'smooth'});}
+function showEditor(){if(!$('reportEditor').open)$('reportEditor').showModal();$('reportEditor').scrollTop=0;}
+function closeEditor(){if(busy||!leave())return;const previous=id;current=null;id=null;dirty=false;$('reportEditor').close();message('');const opener=[...document.querySelectorAll('[data-open]')].find(b=>b.dataset.open===previous);(opener||$('newReport')).focus();}
+async function open(idToOpen){if(busy||!leave())return;try{await run(async()=>{const r=await readRecord('reports',idToOpen);if(!r)throw Error('Dieser Rapport wurde inzwischen entfernt.');current=r;id=idToOpen;dirty=false;form();message('');});showEditor();}catch{}}
+function fresh(){if(busy||!writable()||!leave())return;current=newReport();id=crypto.randomUUID();dirty=true;form();message('Neuer Entwurf · noch nicht gespeichert.');showEditor();}
 async function run(action){if(busy)return;busy=true;document.body.classList.add('report-busy');$('reportEditor').inert=true;$('signatureForm').inert=true;try{await action();}catch(e){message(e.message,true);throw e;}finally{busy=false;$('reportEditor').inert=false;$('signatureForm').inert=false;document.body.classList.remove('report-busy');}}
 async function save(value){
  await writeRecord('reports',id,value);current=await readRecord('reports',id);dirty=false;records=await listRecords('reports');form();list();message('Rapport im Betrieb gespeichert.');
 }
 $('newReport').onclick=fresh;$('newReportEmpty').onclick=fresh;
+$('closeReport').onclick=closeEditor;
+$('reportEditor').addEventListener('cancel',e=>{e.preventDefault();closeEditor();});
 $('reportList').onclick=e=>{const b=e.target.closest('[data-open]');if(b)open(b.dataset.open);};
 $('reportSearch').oninput=list;$('reportFilter').onchange=list;
 $('reportForm').addEventListener('submit',e=>e.preventDefault());
@@ -77,5 +85,5 @@ function printView(){
 }
 $('printReport').onclick=()=>{if(!current)return;printView();window.print();};window.addEventListener('beforeprint',()=>{if(current)printView();});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
-if(!serverMode){message('Regierapporte benötigen die Anmeldung auf dem Firmenserver.',true);$('newReport').disabled=true;$('newReportEmpty').disabled=true;}
-else if(account&&can('reports')){try{records=await listRecords('reports');list();form();for(const k of ['newReport','newReportEmpty'])$(k).hidden=!writable();}catch(e){message(e.message,true);}}
+if(!serverMode){message('Regierapporte benötigen die Anmeldung auf dem Firmenserver.',true);$('reportList').replaceChildren();$('newReport').disabled=true;$('newReportEmpty').disabled=true;}
+else if(account&&can('reports')){for(const k of ['newReport','newReportEmpty'])$(k).hidden=!writable();try{records=await listRecords('reports');list();form();}catch(e){$('reportList').replaceChildren();message(e.message,true);}}
