@@ -105,6 +105,13 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    const s=session(req),module=pageModule(name),tool=pageTool(name),privatePage=['index.html','portal.html'].includes(name);if((module||tool||privatePage)&&(!s||s.user.mustChangePassword&&name!=='portal.html')){res.writeHead(302,{Location:s?'/portal.html':'/login.html'});return res.end();}if(tool==='technical'){if(!['wires','copper','smissline'].some(k=>['read','write'].includes(s.permissions[k])))fail(403,'Keine technischen Tabellen freigeschaltet.');}else if(tool)requireArea(s,tool);
    // Workshop assets have no record API but obey the same licence check.
    const file=await realpath(resolve(root,name)).catch(()=>null);if(!file||!file.startsWith(resolve(root)+sep))fail(404,'Datei nicht gefunden.');const info=await stat(file);if(!info.isFile())fail(404,'Datei nicht gefunden.');
+   if(/\.(?:mjs|js)\/+$/i.test(name)){
+    // Relative module imports resolve against the final response URL. A file
+    // served as "client.mjs/" would incorrectly import "client.mjs/model.mjs".
+    // Use a fresh URL so a cached permanent redirect cannot send it back again.
+    const target=new URL(url);target.pathname=target.pathname.replace(/(?:\/|%2f)+$/gi,'');target.searchParams.set('sb_module_path','1');
+    res.writeHead(307,{Location:target.pathname+target.search});return res.end();
+   }
    let bytes=await readFile(file),type={'.html':'text/html; charset=utf-8','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.pdf':'application/pdf','.webmanifest':'application/manifest+json','.txt':'text/plain'}[extname(file)]||'application/octet-stream';
    if(name.endsWith('.html')){let html=bytes.toString();html=html.replace(/if\((['"]serviceWorker['"] in navigator|['"]serviceWorker['"]in navigator)/g,'if(!globalThis.__companyMode&&($1)').replaceAll('DRAHTWERK','SchaltBase').replaceAll('Drahtwerk','SchaltBase').replaceAll('TinLine','');html=html.replace(/<head>/i,()=>'<head>'+(s&&(module||tool||privatePage)?sessionMarkup(s):'')+'<script src="/platform/runtime.js"></script>'+(module||tool||privatePage?'<script type="module" src="/platform/shell.mjs"></script>':''));bytes=Buffer.from(html);}
    res.setHeader('Content-Type',type);res.setHeader('Content-Length',bytes.length);res.end(method==='HEAD'?undefined:bytes);
