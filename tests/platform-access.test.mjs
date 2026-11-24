@@ -56,7 +56,8 @@ test('company platform enforces identity, tenant boundaries, licences and concur
    assert.ok(embedded);assert.deepEqual(JSON.parse(embedded),expected);assert.doesNotMatch(embedded,/[<>&\u2028]/);
    assert.doesNotMatch(embedded,/scrypt\$|"password"|"hash"/);
   }
-  for(const path of ['/home.html','/login.html']){const page=await request(path,'GET',undefined,member);assert.doesNotMatch(page.data,/id="schaltbase-session"/);assert.ok(!page.data.includes(member.csrf));}
+  for(const path of ['/home.html','/login.html']){const page=await request(path,'GET',undefined,member);assert.doesNotMatch(page.data,/id="schaltbase-session"|platform\/shell\.mjs/);assert.ok(!page.data.includes(member.csrf));}
+  const loginPage=await request('/login.html');assert.match(loginPage.data,/<form id="loginForm" method="post" action="\/api\/login">/);assert.match(loginPage.data,/type="submit" disabled/);
   assert.equal((await request('/schienenrechner.html')).status,302);
   await request('/api/company','PUT',{name:'Alpha AG',city:'Baden'},admin);
  });

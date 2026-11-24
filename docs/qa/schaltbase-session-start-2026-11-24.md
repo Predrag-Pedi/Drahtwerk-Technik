@@ -5,6 +5,10 @@
 Gemeldet: Portal bleibt bei «Anmeldung wird geprüft …» stehen; nach Rückkehr ins
 Dashboard fehlen Benutzername und Schienenzeilen. Auch ein iPad mit Safari ist
 betroffen. Später wurde zusätzlich ein nicht funktionierender Login gemeldet.
+Nach einem Neustart lädt der Klick auf «Anmelden» laut Nutzer nur die Seite neu.
+Das alte Formular hatte weder POST-Methode noch einen anfangs gesperrten Button;
+sein Handler wurde erst nach der globalen Sitzungsabfrage installiert. Vor dessen
+Start war deshalb eine native GET-Formularnavigation möglich.
 
 Die öffentlichen Produktionsdateien entsprachen bei der Prüfung dem gemergten
 Stand von PR 180. `/health` und `/login.html` antworteten mit 200, `/api/session`
@@ -28,14 +32,23 @@ Zusätzlich wartete die Benutzeroberfläche auf die Service-Worker-Bereinigung.
 - Session-Fallback und Aktualisierung, Login sowie Verwaltungsabfragen haben
   eine Zeitgrenze von 15 Sekunden. Fehlgeschlagene Schreibanfragen werden nicht
   automatisch wiederholt.
+- Das Login importiert keinen angemeldeten Client mehr. Es installiert seinen
+  Submit-Handler sofort; die optionale Prüfung einer vorhandenen Sitzung läuft
+  unabhängig und wird beim Absenden abgebrochen. Öffentliche Seiten laden keine
+  authentifizierte Anwendungshülle. Der Login-Button bleibt im initialen HTML
+  gesperrt; als zusätzliche Absicherung hat das Formular eine POST-Methode, damit
+  Zugangsdaten bei ausgefallenem JavaScript nicht in eine GET-URL gelangen.
 - Sitzungs- und Modul-Ladefehler erhalten einen sichtbaren Fehlerbildschirm mit
   erneutem Laden. Fehlerhafte Seiten bleiben im DOM, werden aber inaktiv gesetzt.
 - Offline-Bereinigung blockiert die Benutzeranzeige nicht mehr.
 
 ## Prüfung
 
-- `npm test`: 699 Tests erfolgreich, inklusive Session-Bootstrap, Firmenisolation,
+- `npm test`: 703 Tests erfolgreich, inklusive Session-Bootstrap, Firmenisolation,
   HTML-Escaping, verweigerten Zugriffen und Zeitüberschreitung.
+- Login-Regressionstests: erfolgreiche Anmeldung während einer hängenden oder
+  fehlgeschlagenen Session-Abfrage; abgelehntes Passwort bleibt mit Fehlermeldung
+  im Formular; erstes Login führt weiterhin zum verpflichtenden Passwortwechsel.
 - Lokale Browserprüfung mit separater SQLite-Datenbank und erfundenen Konten;
   keine produktiven Zugangsdaten.
 - Dauerhaft blockierte `/api/session`-Antwort: Mitarbeiter mit ausschliesslichem
