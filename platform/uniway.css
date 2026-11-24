@@ -1,0 +1,22 @@
+.suite-technik #panel-uniway .controls{flex-wrap:wrap;align-items:end}
+#panel-uniway .field{flex:1 1 240px;max-width:440px}
+#panel-uniway .field label{font-size:14px}
+#panel-uniway .field small{font-size:13px;color:#526a7d;line-height:1.5}
+#uniwayUnits{font-size:16px;min-height:44px}
+#uniwayJump{border:1px solid #bbccd9;background:#edf4fa;color:#19466a;border-radius:8px;padding:11px 16px;font-family:inherit;font-size:14px;font-weight:600;min-height:44px;cursor:pointer}
+#uniwayJump:disabled{opacity:.5;cursor:default}
+.suite-technik #uniwayResult{border-left-color:#21818b;background:linear-gradient(110deg,#e9f5f5,#f4f9fc);font-size:16px}
+#uniwayResult small{display:block;font-size:14px;margin-top:6px}
+.uniway-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:20px 0 0;padding-top:16px;border-top:1px solid #cbdfe5}
+.uniway-values dt{font-size:14px;color:#476474;line-height:1.5}
+.uniway-values dd{font-size:21px;font-weight:700;color:#133e53;margin:5px 0 0}
+#uniwayNote{padding:12px 15px;border-left:3px solid #b58022;background:#fff6df;color:#74541c;font-size:14px;line-height:1.5;border-radius:6px}
+.suite-technik #panel-uniway .tablewrap{max-height:65dvh;overflow:auto}
+.suite-technik #panel-uniway table{font-size:14px}
+.suite-technik #panel-uniway thead th{font-size:14px;position:sticky;top:0;white-space:normal;min-width:105px;line-height:1.4}
+.suite-technik #panel-uniway tbody th{position:static;background:transparent;font-size:14px;color:inherit;font-weight:700}
+.suite-technik #panel-uniway td,.suite-technik #panel-uniway tbody th{padding:11px 12px}
+.suite-technik #panel-uniway tr.selected{background:#d8eeee;color:#103e4d}
+.uniway-source{font-size:14px;color:#526a7d;line-height:1.6;margin:14px 0 0}
+.uniway-source a{color:#216778;text-underline-offset:3px}
+@media(max-width:700px){.uniway-values{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}#panel-uniway .field{max-width:none}#uniwayJump{width:100%}}

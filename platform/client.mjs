@@ -1,4 +1,4 @@
-import {emptyProfile} from './model.mjs';
+import {emptyProfile,technicalTabs} from './model.mjs';
 import {requestJSON} from './request.mjs';
 export const serverMode=globalThis.__companyMode===true;
 export let account=null;
@@ -25,7 +25,7 @@ if(serverMode){
 }
 export const companyProfile=()=>({...emptyProfile(),...(account?.company?.profile||{})});
 export const can=(module,write=false)=>!serverMode||Boolean(account?.company&&['write',...(!write?['read']:[])].includes(account.permissions?.[module]));
-export const canTool=(tool,write=false)=>tool==='technical'?['wires','copper','smissline'].some(k=>can(k,write)):can(tool,write);
+export const canTool=(tool,write=false)=>tool==='technical'?Object.values(technicalTabs).some(k=>can(k,write)):can(tool,write);
 export const localScope=()=>serverMode?`company:${account?.company?.id||'none'}:user:${account?.user?.id||'none'}:`:'';
 export const savedLabel=()=>serverMode?'Im Betrieb gespeichert':'In diesem Browser gespeichert';
 export function addressLines(p=companyProfile()){return [p.name,p.street,[p.postcode,p.city].filter(Boolean).join(' '),p.country].filter(Boolean);}
