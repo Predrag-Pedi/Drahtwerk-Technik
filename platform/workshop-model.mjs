@@ -2,6 +2,15 @@ export const templateTools = {
   rails: 'Schienenregeln', wireColors: 'Drahtfarben', ew: 'EW-Unterlagen', spacing: 'Aufbauabstände',
 };
 
+// Templates only contain JSON data. Avoid structuredClone, which is absent on
+// older tablets even though their browsers can run the rest of the workshop.
+export const cloneTemplate = value => JSON.parse(JSON.stringify(value));
+export function templateId() {
+  if (typeof globalThis.crypto.randomUUID === 'function') return globalThis.crypto.randomUUID();
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  return 'entry-' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Existing workshop dimensions; quantities belong to the current calculation.
 export const standardRails = [
   ['side', 'Seitenprof', 'h', 40], ['middle', 'N5 Mittelabstützung', 'h', 40],
@@ -15,9 +24,15 @@ export const standardRails = [
 
 // Pre-depth templates belong to 165 mm. Reading them never changes stored data.
 export function railProfiles(value = {rows: standardRails}) {
-  return structuredClone(Array.isArray(value.profiles) ? value : {
-    version: 2, profiles: [{id: 'depth-165', depth: 165, rows: value.rows}],
-  });
+  const normalized = Array.isArray(value?.profiles) ? value : {
+    version: 2, profiles: [{id: 'depth-165', depth: 165, rows: value?.rows}],
+  };
+  if (!normalized.profiles.length || normalized.profiles.some(p =>
+    !p || typeof p.id !== 'string' || !Number.isInteger(p.depth) || p.depth <= 0 ||
+    !Array.isArray(p.rows) || !p.rows.length || p.rows.some(r => !r || typeof r.id !== 'string' ||
+      typeof r.label !== 'string' || !['w','h','d'].includes(r.dimension) || !Number.isFinite(r.deduction))
+  )) throw Error('Die Schienenvorlage ist unvollständig oder hat ein unbekanntes Format. Bitte erneut laden.');
+  return cloneTemplate(normalized);
 }
 export function railProfileForDepth(value, depth) {
   const mm = Number(depth);
