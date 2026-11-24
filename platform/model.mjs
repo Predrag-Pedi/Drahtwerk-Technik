@@ -2,7 +2,7 @@ export const modules={workshop:'Werkstatt & EW',cad:'Schema & Dispo',offers:'Off
 export const workshopTools={rails:'Schienenrechner',ew:'EW-Vorschriften',wireColors:'Drahtfarben',wires:'Litzenquerschnitte',copper:'Kupferschienen',smissline:'ABB Smissline',spacing:'Aufbauabstände'};
 export const permissionLabels={...workshopTools,cad:modules.cad,offers:modules.offers,heat:modules.heat,reports:modules.reports};
 export const permissionKeys=['workshop',...Object.keys(permissionLabels)];
-export const licenseModule=key=>Object.hasOwn(workshopTools,key)?'workshop':key;
+export const licenseModule=key=>Object.prototype.hasOwnProperty.call(workshopTools,key)?'workshop':key;
 export const initialPlans=[
  {id:'basis',name:'Basis',modules:['workshop','reports'],seats:3},
  {id:'planung',name:'Planung',modules:['workshop','cad','reports'],seats:5},

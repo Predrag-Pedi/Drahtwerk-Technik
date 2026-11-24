@@ -1,7 +1,7 @@
 import {account, api} from './client.mjs';
-import {templateTools, railProfiles} from './workshop-model.mjs';
+import {templateTools, railProfiles, cloneTemplate, templateId} from './workshop-model.mjs';
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const newId = () => crypto.randomUUID();
+const newId = templateId;
 const tools = () => Object.keys(templateTools).filter(k => ['read', 'write'].includes(account.permissions[k]));
 const btn = (label, action, index = '', extra = '') => `<button type="button" data-ws-action="${action}" data-index="${index}" ${extra}>${label}</button>`;
 const input = (path, label, value, type = 'text', required = false) => `<input aria-label="${label}" data-ws-path="${path}" value="${esc(value)}" type="${type}" ${required ? 'required' : ''} ${type === 'number' ? 'min="0" max="10000" step="any"' : 'maxlength="200"'}>`;
@@ -12,7 +12,7 @@ export function mountWorkshopEditor(root) {
   const available = tools();
   let tool = new URLSearchParams(location.search).get('tool');
   if (!available.includes(tool)) tool = available[0];
-  let result, draft, files = [], usage, folderIndex = 0, profileIndex = 0, dirty = false, busy = false, disposed = false, generation = 0;
+  let result, draft, loading, files = [], usage, folderIndex = 0, profileIndex = 0, dirty = false, busy = false, disposed = false, generation = 0;
   const editable = () => account.permissions[tool] === 'write';
   const docs = () => ['ew', 'spacing'].includes(tool);
   const key = () => tool === 'ew' ? 'files' : 'images';
@@ -35,19 +35,24 @@ export function mountWorkshopEditor(root) {
     }
   }
   async function load() {
+    loading?.abort(); loading = new AbortController();
     busy = true; result = null; draft = null;
     const serial = ++generation;
     root.innerHTML = '<p class="muted" role="status">Werkstattvorlage wird geladen …</p>';
     try {
-      const [template, library] = await Promise.all([api(endpoint()), docs() ? api(endpoint() + '/files') : Promise.resolve(null)]);
+      const options = {timeoutMs: 15000, signal: loading.signal};
+      const [template, library] = await Promise.all([api(endpoint(), options), docs() ? api(endpoint() + '/files', options) : Promise.resolve(null)]);
       if (disposed || serial !== generation) return;
-      result = template; draft = tool === 'rails' ? railProfiles(result.value) : structuredClone(result.value); profileIndex = 0; files = library?.files || []; usage = library; folderIndex = 0; dirty = false;
+      if (!template?.value || typeof template.value !== 'object') throw Error('Die Werkstattvorlage konnte nicht vollständig geladen werden. Bitte erneut laden.');
+      result = template; draft = tool === 'rails' ? railProfiles(result.value) : cloneTemplate(result.value); profileIndex = 0; files = library?.files || []; usage = library; folderIndex = 0; dirty = false;
+      busy = false; render();
     } catch (e) {
       if (!disposed && serial === generation) {
+        loading.abort(); result = null; draft = null;
         root.innerHTML = '<p role="alert"></p>' + btn('Erneut laden', 'reload'); root.querySelector('p').textContent = e.message;
       }
     } finally {
-      if (!disposed && serial === generation) {busy = false; if (draft) render();}
+      if (!disposed && serial === generation) busy = false;
     }
   }
   function railRows() {
@@ -118,7 +123,7 @@ export function mountWorkshopEditor(root) {
   root.onsubmit = async e => {
     e.preventDefault(); if(!editable()||busy||!draft)return;
     busy=true;lock();
-    try {result=await api(endpoint(),{method:'PUT',body:{revision:result.revision,value:draft}});draft=structuredClone(result.value);dirty=false;render();message('Firmenvorlage gespeichert. Mitarbeitende sehen sie beim nächsten Öffnen oder Neuladen des Werkzeugs.');}
+    try {result=await api(endpoint(),{method:'PUT',body:{revision:result.revision,value:draft}});draft=cloneTemplate(result.value);dirty=false;render();message('Firmenvorlage gespeichert. Mitarbeitende sehen sie beim nächsten Öffnen oder Neuladen des Werkzeugs.');}
     catch(error){message(error.message,true);}
     finally{busy=false;lock();}
   };
@@ -134,7 +139,7 @@ export function mountWorkshopEditor(root) {
     try{
       if(kind==='reset'){
         if(!confirm('Eigene Vorlage für «'+templateTools[tool]+'» verwerfen und künftig wieder den gemeinsamen Standard verwenden? Hochgeladene Dateien bleiben in der Dateiverwaltung.'))return;
-        busy=true;lock();result=await api(endpoint(),{method:'DELETE',body:{revision:result.revision}});draft=structuredClone(result.value);dirty=false;folderIndex=0;profileIndex=0;render();message('Gemeinsamer Standard wiederhergestellt.');return;
+        busy=true;lock();result=await api(endpoint(),{method:'DELETE',body:{revision:result.revision}});draft=cloneTemplate(result.value);dirty=false;folderIndex=0;profileIndex=0;render();message('Gemeinsamer Standard wiederhergestellt.');return;
       }
       if(kind==='file-delete'){
         const file=files.find(f=>f.id===index);if(!file||!confirm('«'+file.name+'» endgültig aus dem Betriebsspeicher löschen?'))return;
@@ -145,7 +150,7 @@ export function mountWorkshopEditor(root) {
         if(!Number.isInteger(depth)||depth<1||depth>2000)throw Error('Bitte eine Tiefe von 1 bis 2000 mm eingeben.');
         if(draft.profiles.some(p=>p.depth===depth))throw Error('Für '+depth+' mm gibt es bereits eine Liste. Oben diese Tiefe auswählen.');
         if(draft.profiles.length>=50)throw Error('Maximal 50 Verteilungstiefen pro Firmenvorlage.');
-        const rows=root.querySelector('[data-ws-copy-depth]').checked?structuredClone(draft.profiles[profileIndex].rows):[{id:newId(),label:'Neue Schiene',dimension:'w',deduction:0}];
+        const rows=root.querySelector('[data-ws-copy-depth]').checked?cloneTemplate(draft.profiles[profileIndex].rows):[{id:newId(),label:'Neue Schiene',dimension:'w',deduction:0}];
         draft.profiles.push({id:newId(),depth,rows});profileIndex=draft.profiles.length-1;
       }
       if(kind==='profile-remove'){
@@ -174,5 +179,5 @@ export function mountWorkshopEditor(root) {
     }catch(error){message(error.message,true);}finally{busy=false;lock();}
   };
   if(!available.length)root.textContent='Für diesen Betrieb sind keine Werkstattvorlagen freigeschaltet.';else load();
-  return {canLeave,dispose(){disposed=true;generation++;window.removeEventListener('beforeunload',beforeUnload);root.oninput=root.onchange=root.onsubmit=root.onclick=null;}};
+  return {canLeave,dispose(){disposed=true;generation++;loading?.abort();window.removeEventListener('beforeunload',beforeUnload);root.oninput=root.onchange=root.onsubmit=root.onclick=null;}};
 }

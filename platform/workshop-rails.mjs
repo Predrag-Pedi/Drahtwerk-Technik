@@ -1,5 +1,5 @@
 import {account, serverMode, localScope} from './client.mjs';
-import {loadWorkshop} from './workshop-client.mjs';
+import {loadWorkshop, templateNotice} from './workshop-client.mjs';
 import {railLength, railProfiles, railProfileForDepth, csvCell} from './workshop-model.mjs';
 const $ = id => document.getElementById(id);
 try {
@@ -44,7 +44,7 @@ try {
     for (const button of $('depthChoices').children) button.setAttribute('aria-pressed', String(Number(button.dataset.depth) === profile?.depth));
     if (!profile) {
       const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 4; td.className = 'rails-empty';
-      td.textContent = 'Wähle eine eingerichtete Tiefe. Weitere Schienenlisten kann ein Firmenadministrator unter «Firmenvorlage bearbeiten» ergänzen.'; tr.append(td); $('rows').append(tr);
+      td.textContent = 'Wähle eine eingerichtete Tiefe. Mitarbeitende mit Schreibrecht können weitere Schienenlisten unter «Firmenvorlage bearbeiten» ergänzen.'; tr.append(td); $('rows').append(tr);
     }
     specs.forEach((row, i) => {
       const tr = document.createElement('tr'); tr.className = qty(row) ? 'active' : 'inactive';
@@ -82,6 +82,7 @@ try {
   };
   render();
 } catch (error) {
+  templateNotice('rails', null, error.message);
   $('rows').replaceChildren();
   for (const key of ['width', 'height', 'depth', 'export', 'reset', 'printRails']) $(key).disabled = true;
   console.error(error);

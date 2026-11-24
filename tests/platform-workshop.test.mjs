@@ -160,6 +160,22 @@ test('company workshop templates and documents are persistent, isolated and perm
       assert.equal((await request(endpoint('rails'),'PUT',{revision:4,value:{rows:standardRails}})).status,400);
       assert.deepEqual((await request(endpoint('rails'))).data.value,value);
     });
+    await t.test('a fresh tablet session sees the same saved company depths and deductions', async () => {
+      db.prepare('INSERT INTO sessions VALUES (?,?,?,?,?,?)').run(digest('writer-second-tablet'),writer.id,writer.company,'second-tablet-csrf',now+3600000,now);
+      const secondTablet = {...writer, cookie:'test-session=writer-second-tablet', csrf:'second-tablet-csrf'};
+      const first = await request(endpoint('rails'),'GET',undefined,writer);
+      const second = await request(endpoint('rails'),'GET',undefined,secondTablet);
+      assert.equal(second.status,200);
+      assert.deepEqual(second.data,first.data);
+      assert.equal(second.headers.get('cache-control'),'no-store');
+      const changed = second.data.value;
+      changed.profiles[1].rows[0].deduction = 68;
+      assert.equal((await request(endpoint('rails'),'PUT',{revision:second.data.revision,value:changed},secondTablet)).status,200);
+      const updated = await request(endpoint('rails'),'GET',undefined,member);
+      assert.equal(updated.data.value.profiles[1].rows[0].deduction,68);
+      assert.equal(updated.data.revision,second.data.revision+1);
+      assert.equal((await request(endpoint('rails'),'PUT',{revision:first.data.revision,value:first.data.value},writer)).status,409);
+    });
     await t.test('file storage counts towards the existing company limit', async () => {
       const before = companyStorageBytes(db, 'alpha'); assert.ok(before > 0);
       // A zero-filled SQLite blob uses no large request body and exercises the shared quota.
