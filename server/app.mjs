@@ -5,7 +5,7 @@ import {resolve,extname,sep} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {object,saveObject,publicUser,audit,developerWorkspace} from './db.mjs';
 import {token,digest,fail,passwordHash,passwordMatches,temporaryCredentials,text,loginIdentifier,rateLimit} from './security.mjs';
-import {modules,emptyProfile,profileFields,permissionsFor,pageModule,pageTool,permissionKeys,licenseModule,swissDay} from '../platform/model.mjs';
+import {modules,emptyProfile,profileFields,permissionsFor,pageModule,pageTool,permissionKeys,licenseModule,swissDay,technicalTabs} from '../platform/model.mjs';
 import {validRequestHost,validRequestOrigin} from './request-host.mjs';
 import {workshopHandler} from './workshop.mjs';
 import {companyStorageBytes,companyStorageLimit} from './storage.mjs';
@@ -102,7 +102,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    if(!['GET','HEAD'].includes(method))fail(405,'Methode nicht erlaubt.');
    if(path==='/sw.js'){res.setHeader('Content-Type','text/javascript');return res.end("self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(Promise.all([caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))),self.registration.unregister()])));");}
    let name=path==='/'?'home.html':path.slice(1);if(!name||name.includes('\\')||name.split('/').some(p=>p.startsWith('.'))||!(/^(?:platform|ui|cad|offerten|waerme|ew|EW|Aufbauabstaende|produkte|regie)\//.test(name)||/^(?:home|index|portal|login|regierapport|cad|offerten|waermeberechnung|technik|ew|schienenrechner|drahtfarben|aufbauabstaende)\.html$/.test(name)||/^(?:icon-\d+\.png|manifest\.webmanifest|(?:ew|aufbau)-[\w-]+\.json|drahtfarben\.txt)$/.test(name)))fail(404,'Datei nicht gefunden.');
-   const s=session(req),module=pageModule(name),tool=pageTool(name),privatePage=['index.html','portal.html'].includes(name);if((module||tool||privatePage)&&(!s||s.user.mustChangePassword&&name!=='portal.html')){res.writeHead(302,{Location:s?'/portal.html':'/login.html'});return res.end();}if(tool==='technical'){if(!['wires','copper','smissline'].some(k=>['read','write'].includes(s.permissions[k])))fail(403,'Keine technischen Tabellen freigeschaltet.');}else if(tool)requireArea(s,tool);
+   const s=session(req),module=pageModule(name),tool=pageTool(name),privatePage=['index.html','portal.html'].includes(name);if((module||tool||privatePage)&&(!s||s.user.mustChangePassword&&name!=='portal.html')){res.writeHead(302,{Location:s?'/portal.html':'/login.html'});return res.end();}if(tool==='technical'){if(!Object.values(technicalTabs).some(k=>['read','write'].includes(s.permissions[k])))fail(403,'Keine technischen Tabellen freigeschaltet.');}else if(tool)requireArea(s,tool);
    // Workshop assets have no record API but obey the same licence check.
    const file=await realpath(resolve(root,name)).catch(()=>null);if(!file||!file.startsWith(resolve(root)+sep))fail(404,'Datei nicht gefunden.');const info=await stat(file);if(!info.isFile())fail(404,'Datei nicht gefunden.');
    if(/\.(?:mjs|js)\/+$/i.test(name)){

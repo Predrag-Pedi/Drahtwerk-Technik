@@ -1,5 +1,6 @@
 export const modules={workshop:'Werkstatt & EW',cad:'Schema & Dispo',offers:'Offerten',heat:'Wärmeberechnung',reports:'Regierapporte'};
-export const workshopTools={rails:'Schienenrechner',ew:'EW-Vorschriften',wireColors:'Drahtfarben',wires:'Litzenquerschnitte',copper:'Kupferschienen',smissline:'ABB Smissline',spacing:'Aufbauabstände'};
+export const workshopTools={rails:'Schienenrechner',ew:'EW-Vorschriften',wireColors:'Drahtfarben',wires:'Litzenquerschnitte',copper:'Kupferschienen',smissline:'ABB Smissline',uniway:'Hager Uniway',spacing:'Aufbauabstände'};
+export const technicalTabs={litzen:'wires',kupfer:'copper',abb:'smissline',uniway:'uniway'};
 export const permissionLabels={...workshopTools,cad:modules.cad,offers:modules.offers,heat:modules.heat,reports:modules.reports};
 export const permissionKeys=['workshop',...Object.keys(permissionLabels)];
 export const licenseModule=key=>Object.prototype.hasOwnProperty.call(workshopTools,key)?'workshop':key;
@@ -21,7 +22,7 @@ export function pageTool(path,hash=''){
  if(/^(EW\/|ew\/|ew\.html|ew-.*\.json)/.test(path))return 'ew';
  if(/^(drahtfarben\.(html|txt))/.test(path))return 'wireColors';
  if(/^(Aufbauabstaende\/|aufbauabstaende\.html|aufbau-.*\.json)/.test(path))return 'spacing';
- if(path==='technik.html')return ({'#litzen':'wires','#kupfer':'copper','#abb':'smissline'})[hash]||'technical';
+ if(path==='technik.html')return Object.prototype.hasOwnProperty.call(technicalTabs,hash.slice(1))?technicalTabs[hash.slice(1)]:'technical';
  return pageModule(path);
 }
 export function pageModule(path){if(/^(regie\/|regierapport\.html)/.test(path))return 'reports';if(/^(cad(?:\/|\.html))/.test(path))return 'cad';if(/^(offerten(?:\/|\.html))/.test(path))return 'offers';if(/^(waerme\/|waermeberechnung\.html)/.test(path))return 'heat';if(/^(EW\/|ew\/|Aufbauabstaende\/|(?:technik|ew|schienenrechner|drahtfarben|aufbauabstaende)\.html|(?:ew|aufbau)-.*\.json)/.test(path))return 'workshop';return null;}

@@ -1,5 +1,5 @@
 import {account,serverMode,publicPage,can,canTool} from './client.mjs';
-import {pageModule,pageTool} from './model.mjs';
+import {pageModule,pageTool,technicalTabs} from './model.mjs';
 import {mountAccountMenu} from './account-menu.mjs';
 if(serverMode){
  // Old offline registrations must never delay the account menu or permissions.
@@ -28,7 +28,7 @@ if(serverMode){
    for(const tiles of document.querySelectorAll('.suite-index .tiles')){const n=[...tiles.querySelectorAll('.tile')].filter(a=>!a.hidden).length,heading=tiles.previousElementSibling;tiles.hidden=!n;if(heading?.classList.contains('suite-section-heading')){heading.hidden=!n;const count=heading.querySelector(':scope > span'),label=`${n} ${n===1?'Werkzeug':'Werkzeuge'}`;if(count&&count.textContent!==label)count.textContent=label;}}
   };update();new MutationObserver(update).observe(document.body,{childList:true,subtree:true});
   if(location.pathname==='/technik.html'){
-   const ids={litzen:'wires',kupfer:'copper',abb:'smissline'};
+   const ids=technicalTabs;
    const restrictTabs=()=>{const enabled=Object.keys(ids).filter(k=>can(ids[k]));for(const [key,tool] of Object.entries(ids)){const allowed=can(tool);for(const el of document.querySelectorAll(`[data-tab="${key}"],#panel-${key}`))if(!allowed){el.hidden=true;el.style.setProperty('display','none','important');}}if(!enabled.includes(location.hash.slice(1))&&enabled.length)location.replace('#'+enabled[0]);};
    restrictTabs();window.addEventListener('hashchange',restrictTabs);
   }
