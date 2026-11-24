@@ -55,3 +55,18 @@ test('an anonymous public page can still show its login form',async t=>{
  browser(t);t.mock.method(globalThis,'fetch',async()=>Response.json({error:'Bitte anmelden.'},{status:401}));
  const client=await freshClient();assert.equal(client.account,null);assert.equal(client.can('rails'),false);
 });
+
+test('developer requests keep management selection separate from tool data and bind writes to the support grant',async t=>{
+ const identity={...snapshot,user:{id:'developer',role:'developer'},company:{id:'developer-developer',internalWorkspace:true},managementCompany:{id:'alpha'},support:null};
+ browser(t,{textContent:JSON.stringify(identity),remove(){}});
+ const client=await freshClient(),calls=[];
+ t.mock.method(globalThis,'fetch',async(url,options)=>{calls.push({url,headers:options.headers});return Response.json(url==='/api/session'?{...identity,company:{id:'alpha'},support:{id:'approved-grant'}}:{ok:true});});
+ for(const path of ['/company','/company/users','/company/users/employee','/records/reports','/company/workshop/rails','/company/catalog'])await client.api(path);
+ assert.deepEqual(calls.map(c=>c.headers['X-Company-Id']),['alpha','alpha','alpha','developer-developer','developer-developer','developer-developer']);
+ assert.ok(calls.every(c=>c.headers['X-Support-Id']===''&&c.headers['X-User-Id']==='developer'));
+ await client.refreshAccount();
+ await client.api('/records/reports',{method:'POST',body:{id:'report'}});
+ assert.equal(calls.at(-1).headers['X-Company-Id'],'alpha');
+ assert.equal(calls.at(-1).headers['X-Support-Id'],'approved-grant');
+ assert.equal(calls.at(-1).headers['X-CSRF-Token'],snapshot.csrf);
+});

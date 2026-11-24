@@ -105,11 +105,14 @@ test('company platform enforces identity, tenant boundaries, licences and concur
   await request('/api/admin/companies','POST',{...companyBody('Alpha'),id:c1.id,endsOn:'2020-01-02'},dev);
   assert.equal((await request('/api/records/offers','GET',undefined,member)).status,403);assert.equal((await request('/api/company','GET',undefined,admin)).status,200);
  });
- await t.test('operator sees all firms, explicitly selects one, and stale tabs cannot cross-save',async()=>{
+ await t.test('operator selects firms for administration without opening their tool data',async()=>{
   const overview=await request('/api/admin','GET',undefined,dev);assert.equal(overview.data.companies.length,2);assert.equal(overview.data.users.length,4);assert.ok(overview.data.audit.length>0);
   assert.equal((await request('/api/session/company','POST',{companyId:c2.id},dev)).status,200);
   assert.equal((await request('/api/records/cad/same','PUT',{revision:1,value:{}},dev)).status,409);
-  dev.companyId=c2.id;assert.equal((await request('/api/records/cad/same','GET',undefined,dev)).data.value.name,'Beta private');
+  assert.equal((await request('/api/records/cad/same','GET',undefined,dev)).data.value,null);
+  assert.equal((await request('/api/records/cad/same','GET',undefined,dev,{'X-Company-Id':c2.id})).status,409);
+  assert.equal((await request('/api/company/users','GET',undefined,dev,{'X-Company-Id':c2.id})).status,200);
+  const selected=(await request('/api/session','GET',undefined,dev)).data;assert.equal(selected.managementCompany.id,c2.id);assert.equal(selected.company.id,'developer-'+dev.userId);
  });
  await t.test('database, source management and traversal are not public assets',async()=>{
   for(const path of ['/runtime/platform.sqlite','/server/db.mjs','/.git/config','/package.json','/platform/../server/db.mjs'])assert.equal((await request(path,'GET',undefined,dev)).status,404,path);

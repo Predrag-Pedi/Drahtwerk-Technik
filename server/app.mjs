@@ -1,3 +1,5 @@
+import {supportService} from './support.mjs';
+import {managementRequest} from '../platform/session-context.mjs';
 import {publicSEO} from './seo.mjs';
 import {catalogHandler} from './catalog.mjs';
 import {validateCustomer} from '../platform/customers-model.mjs';
@@ -14,7 +16,7 @@ import {workshopHandler} from './workshop.mjs';
 import {companyStorageBytes,companyStorageLimit} from './storage.mjs';
 const areas={cad:'cad',offers:'offers',heat:'heat',heatTemplate:'heat',reports:'reports',customers:'customers'};
 const json=(res,value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));};
-const sessionPayload=s=>({user:s.user,company:s.company,plan:s.plan,permissions:s.permissions,csrf:s.csrf,expiresAt:new Date(s.expires).toISOString()});
+const sessionPayload=s=>({user:s.user,company:s.company,plan:s.plan,permissions:s.permissions,...(s.user.role==='developer'?{managementCompany:s.managementCompany,support:s.supportInfo}:{}),csrf:s.csrf,expiresAt:new Date(s.expires).toISOString()});
 // Escape HTML delimiters even inside a non-executable JSON script element.
 const sessionMarkup=s=>'<script type="application/json" id="schaltbase-session">'+JSON.stringify(sessionPayload(s)).replace(/[<>&\u2028\u2029]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'))+'</script>';
 function validPermissions(value){if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Berechtigungen fehlen.');return Object.fromEntries(permissionKeys.map(k=>{const v=value[k]??(k==='customers'?(['cad','offers','heat','reports'].some(x=>value[x]==='write')?'write':['cad','offers','heat','reports'].some(x=>value[x]==='read')?'read':'none'):licenseModule(k)==='workshop'?value.workshop:'none')??'none';if(!['none','read','write'].includes(v))fail(400,'Ungültige Berechtigung.');return [k,v];}));}
@@ -25,12 +27,26 @@ async function body(req,limit=64*1024*1024){if(!/^application\/json(?:;|$)/i.tes
 export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.startsWith('https:'),clock=()=>Date.now()}){
  const allowed=new URL(origin);if(!secure&&!['localhost','127.0.0.1','[::1]'].includes(allowed.hostname))throw Error('Für öffentliche Adressen ist HTTPS erforderlich.');
  const seo=publicSEO(root,allowed.origin);
+ const support=supportService({db,clock});
  const cookieName=secure?'__Host-session':'test-session';
  const cookie=(res,value,age)=>res.setHeader('Set-Cookie',`${cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${secure?'; Secure':''}`);
- function session(req){const raw=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);if(!raw)return null;const s=db.prepare('SELECT * FROM sessions WHERE hash=?').get(digest(raw));if(!s)return null;const user=db.prepare('SELECT * FROM users WHERE id=?').get(s.user_id);if(!user?.enabled||user.deleted_at||s.expires<clock()||s.last_seen<clock()-30*60*1000){db.prepare('DELETE FROM sessions WHERE hash=?').run(s.hash);return null;}db.prepare('UPDATE sessions SET last_seen=? WHERE hash=?').run(clock(),s.hash);const u=publicUser(user),company=s.company_id?object(db,'companies',s.company_id):u.role==='developer'?developerWorkspace(db,u):null,p=company?object(db,'plans',company.planId):null;return {...s,user:u,company,plan:p,permissions:permissionsFor(u,company,p)};}
- function freshSession(req,previous){const current=session(req);if(!current||current.user.mustChangePassword)fail(401,'Bitte erneut anmelden.');if(current.user.id!==previous.user.id||current.company?.id!==previous.company?.id)fail(409,'Anmeldung oder Betrieb wurde gewechselt. Bitte neu laden.');return current;}
+ function session(req,{management=false,touch=true}={}){
+  const raw=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);if(!raw)return null;
+  const s=db.prepare('SELECT * FROM sessions WHERE hash=?').get(digest(raw));if(!s)return null;
+  const user=db.prepare('SELECT * FROM users WHERE id=?').get(s.user_id);if(!user?.enabled||user.deleted_at||s.expires<clock()||s.last_seen<clock()-30*60*1000){db.prepare('DELETE FROM sessions WHERE hash=?').run(s.hash);return null;}
+  if(touch)db.prepare('UPDATE sessions SET last_seen=? WHERE hash=?').run(clock(),s.hash);
+  const u=publicUser(user),dev=u.role==='developer',selected=dev&&s.company_id?object(db,'companies',s.company_id):null;
+  // An old selected tenant remains an administrative selection only, including
+  // sessions created before this separation. It must never scope tool records.
+  const managementCompany=selected&&!selected.internalWorkspace?selected:null;
+  const grant=dev&&!management?support.context(s,u):null;
+  const company=dev?(management?managementCompany:grant?.company||developerWorkspace(db,u)):user.company_id?object(db,'companies',user.company_id):null;
+  const p=company?object(db,'plans',company.planId):null;
+  return {...s,user:u,company,plan:p,permissions:grant?.permissions||permissionsFor(u,company,p),management:dev&&management,managementCompany,touch,support:grant,supportInfo:grant?support.describe(grant.request,u):null};
+ }
+ function freshSession(req,previous){const current=session(req,{management:previous.management,touch:previous.touch});if(!current||current.user.mustChangePassword)fail(401,'Bitte erneut anmelden.');if(current.user.id!==previous.user.id||current.company?.id!==previous.company?.id||current.support?.request.id!==previous.support?.request.id)fail(409,'Anmeldung oder Betrieb wurde gewechselt. Bitte neu laden.');return current;}
  function requireRole(s,...roles){if(!roles.includes(s.user.role))fail(403,'Keine Berechtigung für diese Aktion.');}
- function requireArea(s,area,write=false){if(!s.company)fail(403,'Zuerst einen Betrieb auswählen.');const permission=s.permissions[areas[area]||area];if(!permission||permission==='none'||write&&permission!=='write')fail(403,'Lizenz oder Benutzerberechtigung erlaubt diese Aktion nicht.');}
+ function requireArea(s,area,write=false){if(s.user.role==='developer'&&s.company&&(s.company.internalWorkspace?s.company.ownerId!==s.user.id:!s.support||s.support.company.id!==s.company.id))fail(403,'Für Firmendaten ist eine gültige Supportfreigabe erforderlich.');if(!s.company)fail(403,'Zuerst einen Betrieb auswählen.');const permission=s.permissions[areas[area]||area];if(!permission||permission==='none'||write&&permission!=='write')fail(403,'Lizenz oder Benutzerberechtigung erlaubt diese Aktion nicht.');}
  function seatCheck(id,except=null){const c=object(db,'companies',id);if(!c||c.internalWorkspace)fail(404,'Betrieb nicht gefunden.');const count=db.prepare('SELECT COUNT(*) n FROM users WHERE company_id=? AND enabled=1 AND id!=?').get(id,except||'').n;if(count>=c.seats)fail(409,'Alle gebuchten Benutzerplätze sind belegt.');}
  const handleCatalog=catalogHandler({db,body,json,freshSession,requireArea,clock});
  const handleWorkshop=workshopHandler({db,root,body,json,freshSession,requireArea});
@@ -49,16 +65,21 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
      const b=await body(req),e=loginIdentifier(b.identifier??b.username??b.email);rateLimit(db,'ip:'+digest(req.socket.remoteAddress||''),30);rateLimit(db,'login:'+digest(e));
      const candidate=db.prepare('SELECT * FROM users WHERE email=?').get(e),ok=await passwordMatches(b.password,candidate?.password),u=db.prepare('SELECT * FROM users WHERE id=?').get(candidate?.id||'');if(!ok||!u?.enabled||u.deleted_at||u.password!==candidate.password)fail(401,'Benutzername oder Passwort ist nicht korrekt.');
      const sid=token(),csrf=token(),now=clock();db.prepare('DELETE FROM sessions WHERE expires<? OR last_seen<?').run(now,now-30*60*1000);
-     db.prepare('INSERT INTO sessions VALUES (?,?,?,?,?,?)').run(digest(sid),u.id,u.company_id,csrf,now+8*60*60*1000,now);cookie(res,sid,8*60*60);audit(db,u.id,u.company_id,'login');return json(res,{ok:true,mustChangePassword:Boolean(u.must_change)});
+     db.prepare('INSERT INTO sessions VALUES (?,?,?,?,?,?)').run(digest(sid),u.id,u.role==='developer'?null:u.company_id,csrf,now+8*60*60*1000,now);cookie(res,sid,8*60*60);audit(db,u.id,u.company_id,'login');return json(res,{ok:true,mustChangePassword:Boolean(u.must_change)});
     }
-    const s=session(req);if(!s)fail(401,'Bitte anmelden.');
+    const s=session(req,{management:managementRequest(path.slice(4)),touch:path!=='/api/support/state'});if(!s)fail(401,'Bitte anmelden.');
     if(method!=='GET'&&req.headers['x-csrf-token']!==s.csrf)fail(403,'Sicherheitsprüfung fehlgeschlagen. Seite neu laden.');
     if(path==='/api/session'&&method==='GET')return json(res,sessionPayload(s));
-    if(path==='/api/logout'&&method==='POST'){db.prepare('DELETE FROM sessions WHERE hash=?').run(s.hash);cookie(res,'',0);return json(res,{ok:true});}
+    if(path==='/api/logout'&&method==='POST'){support.closeSession(s.hash,s.user.id);db.prepare('DELETE FROM sessions WHERE hash=?').run(s.hash);cookie(res,'',0);return json(res,{ok:true});}
     if(path==='/api/password'&&method==='POST'){const b=await body(req),u=db.prepare('SELECT * FROM users WHERE id=?').get(s.user.id);rateLimit(db,'password:'+s.user.id,5);if(!await passwordMatches(b.currentPassword,u.password))fail(400,'Aktuelles Passwort ist nicht korrekt.');if(b.password===b.currentPassword)fail(400,'Ein neues Passwort wählen.');const hash=await passwordHash(b.password),current=session(req),latest=db.prepare('SELECT password FROM users WHERE id=? AND deleted_at IS NULL').get(u.id);if(!current||current.user.id!==u.id||latest?.password!==u.password)fail(401,'Bitte erneut anmelden.');db.prepare('UPDATE users SET password=?,must_change=0 WHERE id=?').run(hash,u.id);db.prepare('DELETE FROM sessions WHERE user_id=?').run(u.id);cookie(res,'',0);audit(db,u.id,u.company_id,'password.changed');return json(res,{ok:true});}
     if((path.startsWith('/api/records/')||path.startsWith('/api/company'))&&(req.headers['x-company-id']!==(s.company?.id||'')||req.headers['x-user-id']!==s.user.id))fail(409,'Anmeldung oder Betrieb wurde in einem anderen Fenster gewechselt. Bitte neu laden.');
     if(s.user.mustChangePassword)fail(403,'Bitte zuerst das Startpasswort ändern.');
-    if(path==='/api/session/company'&&method==='POST'){requireRole(s,'developer');const b=await body(req);if(b.companyId){const target=object(db,'companies',b.companyId);if(!target||target.internalWorkspace&&target.ownerId!==s.user.id)fail(404,'Betrieb nicht gefunden.');}db.prepare('UPDATE sessions SET company_id=? WHERE hash=?').run(b.companyId||null,s.hash);audit(db,s.user.id,b.companyId||null,'company.selected');return json(res,{ok:true});}
+    if(path.startsWith('/api/support/')){await support.handle({req,res,path,method,s,body,json,freshSession});return;}
+    if(path.startsWith('/api/records/')||path.startsWith('/api/company/workshop/')||path.startsWith('/api/company/catalog')||path.startsWith('/api/workshop-files/')){
+     if(s.user.role==='developer'&&!path.startsWith('/api/workshop-files/')&&(req.headers['x-support-id']||'')!==(s.support?.request.id||''))fail(409,'Der Supportzugriff wurde gewechselt oder beendet. Bitte neu laden.');
+     res.once('finish',()=>{if(res.statusCode>=200&&res.statusCode<300)support.recordAccess(s,path,method);});
+    }
+    if(path==='/api/session/company'&&method==='POST'){requireRole(s,'developer');const b=await body(req);requireRole(freshSession(req,s),'developer');let id=b.companyId||null;if(id){const target=object(db,'companies',id);if(!target||target.internalWorkspace&&target.ownerId!==s.user.id)fail(404,'Betrieb nicht gefunden.');if(target.internalWorkspace)id=null;}if(id!==s.company_id)support.closeSession(s.hash,s.user.id,'management_company_changed');db.prepare('UPDATE sessions SET company_id=? WHERE hash=?').run(id,s.hash);audit(db,s.user.id,id,'company.managementSelected');return json(res,{ok:true});}
     if(path==='/api/admin'&&method==='GET'){requireRole(s,'developer');return json(res,{companies:db.prepare('SELECT data FROM companies').all().map(r=>JSON.parse(r.data)).filter(c=>!c.internalWorkspace),users:db.prepare('SELECT * FROM users WHERE deleted_at IS NULL ORDER BY email').all().map(publicUser),plans:db.prepare('SELECT data FROM plans').all().map(r=>JSON.parse(r.data)),audit:db.prepare('SELECT * FROM audit ORDER BY id DESC LIMIT 100').all(),records:db.prepare('SELECT company_id,area,COUNT(*) count,SUM(length(CAST(data AS BLOB))) bytes FROM records GROUP BY company_id,area').all()});}
     if(path==='/api/admin/plans'&&method==='POST'){requireRole(s,'developer');const b=await body(req),id=b.id?text(b.id,60):randomUUID();if(!/^[a-zA-Z0-9-]+$/.test(id))fail(400,'Ungültige Paket-ID.');const p=plan(b,id);saveObject(db,'plans',p);audit(db,s.user.id,null,'plan.saved',id);return json(res,p);}
     if(path==='/api/admin/companies'&&method==='POST'){requireRole(s,'developer');const b=await body(req),old=b.id?object(db,'companies',text(b.id,80)):null;if(b.id&&(!old||old.internalWorkspace))fail(404,'Betrieb nicht gefunden.');const p=object(db,'plans',b.planId);if(!p)fail(400,'Paket wählen.');const c={id:old?.id||randomUUID(),name:text(b.name,200),planId:p.id,startsOn:day(b.startsOn),endsOn:day(b.endsOn),enabled:b.enabled===true,seats:b.seats??p.seats,profile:old?.profile||emptyProfile()};if(!c.name||c.startsOn>c.endsOn||!Number.isInteger(c.seats)||c.seats<1||c.seats>10000)fail(400,'Name, Laufzeit und Benutzerplätze prüfen.');const used=db.prepare('SELECT COUNT(*) n FROM users WHERE company_id=? AND enabled=1').get(c.id).n;if(c.seats<used)fail(409,'Zuerst Benutzer deaktivieren, bevor Plätze reduziert werden.');saveObject(db,'companies',c);audit(db,s.user.id,c.id,'company.saved',c.id);return json(res,c);}

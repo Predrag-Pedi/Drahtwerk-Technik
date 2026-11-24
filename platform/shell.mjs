@@ -1,3 +1,4 @@
+import {mountSupport} from './support.mjs';
 import {account,serverMode,publicPage,can,canTool} from './client.mjs';
 import {pageModule,pageTool,technicalTabs} from './model.mjs';
 import {mountAccountMenu} from './account-menu.mjs';
@@ -9,9 +10,10 @@ if(serverMode){
  const ready=()=>{
   if(!account||publicPage())return;
   const dev=account.user.role==='developer';
+  mountSupport();
   const style=document.createElement('link');style.rel='stylesheet';style.href='/platform/account.css';document.head.append(style);
   for(const header of document.querySelectorAll(location.pathname==='/index.html'?'#unused-header':'.dw-header,#editor>.editor-heading')){const link=document.createElement('a');link.href='/index.html';link.textContent='Dashboard';link.className='home';link.style.cssText='font:600 13px Arial;padding:8px 12px;color:inherit;text-decoration:none;border:1px solid currentColor;border-radius:8px';header.append(link);}
-  for(const el of document.querySelectorAll('[data-storage-info]'))el.textContent='Im Betrieb gespeichert. Berechtigte Mitarbeitende können die Projekte auch auf anderen Geräten öffnen. Exporte dienen als zusätzliche Sicherung.';
+  for(const el of document.querySelectorAll('[data-storage-info]'))el.textContent=account.company?.internalWorkspace?'In deinem eigenen Entwickler-Arbeitsplatz gespeichert. Firmendaten bleiben getrennt.':'Im Betrieb gespeichert. Berechtigte Mitarbeitende können die Projekte auch auf anderen Geräten öffnen. Exporte dienen als zusätzliche Sicherung.';
   for(const dock of document.querySelectorAll('.suite-sidebar-foot,#accountDock'))mountAccountMenu(dock);
   const sidebar=document.querySelector('.suite-sidebar nav');
   const navIcon='<svg class="suite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M13 13h4M13 17h4"/></svg>';
