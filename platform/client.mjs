@@ -7,8 +7,22 @@ export async function api(path,{method='GET',body,timeoutMs=0,signal}={}){
  const {response,result}=await requestJSON('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...(body!==undefined?{'Content-Type':'application/json'}:{}),...(account?{'X-CSRF-Token':account.csrf,'X-Company-Id':account.company?.id||'','X-User-Id':account.user.id}:{})},...(body!==undefined?{body:JSON.stringify(body)}:{})},{timeoutMs,signal});
  if(!response.ok){const e=Object.assign(Error(result?.error||'Anfrage fehlgeschlagen.'),{status:response.status});if(response.status===401&&path!=='/login'&&typeof document!=='undefined'&&!publicPage()){document.dispatchEvent(new CustomEvent('account-expired'));location.replace('/login.html');}throw e;}return result;
 }
-export async function refreshAccount(){account=await api('/session');return account;}
-if(serverMode){try{await refreshAccount();}catch(e){if(e.status!==401)throw e;}}
+function validAccount(value){
+ if(!value?.user?.id||!value.csrf||!value.permissions||typeof value.permissions!=='object')throw Error('Die Anmeldung wurde nicht vollständig geladen. Bitte erneut laden.');
+ return value;
+}
+export async function refreshAccount(){const next=validAccount(await api('/session',{timeoutMs:15000}));account=next;return account;}
+if(serverMode){
+ try{
+  // Protected HTML already passed the server's session and permission checks.
+  // Use that exact snapshot instead of blocking every module on a second request.
+  const bootstrap=typeof document!=='undefined'?document.getElementById('schaltbase-session'):null;
+  if(bootstrap){account=validAccount(JSON.parse(bootstrap.textContent));bootstrap.remove();}
+  else await refreshAccount();
+ }catch(e){
+  if(e.status!==401){globalThis.__schaltbaseStartupError?.('Die Anmeldung konnte nicht geprüft werden.',e.message);throw e;}
+ }
+}
 export const companyProfile=()=>({...emptyProfile(),...(account?.company?.profile||{})});
 export const can=(module,write=false)=>!serverMode||Boolean(account?.company&&['write',...(!write?['read']:[])].includes(account.permissions?.[module]));
 export const canTool=(tool,write=false)=>tool==='technical'?['wires','copper','smissline'].some(k=>can(k,write)):can(tool,write);
