@@ -138,15 +138,16 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    }
    if(!['GET','HEAD'].includes(method))fail(405,'Methode nicht erlaubt.');
    if(path==='/sw.js'){res.setHeader('Content-Type','text/javascript');return res.end("self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(Promise.all([caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))),self.registration.unregister()])));");}
-   let name=path==='/'?'home.html':path.slice(1);if(!name||name.includes('\\')||name.split('/').some(p=>p.startsWith('.'))||!(/^(?:platform|ui|cad|offerten|waerme|ew|EW|Aufbauabstaende|produkte|regie)\//.test(name)||/^(?:home|index|portal|login|kunden|regierapport|cad|offerten|waermeberechnung|technik|ew|schienenrechner|drahtfarben|aufbauabstaende)\.html$/.test(name)||/^(?:icon-\d+\.png|manifest\.webmanifest|(?:ew|aufbau)-[\w-]+\.json|drahtfarben\.txt)$/.test(name)))fail(404,'Datei nicht gefunden.');
+   // Normalize before route/permission checks; redirect only verified page files.
+   const pageWithSlash=/\.html\/+$/i.test(path);
+   let name=path==='/'?'home.html':path.slice(1);if(pageWithSlash)name=name.replace(/\/+$/,'');if(!name||name.includes('\\')||name.split('/').some(p=>p.startsWith('.'))||!(/^(?:platform|ui|cad|offerten|waerme|ew|EW|Aufbauabstaende|produkte|regie)\//.test(name)||/^(?:home|index|portal|login|kunden|regierapport|cad|offerten|waermeberechnung|technik|ew|schienenrechner|drahtfarben|aufbauabstaende)\.html$/.test(name)||/^(?:icon-\d+\.png|manifest\.webmanifest|(?:ew|aufbau)-[\w-]+\.json|drahtfarben\.txt)$/.test(name)))fail(404,'Datei nicht gefunden.');
    const s=session(req),module=pageModule(name),tool=pageTool(name),privatePage=['index.html','portal.html'].includes(name);if((module||tool||privatePage)&&(!s||s.user.mustChangePassword&&name!=='portal.html')){res.writeHead(302,{Location:s?'/portal.html':'/login.html'});return res.end();}if(tool==='technical'){if(!Object.values(technicalTabs).some(k=>['read','write'].includes(s.permissions[k])))fail(403,'Keine technischen Tabellen freigeschaltet.');}else if(tool)requireArea(s,tool);
    // Workshop assets have no record API but obey the same licence check.
    const file=await realpath(resolve(root,name)).catch(()=>null);if(!file||!file.startsWith(resolve(root)+sep))fail(404,'Datei nicht gefunden.');const info=await stat(file);if(!info.isFile())fail(404,'Datei nicht gefunden.');
-   if(/\.(?:mjs|js)\/+$/i.test(name)){
-    // Relative module imports resolve against the final response URL. A file
-    // served as "client.mjs/" would incorrectly import "client.mjs/model.mjs".
-    // Use a fresh URL so a cached permanent redirect cannot send it back again.
-    const target=new URL(url);target.pathname=target.pathname.replace(/(?:\/|%2f)+$/gi,'');target.searchParams.set('sb_module_path','1');
+   if(pageWithSlash||/\.(?:mjs|js)\/+$/i.test(name)){
+    // Pages and relative module imports need a file URL, not a directory URL.
+    // Keep section/filter parameters and bypass cached permanent redirects.
+    const target=new URL(url);target.pathname=target.pathname.replace(/(?:\/|%2f)+$/gi,'');target.searchParams.set(pageWithSlash?'sb_page_path':'sb_module_path','1');
     res.writeHead(307,{Location:target.pathname+target.search});return res.end();
    }
    let bytes=await readFile(file),type={'.html':'text/html; charset=utf-8','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.pdf':'application/pdf','.webmanifest':'application/manifest+json','.txt':'text/plain'}[extname(file)]||'application/octet-stream';
