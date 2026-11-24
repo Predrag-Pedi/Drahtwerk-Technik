@@ -1,3 +1,4 @@
+import {attachCustomerPicker,fillCustomerFields} from '../platform/customer-picker.mjs';
 import {assertSnapshot} from './projects.mjs?v=20261119-9';
 import {exportReportPdf} from './report-pdf.mjs?v=20261119-9';
 import {ocrCache,ocrCacheKey,renameCachedPages} from './ocr-cache.mjs?v=20261119-9';
@@ -66,7 +67,7 @@ function drawDevices(){
  }).join('');update();
 }
 const documents=[],overrides={},links={};let plants=[],active=-1,importsPending=false,edited=false,pendingFiles=[];
-const projectKeys=['customer','customerNo','pl','name','order','city','amp','icp','date','object','deliveryDate','timeBudget'];
+const projectKeys=['customerContact','customerAddress','customerEmail','customerPhone','customer','customerNo','pl','name','order','city','amp','icp','date','object','deliveryDate','timeBudget'];
 function invalidateDownloads(){ $('downloads').querySelectorAll('a').forEach(a=>URL.revokeObjectURL(a.href));$('downloads').replaceChildren(); }
 function saveActive(){if(active<0)return;Object.assign(plants[active],{fields:state.fields,devices:state.devices,warnings:state.warnings,icpManual:state.icpManual,reviewed:$('reviewed').checked,project:Object.fromEntries(projectKeys.map(k=>[k,$(k).value]))});}
 function selectPlant(i){saveActive();active=i;const p=plants[i];if(!p)return;state.icpManual=!!p.icpManual;state.fields=p.fields;state.devices=p.devices;state.warnings=[...p.warnings,...(state.book?.corrections||[])];for(const key of projectKeys)$(key).value=p.project[key]??(key==='icp'?'6':'');$('reviewed').checked=p.reviewed;$('sources').textContent='Verwendete Dispo: '+p.layoutSource+'. Quellen: '+p.sources.join(' · ');warnings();drawFields();drawDevices();}
@@ -169,3 +170,5 @@ export async function restoreCalculation(snapshot){
   status(book?'Gespeicherte Wärmeberechnung geöffnet. Eingaben und Excel-Vorlage wiederhergestellt.':'Gespeicherter Entwurf geöffnet. Zum Berechnen bitte eine Excel-Vorlage auswählen.');
  }finally{state.busy=false;update();}
 }
+
+attachCustomerPicker({customer:$('customer'),contact:$('customerContact'),apply:s=>fillCustomerFields($('projectForm'),{customer:'#customer',number:'#customerNo',contact:'#customerContact',address:'#customerAddress',email:'#customerEmail',phone:'#customerPhone'},s)});

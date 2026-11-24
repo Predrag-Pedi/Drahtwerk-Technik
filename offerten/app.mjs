@@ -1,3 +1,4 @@
+import {attachCustomerPicker,fillCustomerFields} from '../platform/customer-picker.mjs';
 import {savedLabel,serverMode} from '../platform/client.mjs';
 import {replaceItem} from './replace-item.mjs?v=20261111-9';
 import {editOfferTexts} from './offer-edit.mjs?v=20261111-16';
@@ -66,7 +67,7 @@ function drawDiscountVisibility(){
  const hint=document.createElement('p');hint.className='hint wide';hint.textContent='Der Rabatt bleibt intern sichtbar. Im Angebot werden reduzierte Preise ohne separate Rabattzeile ausgegeben.';
  $('pricing').append(label,hint);
 }
-function draw(){doc.vatRate??=8.1;$('textMode').value=doc.outputMode||'plant';options();form($('meta'),doc,[['number','Offertennummer'],['customer','Kunde'],['project','Objekt / Projekt'],['date','Datum','date'],['address','Objektadresse'],['recipientAddress','Empfängeradresse','textarea',true],['validUntil','Gültig bis','date'],['contact','Ihr Ansprechpartner'],['customerNumber','Kundennummer'],['intro','Einleitung','textarea',true],['closing','Schlusstext / Bedingungen','textarea',true]],()=>{options();calculate();});drawStatus();form($('pricing'),doc,[['markup','Materialzuschlag (%)','number'],['rate','Standard-Stundensatz ohne Artikelwert (CHF)','number'],['discount','Angebotsrabatt (%)','number'],['vatRate','MWST (%)','number']],()=>{drawItems();calculate();});drawDiscountVisibility();drawSelection();}
+function draw(){doc.vatRate??=8.1;$('textMode').value=doc.outputMode||'plant';options();form($('meta'),doc,[['number','Offertennummer'],['customer','Kunde'],['project','Objekt / Projekt'],['date','Datum','date'],['address','Objektadresse'],['recipientAddress','Empfängeradresse','textarea',true],['validUntil','Gültig bis','date'],['contact','Kontaktperson beim Kunden'],['customerNumber','Kundennummer'],['customerEmail','E-Mail Kunde'],['customerPhone','Telefon Kunde'],['intro','Einleitung','textarea',true],['closing','Schlusstext / Bedingungen','textarea',true]],()=>{options();calculate();});attachCustomerPicker({customer:$('meta').querySelector('[data-field=customer]'),contact:$('meta').querySelector('[data-field=contact]'),apply:s=>fillCustomerFields($('meta'),{customer:'[data-field=customer]',number:'[data-field=customerNumber]',contact:'[data-field=contact]',address:'[data-field=recipientAddress]',email:'[data-field=customerEmail]',phone:'[data-field=customerPhone]'},s)});drawStatus();form($('pricing'),doc,[['markup','Materialzuschlag (%)','number'],['rate','Standard-Stundensatz ohne Artikelwert (CHF)','number'],['discount','Angebotsrabatt (%)','number'],['vatRate','MWST (%)','number']],()=>{drawItems();calculate();});drawDiscountVisibility();drawSelection();}
 const searchTexts=new WeakMap();
 function searchText(p){if(!searchTexts.has(p))searchTexts.set(p,[p.article,p.supplierArticle,p.orderNumber,p.name,p.brand,p.type,p.category].join(' ').toLocaleLowerCase());return searchTexts.get(p);}
 function products(){
@@ -156,7 +157,7 @@ $('copyText').onclick=async()=>{try{
  await navigator.clipboard.writeText(text);notice('Offerte als Text kopiert. In Bexio einfügen und Preispositionen separat übernehmen.');
  }catch{$('plainText').open=true;$('output').focus();$('output').select();notice('Automatisches Kopieren nicht verfügbar. Der Text ist markiert: bitte über «Kopieren» übernehmen.');}};
 $('downloadText').onclick=()=>download(filename()+'.txt',$('output').value,'text/plain;charset=utf-8');
-try{[docs,importedCatalog,ownCatalog]=await Promise.all([read('offers'),read('catalog'),read('ownCatalog')]);docs=docs||[];importedCatalog=importedCatalog||[];ownCatalog=ownCatalog||[];catalog=[...importedCatalog,...ownCatalog];}catch{docs=[];catalog=[];notice('Speicher nicht verfügbar. Offerten bitte regelmässig über «Offerte sichern» herunterladen.');}
+try{[docs,importedCatalog,ownCatalog]=await Promise.all([read('offers'),read('catalog'),read('ownCatalog')]);docs=docs||[];importedCatalog=importedCatalog||[];ownCatalog=ownCatalog||[];catalog=[...importedCatalog,...ownCatalog];}catch(error){notice('Firmendaten konnten nicht vollständig geladen werden: '+error.message);globalThis.__schaltbaseStartupError?.('Offerten konnten nicht geladen werden.',error.message+' Bitte neu laden. Bestehende Daten bleiben erhalten.');throw error;}
 ready=true;choose(docs[0]||offer());catalogReady();renderOffers();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 

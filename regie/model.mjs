@@ -21,6 +21,7 @@ export function validateReport(value,{previous=null,author='',company={},now=new
  if(!['draft','signed'].includes(value.status))error('Ungültiger Rapportstatus.');
  if(typeof value.completed!=='boolean')error('Bitte den Stand der Arbeiten angeben.');
  const r={version:1,status:value.status,number:str(value.number,80),date:date(value.date),customer:str(value.customer),customerAddress:str(value.customerAddress,600),contact:str(value.contact),location:str(value.location,600),project:str(value.project),employee:str(value.employee),km:num(value.km,100000),travelHours:num(value.travelHours,1000),expenses:num(value.expenses,1000000),completed:value.completed===true,notes:str(value.notes,5000),work:list(value.work).map(x=>({date:date(x.date),employee:str(x.employee),activity:str(x.activity,4000),hours:num(x.hours,24)})),materials:list(value.materials).map(x=>({article:str(x.article,100),description:str(x.description,600),quantity:num(x.quantity,1000000),unit:str(x.unit,30)}))};
+ for(const key of ['customerNumber','customerEmail','customerPhone'])if(value[key]!==undefined)r[key]=str(value[key]);
  if(r.status==='signed'){
   if(!r.number||!r.customer||!r.location)error('Rapportnummer, Kunde und Einsatzort sind für die Unterschrift erforderlich.');
   if(!r.work.length||r.work.some(x=>!x.activity||!x.employee||x.hours<=0))error('Bitte Tätigkeiten, Mitarbeitende und Arbeitsstunden vollständig eintragen.');

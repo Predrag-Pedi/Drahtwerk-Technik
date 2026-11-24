@@ -15,6 +15,9 @@ export function openDatabase(path){
  CREATE TABLE IF NOT EXISTS login_attempts(key TEXT PRIMARY KEY,count INTEGER NOT NULL,until INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS workshop_templates(company_id TEXT NOT NULL REFERENCES companies(id),tool TEXT NOT NULL,data TEXT,revision INTEGER NOT NULL,updated_by TEXT NOT NULL REFERENCES users(id),updated_at TEXT NOT NULL,PRIMARY KEY(company_id,tool));
  CREATE TABLE IF NOT EXISTS workshop_files(id TEXT PRIMARY KEY,company_id TEXT NOT NULL REFERENCES companies(id),tool TEXT NOT NULL,name TEXT NOT NULL,mime TEXT NOT NULL,bytes BLOB NOT NULL,uploaded_by TEXT NOT NULL REFERENCES users(id),uploaded_at TEXT NOT NULL);
+ CREATE TABLE IF NOT EXISTS catalog_imports(id TEXT PRIMARY KEY,company_id TEXT NOT NULL REFERENCES companies(id),user_id TEXT NOT NULL REFERENCES users(id),revision INTEGER NOT NULL,count INTEGER NOT NULL,expires INTEGER NOT NULL);
+ CREATE TABLE IF NOT EXISTS catalog_chunks(upload_id TEXT NOT NULL REFERENCES catalog_imports(id) ON DELETE CASCADE,seq INTEGER NOT NULL,data TEXT NOT NULL,bytes INTEGER NOT NULL,count INTEGER NOT NULL,PRIMARY KEY(upload_id,seq));
+ CREATE TABLE IF NOT EXISTS catalog_heads(company_id TEXT PRIMARY KEY REFERENCES companies(id),upload_id TEXT NOT NULL REFERENCES catalog_imports(id),revision INTEGER NOT NULL,count INTEGER NOT NULL,chunks INTEGER NOT NULL,bytes INTEGER NOT NULL);
  CREATE INDEX IF NOT EXISTS workshop_files_company ON workshop_files(company_id,tool);
  `);
  // Keep author references when removing an account; existing installations migrate on startup.
