@@ -19,6 +19,13 @@ export function openDatabase(path){
  CREATE TABLE IF NOT EXISTS catalog_chunks(upload_id TEXT NOT NULL REFERENCES catalog_imports(id) ON DELETE CASCADE,seq INTEGER NOT NULL,data TEXT NOT NULL,bytes INTEGER NOT NULL,count INTEGER NOT NULL,PRIMARY KEY(upload_id,seq));
  CREATE TABLE IF NOT EXISTS catalog_heads(company_id TEXT PRIMARY KEY REFERENCES companies(id),upload_id TEXT NOT NULL REFERENCES catalog_imports(id),revision INTEGER NOT NULL,count INTEGER NOT NULL,chunks INTEGER NOT NULL,bytes INTEGER NOT NULL);
  CREATE INDEX IF NOT EXISTS workshop_files_company ON workshop_files(company_id,tool);
+ CREATE TABLE IF NOT EXISTS support_requests(id TEXT PRIMARY KEY,company_id TEXT NOT NULL REFERENCES companies(id),developer_id TEXT NOT NULL REFERENCES users(id),session_hash TEXT NOT NULL,reason TEXT NOT NULL,mode TEXT NOT NULL CHECK(mode IN ('read','write')),duration_minutes INTEGER NOT NULL,status TEXT NOT NULL,created_at INTEGER NOT NULL,request_expires INTEGER NOT NULL,approved_by TEXT REFERENCES users(id),approved_at INTEGER,expires_at INTEGER,permissions TEXT,ended_at INTEGER,end_reason TEXT);
+ CREATE TABLE IF NOT EXISTS support_recipients(request_id TEXT NOT NULL REFERENCES support_requests(id),user_id TEXT NOT NULL REFERENCES users(id),PRIMARY KEY(request_id,user_id));
+ CREATE TABLE IF NOT EXISTS support_context(session_hash TEXT PRIMARY KEY REFERENCES sessions(hash) ON DELETE CASCADE,request_id TEXT NOT NULL REFERENCES support_requests(id));
+ CREATE TABLE IF NOT EXISTS support_presence(session_hash TEXT PRIMARY KEY REFERENCES sessions(hash) ON DELETE CASCADE,last_seen INTEGER NOT NULL);
+ CREATE INDEX IF NOT EXISTS support_requests_session ON support_requests(session_hash,status);
+ CREATE INDEX IF NOT EXISTS support_requests_company ON support_requests(company_id,status);
+ CREATE INDEX IF NOT EXISTS support_recipients_user ON support_recipients(user_id,request_id);
  `);
  // Keep author references when removing an account; existing installations migrate on startup.
  if(!db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='deleted_at'))db.exec('ALTER TABLE users ADD COLUMN deleted_at TEXT');

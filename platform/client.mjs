@@ -1,10 +1,12 @@
 import {emptyProfile,technicalTabs} from './model.mjs';
 import {requestJSON} from './request.mjs';
+import {managementRequest,managedCompany} from './session-context.mjs';
 export const serverMode=globalThis.__companyMode===true;
 export let account=null;
 export const publicPage=()=>typeof location!=='undefined'&&(['/','/home.html','/login.html'].includes(location.pathname)||location.pathname.startsWith('/produkte/'));
 export async function api(path,{method='GET',body,timeoutMs=0,signal}={}){
- const {response,result}=await requestJSON('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...(body!==undefined?{'Content-Type':'application/json'}:{}),...(account?{'X-CSRF-Token':account.csrf,'X-Company-Id':account.company?.id||'','X-User-Id':account.user.id}:{})},...(body!==undefined?{body:JSON.stringify(body)}:{})},{timeoutMs,signal});
+ const company=managementRequest(path)?managedCompany(account):account?.company;
+ const {response,result}=await requestJSON('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...(body!==undefined?{'Content-Type':'application/json'}:{}),...(account?{'X-CSRF-Token':account.csrf,'X-Company-Id':company?.id||'','X-User-Id':account.user.id,'X-Support-Id':account.support?.id||''}:{})},...(body!==undefined?{body:JSON.stringify(body)}:{})},{timeoutMs,signal});
  if(!response.ok){const e=Object.assign(Error(result?.error||'Anfrage fehlgeschlagen.'),{status:response.status});if(response.status===401&&path!=='/login'&&typeof document!=='undefined'&&!publicPage()){document.dispatchEvent(new CustomEvent('account-expired'));location.replace('/login.html');}throw e;}return result;
 }
 function validAccount(value){
@@ -27,7 +29,7 @@ export const companyProfile=()=>({...emptyProfile(),...(account?.company?.profil
 export const can=(module,write=false)=>!serverMode||Boolean(account?.company&&['write',...(!write?['read']:[])].includes(account.permissions?.[module]));
 export const canTool=(tool,write=false)=>tool==='technical'?Object.values(technicalTabs).some(k=>can(k,write)):can(tool,write);
 export const localScope=()=>serverMode?`company:${account?.company?.id||'none'}:user:${account?.user?.id||'none'}:`:'';
-export const savedLabel=()=>serverMode?'Im Betrieb gespeichert':'In diesem Browser gespeichert';
+export const savedLabel=()=>serverMode?account?.company?.internalWorkspace?'Im Entwickler-Arbeitsplatz gespeichert':'Im Betrieb gespeichert':'In diesem Browser gespeichert';
 export function addressLines(p=companyProfile()){return [p.name,p.street,[p.postcode,p.city].filter(Boolean).join(' '),p.country].filter(Boolean);}
 export function footerLines(p=companyProfile()){return [addressLines(p).join(' · '),[p.email,p.phone,p.website].filter(Boolean).join(' · '),p.vat?'MWST-Nr.: '+p.vat:''].filter(Boolean);}
 // Binary Excel templates and snapshots retain their byte representation over JSON.

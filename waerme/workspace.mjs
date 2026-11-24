@@ -1,8 +1,8 @@
 import {ready,calculationBusy,captureCalculation,restoreCalculation,resetCalculation} from './app.mjs?v=20261119-9';
 import {projectRepository,projectSummary} from './projects.mjs?v=20261119-9';
-import {serverMode} from '../platform/client.mjs';
+import {serverMode,account} from '../platform/client.mjs';
 const $=id=>document.getElementById(id),editor=$('heatEditor');
-if(serverMode){document.querySelector('.heat-local').textContent='Deine Firma';document.querySelector('.heat-storage-note').textContent='Berechnungen werden im Betrieb gespeichert und sind für berechtigte Mitarbeitende auch auf anderen Geräten verfügbar. Excel-Vorlagen und die Texterkennung bleiben auf diesem Gerät. Excel und PDF zusätzlich separat sichern.';}
+if(serverMode){document.querySelector('.heat-local').textContent=account?.company?.internalWorkspace?'Entwickler-Arbeitsplatz':'Deine Firma';document.querySelector('.heat-storage-note').textContent=account?.company?.internalWorkspace?'Berechnungen werden in deinem Entwickler-Arbeitsplatz gespeichert. Firmendaten bleiben getrennt. Excel-Vorlagen und Texterkennung bleiben auf diesem Gerät.':'Berechnungen werden im Betrieb gespeichert und sind für berechtigte Mitarbeitende auch auf anderen Geräten verfügbar. Excel-Vorlagen und die Texterkennung bleiben auf diesem Gerät. Excel und PDF zusätzlich separat sichern.';}
 let records=[],current=null,changed=false,working=false,applying=false;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const date=s=>new Date(s).toLocaleString('de-CH',{dateStyle:'short',timeStyle:'short'});
