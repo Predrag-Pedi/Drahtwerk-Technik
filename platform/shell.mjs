@@ -14,12 +14,17 @@ if(serverMode){
   for(const el of document.querySelectorAll('[data-storage-info]'))el.textContent='Im Betrieb gespeichert. Berechtigte Mitarbeitende können die Projekte auch auf anderen Geräten öffnen. Exporte dienen als zusätzliche Sicherung.';
   for(const dock of document.querySelectorAll('.suite-sidebar-foot,#accountDock'))mountAccountMenu(dock);
   const sidebar=document.querySelector('.suite-sidebar nav');
-  if(sidebar&&!sidebar.querySelector('a[href="cad.html"]'))sidebar.insertAdjacentHTML('beforeend','<a class="suite-nav-link" href="cad.html"><span>Schema & Dispo</span></a>');
+  const navIcon='<svg class="suite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M13 13h4M13 17h4"/></svg>';
+  if(sidebar&&!sidebar.querySelector('a[href="cad.html"]'))sidebar.insertAdjacentHTML('beforeend','<a class="suite-nav-link" href="cad.html">'+navIcon+'<span>Schema & Dispo</span></a>');
+  for(const link of document.querySelectorAll('.suite-sidebar a[href="cad.html"]'))if(!link.querySelector('svg'))link.insertAdjacentHTML('afterbegin',navIcon);
+  if(sidebar&&can('customers'))sidebar.insertAdjacentHTML('beforeend','<p class="suite-nav-label">Stammdaten</p><a class="suite-nav-link" href="kunden.html">'+navIcon+'<span>Kundenstamm</span></a>');
+  if(dev)sidebar?.insertAdjacentHTML('beforeend','<p class="suite-nav-label">Entwickler</p><a class="suite-nav-link" href="/portal.html?section=businesses"><span>Lizenzen & Berechtigungen</span></a>');
+  if(dev&&!document.querySelector('#portalNav'))for(const header of document.querySelectorAll(sidebar?'#editor>.editor-heading':'.dw-header,#editor>.editor-heading')){const a=document.createElement('a');a.href='/portal.html?section=businesses';a.className='home';a.textContent='Lizenzen & Berechtigungen';header.append(a);}
   if(dev&&document.body.classList.contains('suite-index')){
-   sidebar?.insertAdjacentHTML('beforeend','<p class="suite-nav-label">Entwickler</p><a class="suite-nav-link" href="/portal.html?section=businesses"><span>Lizenzen & Berechtigungen</span></a>');
    const section=document.createElement('section');section.className='developer-tools';section.innerHTML='<div class="suite-section-heading"><div><p class="suite-kicker">DEIN ENTWICKLERBEREICH</p><h2 class="section-title">Verwaltung</h2></div></div><a class="developer-card" href="/portal.html?section=businesses"><span class="developer-symbol" aria-hidden="true">⌘</span><span><strong>Lizenzen & Berechtigungen</strong><small>Betriebe eröffnen, Benutzer anlegen und Zugriffe verwalten.</small></span><span aria-hidden="true">↗</span></a>';
    document.querySelector('.suite-content')?.append(section);
   }
+  if(document.body.classList.contains('suite-index')&&can('customers')){const section=document.createElement('section');section.className='developer-tools';section.innerHTML='<div class="suite-section-heading"><div><p class="suite-kicker">GEMEINSAM IM BETRIEB</p><h2 class="section-title">Kundenstamm</h2></div></div><a class="developer-card" href="kunden.html">'+navIcon+'<span><strong>Kunden & Kontaktpersonen</strong><small>Einmal erfassen. In allen Werkzeugen auswählen.</small></span><span aria-hidden="true">↗</span></a>';document.querySelector('.suite-content')?.append(section);}
   const module=pageModule(location.pathname.slice(1)),readOnly=module&&!can(module,true);
   const update=()=>{
    if(readOnly)for(const el of document.querySelectorAll('#newProject,#importProject,#demoProject,#frameDemo,#contactDemo,#projectList [data-remove],#new,#emptyAction,#deleteOffer,#duplicate,#restore')){el.disabled=true;el.title='Lesezugriff';}
