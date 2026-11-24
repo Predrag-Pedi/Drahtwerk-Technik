@@ -151,6 +151,20 @@ test('support cannot cross company headers or be implicitly reopened after selec
  assert.equal((await f.send()).status,409);
 });
 
+test('ending support returns to the developer workspace and keeps management pages available',async t=>{
+ const f=await fixture(t);const id=await f.entered();
+ assert.equal((await f.action(id,'stop')).status,200);
+ assert.equal((await f.request('/api/records/reports')).status,409);
+ const after=(await f.refresh()).data;assert.equal(after.support,null);assert.equal(after.company.id,'developer-dev');assert.equal(after.managementCompany.id,'alpha');
+ for(const path of ['/index.html','/portal.html?section=users','/portal.html?section=businesses']){
+  const page=await f.request(path);assert.equal(page.status,200,path);assert.match(page.headers['content-type'],/^text\/html/);assert.match(page.data,/developer-dev/);
+ }
+ const redirected=await f.request('/portal.html/?section=users');assert.equal(redirected.status,307);
+ const returnPage=await f.request(redirected.headers.location);assert.equal(returnPage.status,200);assert.match(returnPage.data,/developer-dev/);
+ const bootstrap=JSON.parse(returnPage.data.match(/id="schaltbase-session">([^<]+)<\/script>/)[1]);assert.equal(bootstrap.support,null);assert.equal(bootstrap.company.id,'developer-dev');assert.equal(bootstrap.managementCompany.id,'alpha');
+ assert.equal((await f.action(id,'enter')).status,403);
+});
+
 test('logout ends the grant and a new login cannot reuse it',async t=>{
  const f=await fixture(t);const id=await f.entered();assert.equal((await f.request('/api/logout','POST',{})).status,200);
  f.login('dev','fresh');assert.equal((await f.action(id,'enter','fresh')).status,403);
