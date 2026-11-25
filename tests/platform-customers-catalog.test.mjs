@@ -72,10 +72,19 @@ test('customers, atomic large catalogues, explicit account status and public SEO
    assert.equal((await request('/api/company/users/other/status','PATCH',{enabled:true},'dev')).status,404);
   });
   await t.test('only public product pages appear in the sitemap and receive indexable metadata',async()=>{
+   for(const path of ['/sitemap.xml','/robots.txt'])for(const method of ['GET','HEAD']){
+    const response=await request(path,method,undefined,'anonymous');assert.equal(response.status,200);
+    assert.equal(response.headers['x-robots-tag'],undefined,`${method} ${path} must not inherit the private-page crawler exclusion`);
+    assert.match(response.headers['content-type'],path.endsWith('.xml')?/^application\/xml/:/^text\/plain/);
+    if(method==='HEAD')assert.equal(response.data,'');else assert.ok(response.data.length>0);
+   }
    const sitemap=await request('/sitemap.xml','GET',undefined,'anonymous');assert.equal(sitemap.status,200);assert.match(sitemap.data,/<loc>http:\/\/localhost\/produkte\/schema.html<\/loc>/);assert.doesNotMatch(sitemap.data,/kunden.html|portal.html|index.html|api/);
    assert.match((await request('/robots.txt')).data,/Sitemap: http:\/\/localhost\/sitemap.xml/);
    const home=await request('/','GET',undefined,'anonymous');assert.equal(home.headers['x-robots-tag'],'index, follow');assert.match(home.data,/rel="canonical" href="http:\/\/localhost\/"/);
    assert.equal((await request('/login.html','GET',undefined,'anonymous')).headers['x-robots-tag'],'noindex, nofollow');
+   for(const [path,role,status] of [['/portal.html','anonymous',302],['/kunden.html','reader',200],['/api/records/customers','reader',200],['/api/records/customers','anonymous',401],['/missing.xml','anonymous',404]]){
+    const response=await request(path,'GET',undefined,role);assert.equal(response.status,status,path);assert.equal(response.headers['x-robots-tag'],'noindex, nofollow',path);
+   }
   });
  }finally{await new Promise(r=>app.close(r));db.close();}
 });
