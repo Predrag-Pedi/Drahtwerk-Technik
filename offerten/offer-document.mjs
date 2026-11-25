@@ -49,6 +49,7 @@ export function offerHTML(doc,value='plant',editing=false,brand=companyProfile()
  if(doc.discount&&!doc.hideDiscount)html+='<tr>'+td('Rabatt '+esc(doc.discount)+' %')+td('−CHF '+money(t.discount),'right')+'</tr>';
  html+='<tr>'+td('<strong>'+(isOrder?'Auftragstotal':'Angebotstotal')+' exkl. MWST</strong>')+td('<strong>CHF '+money(t.total)+'</strong>','right')+'</tr>';
  html+='<tr>'+td('Zzgl. MWST '+money(t.vatRate)+' %')+td('CHF '+money(t.vat),'right')+'</tr><tr style="background:#eef3f8;border-top:2px solid #173f70;">'+td('<strong>'+(isOrder?'Auftragstotal':'Angebotstotal')+' inkl. MWST</strong>')+td('<strong>CHF '+money(t.gross)+'</strong>','right')+'</tr></table></section>';
+ if(doc.customerMaterials?.length)html+='<section><h2 style="font-size:18px;margin-top:28px;">Angeliefertes Material</h2><p>Vom Kunden bereitzustellen. Nicht im Angebotspreis enthalten.</p><ul>'+doc.customerMaterials.map(r=>'<li>'+esc(r.qty)+' '+esc(r.unit)+' · '+esc(r.article?r.article+' – ':'')+esc(r.name)+(r.notes?' · '+lines(r.notes):'')+'</li>').join('')+'</ul></section>';
  if(doc.closing||editing)html+='<p style="margin-top:24px;">'+editable(doc.closing,'closing')+'</p>';
  return html+'<footer style="margin-top:36px;padding-top:12px;border-top:1px solid #b8c9da;font-size:10px;color:#617389;">'+footerLines(brand).map(lines).join('<br>')+'</footer></article>';
 }

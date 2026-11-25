@@ -52,6 +52,9 @@ export function openDatabase(path){
     PRAGMA user_version=5; COMMIT;`);
   }catch(error){db.exec('ROLLBACK');db.close();throw error;}
  }
+ if(db.prepare('PRAGMA user_version').get().user_version<6){
+  db.exec('BEGIN IMMEDIATE');try{for(const id of ['basis','planung','komplett']){const row=db.prepare('SELECT data FROM plans WHERE id=?').get(id);if(row){const p=JSON.parse(row.data);if(!p.modules.includes('inventory')){p.modules.push('inventory');db.prepare('UPDATE plans SET data=? WHERE id=?').run(JSON.stringify(p),id);}}}db.exec('PRAGMA user_version=6; COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}
+ }
  return db;
 }
 export const rows=(db,table)=>db.prepare(`SELECT * FROM ${table}`).all(); // table is internal, never request data

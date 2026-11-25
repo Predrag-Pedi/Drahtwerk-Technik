@@ -27,7 +27,7 @@ test('retiring accounting preserves existing accounts, logins, tool rights and c
  db.prepare('INSERT INTO support_requests(id,company_id,developer_id,session_hash,reason,mode,duration_minutes,status,created_at,request_expires,permissions) VALUES (?,?,?,?,?,?,?,?,?,?,?)').run('support','firm','dev','other-session','Test','write',30,'active',0,0,JSON.stringify({rails:'write',accounting:'write'}));
  const users=db.prepare('SELECT * FROM users ORDER BY id').all(),records=db.prepare('SELECT * FROM records ORDER BY area').all();
  db.close();db=openDatabase(file);
- assert.equal(db.prepare('PRAGMA user_version').get().user_version,5);
+ assert.equal(db.prepare('PRAGMA user_version').get().user_version,6);
  for(const old of users){
   const current=db.prepare('SELECT * FROM users WHERE id=?').get(old.id),expected={...old,accounting_role:0,permissions:JSON.stringify({rails:'read',offers:'write',orders:'read'})};
   assert.deepEqual({...current},expected);
