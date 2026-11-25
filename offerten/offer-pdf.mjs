@@ -5,6 +5,7 @@ import {safeLogo} from '../platform/branding.mjs';
 import {imagePdf} from './image-pdf.mjs?v=20261111-4';
 // A4 pages at 3x resolution; rows wrap and continue on fresh pages.
 export async function renderOfferPages(doc,mode='plant',env={}){
+ const isOrder=doc.documentType==='order',title=isOrder?'Auftragsbestätigung':'Offerte';
  mode=priceMode(mode);offerText(doc,mode);const pricing=offerPricing(doc),t=pricing.totals,detail=mode==='detail';
  const create=env.createCanvas||(()=>document.createElement('canvas'));
  const brand=env.profile||companyProfile(),logoData=safeLogo(brand.logo);
@@ -12,7 +13,7 @@ export async function renderOfferPages(doc,mode='plant',env={}){
  const pages=[];let canvas,ctx,y,table=false;
  const cols=detail?[36,75,355,425,487]:[36,75,405,487],widths=detail?[33,274,64,57,72]:[33,324,76,72];
  function font(size=10,bold=false){ctx.font=`${bold?'bold ':''}${size}px Arial, sans-serif`;ctx.fillStyle='#172f4b';ctx.textBaseline='top';}
- function newPage(){canvas=create();canvas.width=1786;canvas.height=2526;ctx=canvas.getContext('2d');ctx.scale(3,3);ctx.fillStyle='white';ctx.fillRect(0,0,596,842);if(logo){const fit=Math.min(142/(logo.naturalWidth||logo.width||142),53.15/(logo.naturalHeight||logo.height||53.15));ctx.drawImage(logo,36,24,(logo.naturalWidth||logo.width||142)*fit,(logo.naturalHeight||logo.height||53.15)*fit);}font(9);ctx.fillText('Offerte '+(doc.number||''),360,44);y=96;pages.push(canvas);}
+ function newPage(){canvas=create();canvas.width=1786;canvas.height=2526;ctx=canvas.getContext('2d');ctx.scale(3,3);ctx.fillStyle='white';ctx.fillRect(0,0,596,842);if(logo){const fit=Math.min(142/(logo.naturalWidth||logo.width||142),53.15/(logo.naturalHeight||logo.height||53.15));ctx.drawImage(logo,36,24,(logo.naturalWidth||logo.width||142)*fit,(logo.naturalHeight||logo.height||53.15)*fit);}font(9);ctx.fillText((isOrder?'Auftrag':'Offerte')+' '+(doc.number||''),320,44);y=96;pages.push(canvas);}
  function wrap(text,width,size=10,bold=false){font(size,bold);const out=[];for(const para of String(text??'').split('\n')){let row='';for(const word of para.split(/\s+/)){if(row&&ctx.measureText(row+' '+word).width>width){out.push(row);row='';}for(const ch of (row?' ':'')+word){if(ctx.measureText(row+ch).width>width&&row){out.push(row);row='';}row+=ch;}}out.push(row);}return out;}
  function tableHead(){font(8,true);ctx.fillStyle='#edf2f7';ctx.fillRect(36,y,523,25);font(8,true);const names=detail?['Pos.','Artikelbezeichnung','Menge / Einheit','Einzelpreis','Betrag']:['Pos.','Artikelbezeichnung','Menge / Einheit','Betrag'];names.forEach((n,i)=>ctx.fillText(n,cols[i],y+8));y+=29;}
  function ensure(height){if(y+height>770){newPage();if(table)tableHead();}}
@@ -25,17 +26,18 @@ export async function renderOfferPages(doc,mode='plant',env={}){
  const right=wrap([doc.customer,doc.recipientAddress].filter(Boolean).join('\n'),235,10);
  const count=Math.max(left.length,right.length);
  for(let i=0;i<count;i++){ensure(14);if(left[i]){font(9,i===0);ctx.fillText(left[i],36,y);}if(right[i]){font(10,i===0);ctx.fillText(right[i],324,y);}y+=14;}
- y+=24;paragraph('Offerte '+(doc.number||''),20,true);
+ y+=24;paragraph(title+' '+(doc.number||''),20,true);
  ctx.strokeStyle='#173f70';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(36,y);ctx.lineTo(559,y);ctx.stroke();y+=12;
  if(doc.project)paragraph(doc.project,12,true);
  const date=v=>String(v||'').split('-').reverse().join('.');
  paragraph(['Datum: '+date(doc.date),doc.validUntil?'Gültig bis: '+date(doc.validUntil):'',doc.contact?'Ihr Ansprechpartner: '+doc.contact:'',doc.customerNumber?'Kundennummer: '+doc.customerNumber:''].filter(Boolean).join('\n'),9);
+ if(isOrder)paragraph(['Offerte: '+doc.sourceOfferNumber,doc.reference?'Ihre Referenz: '+doc.reference:'',doc.deliveryDate?'Lieferdatum: '+date(doc.deliveryDate):''].filter(Boolean).join('\n'),9);
  if(doc.address)paragraph('Objektadresse: '+doc.address,9);
  paragraph('Alle Preise in CHF. Positionspreise exkl. MWST.',8);y+=5;paragraph(doc.intro);
 
  doc.plants.forEach((p,pi)=>{table=false;ensure(90);paragraph(`${pi+1}. ${p.name}`,14,true);if(mode==='totals'){if(description(p))paragraph(description(p));
  p.parts.forEach((part,si)=>{ensure(60);paragraph(`${pi+1}.${si+1} ${part.name}`,11,true);if(part.notes)paragraph(part.notes);part.items.forEach((item,ii)=>{if(visibleInTotals(item)){paragraph(`${pi+1}.${si+1}.${ii+1} ${offerItemName(item)}`);paragraph(`${item.qty} ${item.unit||'Stk.'}`);}});});total('Total '+p.name,t.plants[pi].total);y+=20;return;}table=true;tableHead();if(description(p))row(detail?['','Schrank / Ausführung\n'+description(p),'','','']:['','Schrank / Ausführung\n'+description(p),'','']);p.parts.forEach((s,si)=>{ensure(60);row(detail?['',`${pi+1}.${si+1} ${s.name}`,'','','']:['',`${pi+1}.${si+1} ${s.name}`,'',''],true);if(s.notes)row(detail?['',s.notes,'','','']:['',s.notes,'','']);s.items.forEach((i,ii)=>{const l=pricing.line(i);row([`${pi+1}.${si+1}.${ii+1}`,offerItemName(i),`${i.qty} ${i.unit||'Stk.'}`,...(detail?[money(l.unit),money(l.total)]:[''])]);});if(mode!=='plant')total('Total '+s.name,t.plants[pi].parts[si].total);});total('Total '+p.name,t.plants[pi].total);table=false;y+=20;});
- ensure(Math.min(650,50+(t.plants.length+4+(doc.discount?1:0))*34));paragraph('Zusammenstellung',14,true);t.plants.forEach((p,i)=>total(`${i+1}. ${doc.plants[i].name}`,p.total));total('Zwischentotal',t.subtotal);if(doc.discount&&!doc.hideDiscount)total(`Rabatt ${doc.discount} %`,-t.discount);total('Angebotstotal exkl. MWST',t.total);total('Zzgl. MWST '+money(t.vatRate)+' %',t.vat);total('Angebotstotal inkl. MWST',t.gross);y+=14;if(doc.closing)paragraph(doc.closing);
+ ensure(Math.min(650,50+(t.plants.length+4+(doc.discount?1:0))*34));paragraph('Zusammenstellung',14,true);t.plants.forEach((p,i)=>total(`${i+1}. ${doc.plants[i].name}`,p.total));total('Zwischentotal',t.subtotal);if(doc.discount&&!doc.hideDiscount)total(`Rabatt ${doc.discount} %`,-t.discount);total((isOrder?'Auftragstotal':'Angebotstotal')+' exkl. MWST',t.total);total('Zzgl. MWST '+money(t.vatRate)+' %',t.vat);total((isOrder?'Auftragstotal':'Angebotstotal')+' inkl. MWST',t.gross);y+=14;if(doc.closing)paragraph(doc.closing);
  pages.forEach((c,i)=>{const g=c.getContext('2d');g.strokeStyle='#b8c9da';g.lineWidth=.5;g.beginPath();g.moveTo(36,789);g.lineTo(559,789);g.stroke();g.font='7px Arial';g.fillStyle='#65758a';footerLines(brand).slice(0,3).forEach((line,n)=>g.fillText(line,36,798+n*11));g.fillText(`Seite ${i+1} / ${pages.length}`,505,820);});return pages;
 }
-export async function exportOfferPdf(doc,mode){const canvases=await renderOfferPages(doc,mode),pages=[];for(const c of canvases){const b=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.96));if(!b)throw Error('PDF-Seite konnte nicht erstellt werden.');pages.push({width:c.width,height:c.height,bytes:new Uint8Array(await b.arrayBuffer())});c.width=c.height=1;}return imagePdf(pages);}
+export async function exportOfferPdf(doc,mode,env={}){const canvases=await renderOfferPages(doc,mode,env),pages=[];for(const c of canvases){const b=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.96));if(!b)throw Error('PDF-Seite konnte nicht erstellt werden.');pages.push({width:c.width,height:c.height,bytes:new Uint8Array(await b.arrayBuffer())});c.width=c.height=1;}return imagePdf(pages);}

@@ -57,7 +57,8 @@ export function visibleInTotals(i){
 export const priceMode=value=>value===true?'detail':value===false?'summary':['detail','plant','summary','totals'].includes(value)?value:'plant';
 export function offerText(doc,mode=true){
  mode=priceMode(mode);const pricing=offerPricing(doc),t=pricing.totals;if(!doc.plants.some(p=>p.parts.some(s=>s.items.length)))throw Error('Bitte zuerst Positionen hinzufügen.');
- const out=[`OFFERTE${doc.number?' '+doc.number:''}`,doc.project,doc.customer,doc.recipientAddress,doc.address,doc.validUntil?`Gültig bis: ${doc.validUntil}`:'',doc.contact?`Ihr Ansprechpartner: ${doc.contact}`:'',doc.customerNumber?`Kundennummer: ${doc.customerNumber}`:'',doc.date?`Datum: ${doc.date}`:'','',doc.intro,''];
+ const isOrder=doc.documentType==='order';
+ const out=[`${isOrder?'AUFTRAGSBESTÄTIGUNG':'OFFERTE'}${doc.number?' '+doc.number:''}`,doc.project,doc.customer,doc.recipientAddress,doc.address,doc.validUntil?`Gültig bis: ${doc.validUntil}`:'',doc.contact?`Ihr Ansprechpartner: ${doc.contact}`:'',doc.customerNumber?`Kundennummer: ${doc.customerNumber}`:'',doc.date?`Datum: ${doc.date}`:'',isOrder?`Offerte: ${doc.sourceOfferNumber||''}`:'',isOrder&&doc.deliveryDate?`Lieferdatum: ${doc.deliveryDate}`:'',isOrder&&doc.reference?`Ihre Referenz: ${doc.reference}`:'','',doc.intro,''];
  doc.plants.forEach((p,pi)=>{out.push(`${pi+1}. ${p.name}`,description(p),'');
  if(mode==='totals'){
  p.parts.forEach((s,si)=>{out.push(`${pi+1}.${si+1} ${s.name}`,s.notes);
@@ -68,7 +69,7 @@ export function offerText(doc,mode=true){
  s.items.forEach((i,ii)=>{const l=pricing.line(i);out.push(`${pi+1}.${si+1}.${ii+1} ${offerItemName(i)}\t${i.qty}\t${i.unit||'Stk.'}${mode==='detail'?'\t'+money(l.unit)+'\t'+money(l.total):''}`);});
  if(mode!=='plant')out.push(`Total ${s.name}: CHF ${money(t.plants[pi].parts[si].total)}`);});out.push('',`Total ${p.name}: CHF ${money(t.plants[pi].total)}`,'');});
  out.push('ZUSAMMENSTELLUNG');t.plants.forEach((p,i)=>out.push(`${i+1}. ${doc.plants[i].name}\tCHF ${money(p.total)}`));
- out.push(`Zwischentotal: CHF ${money(t.subtotal)}`);if(doc.discount&&!doc.hideDiscount)out.push(`Rabatt ${doc.discount} %: −CHF ${money(t.discount)}`);out.push(`Angebotstotal exkl. MWST: CHF ${money(t.total)}`,`Zzgl. MWST ${money(t.vatRate)} %: CHF ${money(t.vat)}`,`Angebotstotal inkl. MWST: CHF ${money(t.gross)}`,'',doc.closing);
+ out.push(`Zwischentotal: CHF ${money(t.subtotal)}`);if(doc.discount&&!doc.hideDiscount)out.push(`Rabatt ${doc.discount} %: −CHF ${money(t.discount)}`);out.push(`${isOrder?'Auftragstotal':'Angebotstotal'} exkl. MWST: CHF ${money(t.total)}`,`Zzgl. MWST ${money(t.vatRate)} %: CHF ${money(t.vat)}`,`${isOrder?'Auftragstotal':'Angebotstotal'} inkl. MWST: CHF ${money(t.gross)}`,'',doc.closing);
  return out.filter(x=>x!==undefined).join('\n').replace(/\n{3,}/g,'\n\n');
 }
 

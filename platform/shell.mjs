@@ -19,6 +19,13 @@ if(serverMode){
   const navIcon='<svg class="suite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M13 13h4M13 17h4"/></svg>';
   if(sidebar&&!sidebar.querySelector('a[href="cad.html"]'))sidebar.insertAdjacentHTML('beforeend','<a class="suite-nav-link" href="cad.html">'+navIcon+'<span>Schema & Dispo</span></a>');
   for(const link of document.querySelectorAll('.suite-sidebar a[href="cad.html"]'))if(!link.querySelector('svg'))link.insertAdjacentHTML('afterbegin',navIcon);
+  for(const [key,href,label] of [['orders','auftraege.html','Aufträge'],['accounting','buchhaltung.html','Buchhaltung']])if(sidebar&&can(key)&&!sidebar.querySelector('a[href="'+href+'"],a[href="/'+href+'"]')){
+   const link=document.createElement('a');link.href='/'+href;link.className='suite-nav-link';link.innerHTML=navIcon+'<span>'+label+'</span>';if(location.pathname==='/'+href)link.setAttribute('aria-current','page');
+   const anchor=(key==='accounting'&&sidebar.querySelector('a[href="/auftraege.html"],a[href="auftraege.html"]'))||sidebar.querySelector('a[href="offerten.html"],a[href="/offerten.html"]');if(anchor)anchor.after(link);else sidebar.append(link);
+  }
+  if(document.body.classList.contains('suite-index'))for(const [key,href,label,description] of [['orders','auftraege.html','Aufträge','Genehmigte Offerten übernehmen und Auftragsbestätigungen erstellen.'],['accounting','buchhaltung.html','Buchhaltung','Abrechnungsunterlagen prüfen und für dein Buchhaltungsprogramm exportieren.']])if(can(key)){
+   const section=document.createElement('section');section.className='developer-tools';section.innerHTML='<div class="suite-section-heading"><h2 class="section-title">'+label+'</h2></div><a class="developer-card" href="/'+href+'">'+navIcon+'<span><strong>'+label+'</strong><small>'+description+'</small></span></a>';document.querySelector('.suite-content')?.append(section);
+  }
   if(sidebar&&can('customers'))sidebar.insertAdjacentHTML('beforeend','<p class="suite-nav-label">Stammdaten</p><a class="suite-nav-link" href="kunden.html">'+navIcon+'<span>Kundenstamm</span></a>');
   if(dev)sidebar?.insertAdjacentHTML('beforeend','<p class="suite-nav-label">Entwickler</p><a class="suite-nav-link" href="/portal.html?section=businesses"><span>Lizenzen & Berechtigungen</span></a>');
   if(dev&&!document.querySelector('#portalNav'))for(const header of document.querySelectorAll(sidebar?'#editor>.editor-heading':'.dw-header,#editor>.editor-heading')){const a=document.createElement('a');a.href='/portal.html?section=businesses';a.className='home';a.textContent='Lizenzen & Berechtigungen';header.append(a);}
@@ -39,7 +46,7 @@ if(serverMode){
    const restrictTabs=()=>{const enabled=Object.keys(ids).filter(k=>can(ids[k]));for(const [key,tool] of Object.entries(ids)){const allowed=can(tool);for(const el of document.querySelectorAll(`[data-tab="${key}"],#panel-${key}`))if(!allowed){el.hidden=true;el.style.setProperty('display','none','important');}}if(!enabled.includes(location.hash.slice(1))&&enabled.length)location.replace('#'+enabled[0]);};
    restrictTabs();window.addEventListener('hashchange',restrictTabs);
   }
-  if(readOnly){const note=document.createElement('div');note.className='account-readonly';note.textContent='Lesezugriff · Änderungen können nicht im Betrieb gespeichert werden.';document.body.append(note);}
+  if(readOnly&&module!=='accounting'){const note=document.createElement('div');note.className='account-readonly';note.textContent='Lesezugriff · Änderungen können nicht im Betrieb gespeichert werden.';document.body.append(note);}
   if(document.body.classList.contains('suite-index')&&!dev&&!Object.values(account.permissions).some(p=>p!=='none')){const note=document.createElement('p');note.className='account-empty';note.textContent='Aktuell ist kein Werkzeug freigeschaltet. Dein Firmenadministrator kann deine Berechtigungen prüfen.';document.querySelector('.suite-content').append(note);}
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

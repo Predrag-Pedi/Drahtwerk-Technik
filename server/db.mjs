@@ -11,6 +11,8 @@ export function openDatabase(path){
  CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,company_id TEXT REFERENCES companies(id),email TEXT NOT NULL UNIQUE,name TEXT NOT NULL,role TEXT NOT NULL CHECK(role IN ('developer','admin','member')),permissions TEXT NOT NULL,password TEXT NOT NULL,enabled INTEGER NOT NULL DEFAULT 1,must_change INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),company_id TEXT REFERENCES companies(id),csrf TEXT NOT NULL,expires INTEGER NOT NULL,last_seen INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS records(company_id TEXT NOT NULL REFERENCES companies(id),area TEXT NOT NULL,id TEXT NOT NULL,data TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,updated_by TEXT NOT NULL REFERENCES users(id),updated_at TEXT NOT NULL,PRIMARY KEY(company_id,area,id));
+ CREATE TABLE IF NOT EXISTS document_numbers(company_id TEXT NOT NULL REFERENCES companies(id),kind TEXT NOT NULL,number TEXT NOT NULL COLLATE NOCASE,document_id TEXT NOT NULL,PRIMARY KEY(company_id,kind,number),UNIQUE(company_id,kind,document_id));
+ CREATE TABLE IF NOT EXISTS order_sources(company_id TEXT NOT NULL REFERENCES companies(id),offer_id TEXT NOT NULL,order_id TEXT NOT NULL,PRIMARY KEY(company_id,offer_id),UNIQUE(company_id,order_id));
  CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY,at TEXT NOT NULL,actor TEXT,company_id TEXT,action TEXT NOT NULL,target TEXT);
  CREATE TABLE IF NOT EXISTS login_attempts(key TEXT PRIMARY KEY,count INTEGER NOT NULL,until INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS workshop_templates(company_id TEXT NOT NULL REFERENCES companies(id),tool TEXT NOT NULL,data TEXT,revision INTEGER NOT NULL,updated_by TEXT NOT NULL REFERENCES users(id),updated_at TEXT NOT NULL,PRIMARY KEY(company_id,tool));
@@ -30,6 +32,9 @@ export function openDatabase(path){
  // Keep author references when removing an account; existing installations migrate on startup.
  if(!db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='deleted_at'))db.exec('ALTER TABLE users ADD COLUMN deleted_at TEXT');
 
+ // A separate role flag preserves the existing users table and all author/session foreign keys.
+ if(!db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='accounting_role'))db.exec('ALTER TABLE users ADD COLUMN accounting_role INTEGER NOT NULL DEFAULT 0');
+
  for(const p of initialPlans)db.prepare('INSERT OR IGNORE INTO plans VALUES (?,?)').run(p.id,JSON.stringify(p));
  // One-time addition to built-in packages. Existing users still need explicit report rights.
  if(db.prepare('PRAGMA user_version').get().user_version<4){
@@ -44,7 +49,7 @@ export function openDatabase(path){
 export const rows=(db,table)=>db.prepare(`SELECT * FROM ${table}`).all(); // table is internal, never request data
 export const object=(db,table,id)=>{const r=db.prepare(`SELECT data FROM ${table} WHERE id=?`).get(id);return r?JSON.parse(r.data):null;};
 export const saveObject=(db,table,value)=>db.prepare(`INSERT INTO ${table}(id,data) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data`).run(value.id,JSON.stringify(value));
-export const publicUser=u=>u&&({id:u.id,companyId:u.company_id,login:u.email,username:u.email.includes('@')?'':u.email,email:u.email.includes('@')?u.email:'',name:u.name,role:u.role,permissions:JSON.parse(u.permissions),enabled:Boolean(u.enabled),mustChangePassword:Boolean(u.must_change),createdAt:u.created_at});
+export const publicUser=u=>u&&({id:u.id,companyId:u.company_id,login:u.email,username:u.email.includes('@')?'':u.email,email:u.email.includes('@')?u.email:'',name:u.name,role:u.role==='member'&&u.accounting_role?'accounting':u.role,permissions:JSON.parse(u.permissions),enabled:Boolean(u.enabled),mustChangePassword:Boolean(u.must_change),createdAt:u.created_at});
 export function audit(db,actor,company,action,target=''){db.prepare('INSERT INTO audit(at,actor,company_id,action,target) VALUES (?,?,?,?,?)').run(new Date().toISOString(),actor,company,action,target);}
 
 // A separate tenant lets a developer use every tool immediately without choosing a customer.
