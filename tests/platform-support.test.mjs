@@ -85,19 +85,19 @@ test('a nominated employee can grant all tools without changing their own rights
  assert.equal((await f.poll('member')).data.active[0].canRevoke,true);
 });
 
-test('document tools and bookkeeping remain bound to an active support grant',async t=>{
+test('document tools remain bound to an active support grant',async t=>{
  const f=await fixture(t),company=JSON.parse(f.db.prepare("SELECT data FROM companies WHERE id='alpha'").get().data);saveObject(f.db,'companies',{...company,planId:'komplett'});
  f.db.prepare('INSERT INTO records VALUES (?,?,?,?,?,?,?)').run('alpha','orders','support-order',JSON.stringify({number:'AU-SUPPORT'}),1,'member','now');
- assert.deepEqual((await f.request('/api/company/accounting')).data.orders,[]);
+ assert.deepEqual((await f.request('/api/company/orders')).data,[]);
  const id=await f.entered();
- assert.equal((await f.request('/api/company/accounting')).data.orders[0].number,'AU-SUPPORT');
+ assert.equal((await f.request('/api/company/orders')).data[0].value.number,'AU-SUPPORT');
  assert.equal((await f.request('/api/company/orders')).data[0].id,'support-order');
  assert.equal((await f.request('/api/company/document-settings')).status,200);
  assert.equal((await f.request('/api/company/offer-number','POST',{id:'support-quote'})).status,200);
- assert.equal((await f.request('/api/company/accounting','GET',undefined,'member')).status,403);
+ assert.equal((await f.request('/api/company/orders','GET',undefined,'member')).status,403);
  assert.equal((await f.action(id,'stop')).status,200);
- for(const path of ['/api/company/accounting','/api/company/orders','/api/company/document-settings'])assert.equal((await f.request(path)).status,409);
- await f.refresh();assert.deepEqual((await f.request('/api/company/accounting')).data.orders,[]);
+ for(const path of ['/api/company/orders','/api/company/document-settings'])assert.equal((await f.request(path)).status,409);
+ await f.refresh();assert.deepEqual((await f.request('/api/company/orders')).data,[]);
 });
 
 test('only nominated employees can decide; a developer cannot self-approve or borrow another login grant',async t=>{

@@ -11,11 +11,11 @@ import {offerHTML} from '../offerten/offer-document.mjs';
 import {renderOfferPages} from '../offerten/offer-pdf.mjs';
 
 function fixture(id='quote'){const d=offer();Object.assign(d,{id,number:'AN-00001',status:'approved',customer:'Kunde AG',recipientAddress:'Teststrasse 1\n5400 Baden',project:'Hauptverteilung',discount:7.5,vatRate:8.1});d.plants[0].parts[0].items=[{id:'line',article:'A1',name:'Schrank',type:'Schrank',unit:'Stk.',qty:3,price:100.03,minutes:0}];return d;}
-test('orders, numbering and accounting use tenant-scoped server permissions',async t=>{
+test('orders and numbering retain tenant-scoped permissions after retiring accounting',async t=>{
  const db=openDatabase(':memory:'),origin='http://localhost',auth={};
  for(const id of ['a','b'])saveObject(db,'companies',{id,name:id,planId:'komplett',startsOn:'2000-01-01',endsOn:'2099-12-31',enabled:true,seats:10,profile:{name:'Firma '+id,vat:'CHE-123.456.789 MWST'}});
- for(const [id,c,role,permissions,accounting] of [['admin','a','admin',{},0],['writer','a','member',{offers:'write'},0],['reader','a','member',{orders:'read'},0],['book','a','member',{},1],['other','b','admin',{},0],['member','a','member',{accounting:'write'},0],['dev',null,'developer',{},0]]){
-  db.prepare('INSERT INTO users(id,company_id,email,name,role,permissions,password,must_change,created_at,accounting_role) VALUES (?,?,?,?,?,?,?,0,?,?)').run(id,c,id,id,role,JSON.stringify(permissions),'unused',new Date().toISOString(),accounting);
+ for(const [id,c,role,permissions] of [['admin','a','admin',{}],['writer','a','member',{offers:'write'}],['reader','a','member',{orders:'read'}],['book','a','member',{}],['other','b','admin',{}],['member','a','member',{accounting:'write'}],['dev',null,'developer',{}]]){
+  db.prepare('INSERT INTO users(id,company_id,email,name,role,permissions,password,must_change,created_at) VALUES (?,?,?,?,?,?,?,0,?)').run(id,c,id,id,role,JSON.stringify(permissions),'unused',new Date().toISOString());
   const sid=token();db.prepare('INSERT INTO sessions VALUES (?,?,?,?,?,?)').run(digest(sid),id,c,'csrf',Date.now()+3600000,Date.now());auth[id]={Cookie:'test-session='+sid,'X-CSRF-Token':'csrf','X-User-Id':id,'X-Company-Id':c||'developer-dev'};
  }
  let quotes=[fixture()];const store=()=>db.prepare("INSERT INTO records VALUES ('a','offers','offers',?,1,'writer',?) ON CONFLICT(company_id,area,id) DO UPDATE SET data=excluded.data").run(JSON.stringify(quotes),new Date().toISOString());store();
@@ -65,43 +65,39 @@ test('orders, numbering and accounting use tenant-scoped server permissions',asy
    assert.equal((await request('/api/company/orders/'+order.id,'PATCH',{revision:1,value:{status:'completed'}})).status,409);
    assert.equal((await request('/api/company/orders/'+order.id,'PATCH',{revision:2,value:{status:'completed',deliveryDate:'2027-02-30'}})).status,400);
   });
-  await t.test('bookkeeping is a role, not an assignable ordinary permission; HTML and APIs are protected',async()=>{
-   assert.equal(publicUser(db.prepare("SELECT * FROM users WHERE id='book'").get()).role,'accounting');
-   for(const actor of ['writer','reader','member','anonymous']){assert.equal((await request('/api/company/accounting','GET',undefined,actor)).status,actor==='anonymous'?401:403);assert.equal((await request('/buchhaltung.html','GET',undefined,actor)).status,actor==='anonymous'?302:403);}
-   for(const actor of ['admin','book']){const r=await request('/api/company/accounting','GET',undefined,actor);assert.equal(r.status,200);assert.equal(r.data.orders.length,1);assert.equal((await request('/buchhaltung.html','GET',undefined,actor)).status,200);}
+  await t.test('the retired accounting page and API are unavailable, including to admins and developers',async()=>{
+   for(const actor of ['writer','reader','member','book','admin','dev','anonymous']){
+    assert.equal((await request('/api/company/accounting','GET',undefined,actor)).status,actor==='anonymous'?401:404);
+    for(const path of ['/buchhaltung.html','/buchhaltung.html/?section=orders'])assert.equal((await request(path,'GET',undefined,actor)).status,404);
+    if(actor!=='anonymous')assert.equal(Object.hasOwn((await request('/api/session','GET',undefined,actor)).data.permissions,'accounting'),false);
+   }
    assert.equal((await request('/api/company/orders','GET',undefined,'book')).status,403);
    assert.equal((await request('/api/records/offers/offers','GET',undefined,'book')).status,403);
    assert.equal((await request('/api/company/users','GET',undefined,'book')).status,403);
-   assert.equal((await request('/api/company/accounting','GET',undefined,'other')).data.orders.length,0);
-   for(const file of ['core','sbr','offer-document','offer-pdf','image-pdf'])assert.equal((await request('/offerten/'+file+'.mjs','GET',undefined,'book')).status,200);
+   assert.equal((await request('/auftraege.html','GET',undefined,'reader')).status,200);
+   for(const file of ['core','sbr','offer-document','offer-pdf','image-pdf'])assert.equal((await request('/offerten/'+file+'.mjs','GET',undefined,'reader')).status,200);
   });
-  await t.test('accounting includes only confirmed reports from this company and respects its package',async()=>{
-   for(const [company,id,status] of [['a','draft','draft'],['a','signed','signed'],['a','invoiced','invoiced'],['b','foreign','signed']])db.prepare('INSERT INTO records VALUES (?,?,?,?,?,?,?)').run(company,'reports',id,JSON.stringify({number:id,status,work:[],materials:[]}),1,'admin','now');
-   const feed=(await request('/api/company/accounting','GET',undefined,'book')).data;assert.deepEqual(feed.reports.map(r=>r.id).sort(),['invoiced','signed']);
-   const company=JSON.parse(db.prepare("SELECT data FROM companies WHERE id='a'").get().data);
-   saveObject(db,'companies',{...company,planId:'basis'});
-   const basic=await request('/api/company/accounting','GET',undefined,'book');assert.equal(basic.status,200);assert.equal(basic.data.orders.length,0);assert.equal(basic.data.offers.length,0);assert.equal(basic.data.reports.length,2);
-   saveObject(db,'companies',{...company,enabled:false});assert.equal((await request('/api/company/accounting','GET',undefined,'book')).status,403);
-   saveObject(db,'companies',company);
+  await t.test('new accounts cannot receive the retired role; ordinary employee creation still works',async()=>{
+   const body={companyId:'a',identifier:'finance.new',name:'Finance',role:'accounting',permissions:{},passwordMode:'random'};
+   assert.equal((await request('/api/admin/users','POST',body,'dev')).status,400);
+   assert.equal(db.prepare("SELECT id FROM users WHERE email='finance.new'").get(),undefined);
+   const created=await request('/api/admin/users','POST',{...body,role:'member',permissions:{rails:'read',accounting:'write'}},'dev');
+   assert.equal(created.status,201);assert.equal(created.data.user.role,'member');assert.equal(created.data.user.mustChangePassword,true);assert.ok(created.data.temporaryPassword.length>=12);
+   assert.equal(created.data.user.permissions.rails,'read');assert.equal(Object.hasOwn(created.data.user.permissions,'accounting'),false);
   });
-  await t.test('developer can create a bookkeeping account with the normal first-login password requirement',async()=>{
-   const created=await request('/api/admin/users','POST',{companyId:'a',identifier:'finance.new',name:'Finance',role:'accounting',permissions:{},passwordMode:'random'},'dev');
-   assert.equal(created.status,201);assert.equal(created.data.user.role,'accounting');assert.equal(created.data.user.mustChangePassword,true);assert.ok(created.data.temporaryPassword.length>=12);
-   const raw=db.prepare('SELECT role,accounting_role FROM users WHERE id=?').get(created.data.user.id);assert.equal(raw.role,'member');assert.equal(raw.accounting_role,1);
+  await t.test('the retired role cannot be assigned through an old client or used to elevate a member',async()=>{
+   const before=db.prepare("SELECT * FROM users WHERE id='book'").get();
+   assert.equal((await request('/api/company/users/book','PATCH',{role:'accounting',permissions:{offers:'write'}},'admin')).status,400);
+   assert.deepEqual(db.prepare("SELECT * FROM users WHERE id='book'").get(),before);
+   assert.equal((await request('/api/company/users/book','PATCH',{role:'admin',permissions:{}},'admin')).status,403);
+   assert.equal((await request('/api/company/users/book','PATCH',{role:'member',permissions:{rails:'read',accounting:'write'}},'admin')).status,200);
+   const saved=publicUser(db.prepare("SELECT * FROM users WHERE id='book'").get());assert.equal(saved.role,'member');assert.equal(saved.permissions.rails,'read');assert.equal(Object.hasOwn(saved.permissions,'accounting'),false);
   });
-  await t.test('admins can assign and revoke bookkeeping, but cannot elevate an account to admin',async()=>{
-   const assigned=await request('/api/company/users/member','PATCH',{role:'accounting',permissions:{}},'admin');assert.equal(assigned.status,200);assert.equal(assigned.data.role,'accounting');
-   // Role changes invalidate other sessions immediately.
-   assert.equal((await request('/api/company/accounting','GET',undefined,'member')).status,401);
-   assert.equal((await request('/api/company/users/member','PATCH',{role:'admin',permissions:{}},'admin')).status,403);
-   assert.equal((await request('/api/company/users/member','PATCH',{role:'member',permissions:{}},'admin')).status,200);
-   assert.equal(publicUser(db.prepare("SELECT * FROM users WHERE id='member'").get()).role,'member');
-   assert.equal((await request('/api/company/users/other','PATCH',{role:'accounting',permissions:{}},'admin')).status,404);
-  });
-  await t.test('selecting a customer company for administration never opens its orders or accounting records',async()=>{
+  await t.test('selecting a customer company for administration never opens its orders',async()=>{
    assert.equal((await request('/api/session/company','POST',{companyId:'a'},'dev')).status,200);
-   const r=await request('/api/company/accounting','GET',undefined,'dev');assert.equal(r.status,200);assert.equal(r.data.orders.length,0);assert.equal(r.data.offers.length,0);
-   assert.equal((await request('/api/company/accounting','GET',undefined,'dev',{'X-Company-Id':'a'})).status,409);
+   const r=await request('/api/company/orders','GET',undefined,'dev');assert.equal(r.status,200);assert.deepEqual(r.data,[]);
+   assert.equal((await request('/api/company/orders','GET',undefined,'dev',{'X-Company-Id':'a'})).status,409);
+   assert.equal((await request('/api/company/users/member','PATCH',{role:'accounting',permissions:{}},'dev',{'X-Company-Id':'a'})).status,400);
   });
  }finally{await new Promise(r=>app.close(r));db.close();}
 });

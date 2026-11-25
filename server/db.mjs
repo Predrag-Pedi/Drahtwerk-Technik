@@ -32,9 +32,6 @@ export function openDatabase(path){
  // Keep author references when removing an account; existing installations migrate on startup.
  if(!db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='deleted_at'))db.exec('ALTER TABLE users ADD COLUMN deleted_at TEXT');
 
- // A separate role flag preserves the existing users table and all author/session foreign keys.
- if(!db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='accounting_role'))db.exec('ALTER TABLE users ADD COLUMN accounting_role INTEGER NOT NULL DEFAULT 0');
-
  for(const p of initialPlans)db.prepare('INSERT OR IGNORE INTO plans VALUES (?,?)').run(p.id,JSON.stringify(p));
  // One-time addition to built-in packages. Existing users still need explicit report rights.
  if(db.prepare('PRAGMA user_version').get().user_version<4){
@@ -44,12 +41,23 @@ export function openDatabase(path){
   }
   db.exec('PRAGMA user_version=4');
  }
+ // Retire the accounting role without rebuilding users or removing their records/sessions.
+ // Legacy installations keep the now unused column; new databases do not create it.
+ if(db.prepare('PRAGMA user_version').get().user_version<5){
+  db.exec('BEGIN IMMEDIATE');
+  try{
+   if(db.prepare('PRAGMA table_info(users)').all().some(c=>c.name==='accounting_role'))db.exec('UPDATE users SET accounting_role=0 WHERE accounting_role!=0');
+   db.exec(`UPDATE users SET permissions=json_remove(permissions,'$.accounting') WHERE json_type(permissions,'$.accounting') IS NOT NULL;
+    UPDATE support_requests SET permissions=json_remove(permissions,'$.accounting') WHERE permissions IS NOT NULL AND json_type(permissions,'$.accounting') IS NOT NULL;
+    PRAGMA user_version=5; COMMIT;`);
+  }catch(error){db.exec('ROLLBACK');db.close();throw error;}
+ }
  return db;
 }
 export const rows=(db,table)=>db.prepare(`SELECT * FROM ${table}`).all(); // table is internal, never request data
 export const object=(db,table,id)=>{const r=db.prepare(`SELECT data FROM ${table} WHERE id=?`).get(id);return r?JSON.parse(r.data):null;};
 export const saveObject=(db,table,value)=>db.prepare(`INSERT INTO ${table}(id,data) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data`).run(value.id,JSON.stringify(value));
-export const publicUser=u=>u&&({id:u.id,companyId:u.company_id,login:u.email,username:u.email.includes('@')?'':u.email,email:u.email.includes('@')?u.email:'',name:u.name,role:u.role==='member'&&u.accounting_role?'accounting':u.role,permissions:JSON.parse(u.permissions),enabled:Boolean(u.enabled),mustChangePassword:Boolean(u.must_change),createdAt:u.created_at});
+export const publicUser=u=>u&&({id:u.id,companyId:u.company_id,login:u.email,username:u.email.includes('@')?'':u.email,email:u.email.includes('@')?u.email:'',name:u.name,role:u.role,permissions:JSON.parse(u.permissions),enabled:Boolean(u.enabled),mustChangePassword:Boolean(u.must_change),createdAt:u.created_at});
 export function audit(db,actor,company,action,target=''){db.prepare('INSERT INTO audit(at,actor,company_id,action,target) VALUES (?,?,?,?,?)').run(new Date().toISOString(),actor,company,action,target);}
 
 // A separate tenant lets a developer use every tool immediately without choosing a customer.
