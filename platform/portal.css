@@ -1,0 +1,109 @@
+/* Administration layout. Keep these rules separate from the tools and login. */
+.portal-page { line-height: 1.5; }
+.portal-page .portal-header { min-height: 76px; height: auto; padding-block: 12px; }
+.portal-page .portal-header #accountLabel { min-width: 0; overflow-wrap: anywhere; }
+.portal-page .portal-brand, .portal-page #logout { flex-shrink: 0; }
+.portal-page .portal-layout, .portal-page main, .portal-page .portal-sidebar,
+.portal-page .grid > *, .portal-page .cards > *, .portal-page .page-head > * { min-width: 0; }
+.portal-page main { padding: clamp(24px, 3vw, 40px); }
+.portal-page .portal-sidebar[hidden] + main { grid-column: 1 / -1; }
+.portal-page h1 { font-size: clamp(1.7rem, 3vw, 2.1rem); line-height: 1.2; overflow-wrap: anywhere; }
+.portal-page h2, .portal-page p, .portal-page small, .portal-page legend { overflow-wrap: anywhere; }
+.portal-page button { min-height: 44px; white-space: normal; }
+.portal-page input, .portal-page select, .portal-page textarea {
+  min-width: 0; max-width: 100%; min-height: 44px; font: inherit; font-size: 1rem;
+}
+.portal-page textarea { display: block; width: 100%; margin-top: .35rem; padding: .65rem; color: inherit; border: 1px solid #bfcddc; border-radius: 7px; resize: vertical; }
+.portal-page input[type=checkbox] { width: 20px; height: 20px; min-height: 20px; flex-shrink: 0; }
+.portal-page .check { min-height: 44px; }
+.portal-page .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.portal-page .cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.portal-page .card { min-width: 0; }
+.portal-page #portalNavigation { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.portal-page #portalNav { min-width: 0; }
+.portal-page #portalNav button { overflow-wrap: anywhere; }
+.portal-page .portal-menu-toggle { display: none; }
+.portal-page #accountDock { position: relative; min-width: 0; margin-top: auto; }
+.portal-page .page-head > button { flex-shrink: 0; }
+.portal-page .portal-table { table-layout: fixed; }
+.portal-page .portal-table td, .portal-page .portal-table th { overflow-wrap: anywhere; padding: 16px 12px; }
+.portal-page .portal-table th { font-size: .875rem; letter-spacing: 0; text-transform: none; }
+.portal-page .portal-table td button { font-size: .875rem; max-width: 100%; }
+.portal-page .badge { font-size: .875rem; }
+.portal-page .portal-row-actions button { display: block; width: 100%; margin: 6px 0; }
+.portal-page .portal-row-actions button:first-child { margin-top: 0; }
+.portal-page .portal-row-actions button:last-child { margin-bottom: 0; }
+.portal-page #documentSettings .cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+.portal-page #editor { width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; overflow: hidden; }
+.portal-page #editForm { display: flex; flex-direction: column; max-height: calc(100dvh - 34px); }
+.portal-page #editor .dialog-head { flex: 0 0 auto; gap: 16px; padding: 20px 24px; border-bottom: 1px solid #e0e8f0; }
+.portal-page #dialogTitle { min-width: 0; font-size: 1.35rem; overflow-wrap: anywhere; }
+.portal-page #closeDialog { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; font-size: 1.6rem; }
+.portal-page .dialog-body { overflow-y: auto; min-height: 0; padding: 8px 24px 16px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.portal-page #editor .dialog-actions { flex: 0 0 auto; margin: 0; padding: 16px 24px; border-top: 1px solid #e0e8f0; background: #f7f9fc; }
+.portal-page #formError:empty { display: none; }
+.portal-page .start-password { min-width: 0; margin-inline: 0; }
+.portal-page #status { width: max-content; max-width: calc(100vw - 32px); overflow-wrap: anywhere; bottom: max(16px, env(safe-area-inset-bottom)); }
+.portal-page.sb-support-active .portal-header { top: var(--sb-support-height, 0px); }
+
+@media (max-width: 1100px) {
+  .portal-page .portal-layout { grid-template-columns: minmax(0, 1fr); }
+  .portal-page .portal-sidebar { min-height: 0; border-right: 0; border-bottom: 1px solid #dce5ef; }
+  .portal-page .portal-menu-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: calc(100% - 32px); margin: 12px 16px; padding: 12px 16px; text-align: left; background: #f2f6fc; border-color: #d7e3f0; }
+  .portal-menu-toggle span { min-width: 0; }
+  .portal-menu-toggle small { display: block; font-size: .875rem; font-weight: 400; color: #64798e; }
+  .portal-menu-toggle strong { display: block; font-size: 1rem; overflow-wrap: anywhere; }
+  .portal-menu-toggle svg { flex-shrink: 0; }
+  .portal-menu-toggle[aria-expanded=true] svg { transform: rotate(180deg); }
+  .portal-page #portalNavigation { display: none; }
+  .portal-page .portal-sidebar.is-open #portalNavigation { display: flex; }
+  .portal-page #portalNav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; overflow: visible; border: 0; }
+  .portal-page #portalNav button { width: 100%; margin: 0; padding: 12px; }
+  .portal-page #accountDock { margin: 0 16px 12px; padding: 8px 0; }
+  .portal-page #accountDock .account-options { position: static; min-width: 0; max-width: none; margin-top: 8px; box-shadow: none; }
+  .portal-page #accountDock .account-options a, .portal-page #accountDock .account-options button { min-height: 44px; font-size: 1rem; }
+  .portal-page main { padding: 24px; }
+  .portal-page .page-head { align-items: flex-start; flex-direction: column; }
+  .portal-page .search { max-width: none; }
+  /* The same table content becomes labelled cards. Explicit roles retain its semantics. */
+  .portal-page .portal-table-wrap { overflow: visible; border: 0; background: transparent; border-radius: 0; }
+  .portal-page .portal-table, .portal-page .portal-table tbody { display: block; }
+  .portal-page .portal-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .portal-page .portal-table tbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 16px; }
+  .portal-page .portal-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; padding: 18px; gap: 16px 12px; background: white; border: 1px solid #dbe4ee; border-radius: 14px; box-shadow: 0 3px 12px #173e6b05; }
+  .portal-page .portal-table td { display: block; min-width: 0; padding: 0; border: 0; font-size: 1rem; }
+  .portal-page .portal-table td::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #64798e; font-size: .875rem; font-weight: 500; }
+  .portal-page .portal-table td:first-child { grid-column: 1 / -1; padding-bottom: 14px; border-bottom: 1px solid #e7edf3; font-size: 1.125rem; font-weight: 700; }
+  .portal-page .portal-table td small { font-size: .875rem; font-weight: 400; }
+  .portal-page .portal-table td.portal-row-actions { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 14px; border-top: 1px solid #e7edf3; }
+  .portal-page .portal-row-actions::before { grid-column: 1 / -1; }
+  .portal-page .portal-row-actions button { height: 100%; margin: 0; padding: 10px 8px; }
+  .portal-page .portal-table td.portal-row-actions:empty { display: none; }
+  .portal-page .portal-table td.portal-table-empty { border: 0; padding: 4px; font-weight: 400; }
+  .portal-page .portal-table-empty::before { display: none; }
+  .portal-page .sb-support-panel { flex-direction: column; align-items: stretch; padding: 20px; gap: 16px; }
+  .portal-page .sb-support-panel .sb-support-actions { justify-content: flex-start; }
+  .portal-page .sb-support-panel > div { min-width: 0; }
+}
+
+@media (max-width: 600px) {
+  .portal-page .portal-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; }
+  .portal-page .portal-brand { font-size: 1.125rem; }
+  .portal-page #logout { grid-column: 2; grid-row: 1; padding: 8px 12px; font-size: .875rem; }
+  .portal-page .portal-header #accountLabel { grid-column: 1 / -1; margin: 0; font-size: .875rem; }
+  .portal-page #portalNav { grid-template-columns: minmax(0, 1fr); }
+  .portal-page main { padding: 24px 16px; }
+  .portal-page .page-head > button { width: 100%; }
+  .portal-page .grid, .portal-page .portal-table tbody { grid-template-columns: minmax(0, 1fr); }
+  .portal-page .card { padding: 18px; }
+  .portal-page #editor { width: calc(100vw - 16px); max-width: none; max-height: calc(100dvh - 16px); }
+  .portal-page #editForm { max-height: calc(100dvh - 18px); }
+  .portal-page #editor .dialog-head { padding: 16px; gap: 12px; }
+  .portal-page .dialog-body { padding: 4px 16px 16px; }
+  .portal-page #editor .dialog-actions { padding: 12px 16px max(12px, env(safe-area-inset-bottom)); }
+  .portal-page #submitDialog { width: 100%; }
+  .portal-page .start-password { padding: 8px 12px; }
+  .portal-page .ws-folder-picker label, .portal-page .ws-depth-heading label { min-width: 0; width: 100%; }
+  .portal-page .ws-actions { white-space: normal; }
+  .portal-page .ws-actions button { margin-block: 4px; }
+}
