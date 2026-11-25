@@ -55,7 +55,11 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
   try{
    if(!validRequestHost(req,allowed,codespaceProxyPort))fail(400,'Unbekannter Host.');
    const url=new URL(req.url,origin),path=decodeURIComponent(url.pathname),method=req.method;
-   if(['GET','HEAD'].includes(method)&&['/robots.txt','/sitemap.xml'].includes(path)){res.setHeader('Content-Type',path==='/robots.txt'?'text/plain; charset=utf-8':'application/xml; charset=utf-8');return res.end(method==='HEAD'?undefined:path==='/robots.txt'?seo.robots:seo.sitemap);}
+   if(['GET','HEAD'].includes(method)&&['/robots.txt','/sitemap.xml'].includes(path)){
+    // Public crawler discovery files must not inherit the private-page exclusion.
+    res.removeHeader('X-Robots-Tag');
+    res.setHeader('Content-Type',path==='/robots.txt'?'text/plain; charset=utf-8':'application/xml; charset=utf-8');return res.end(method==='HEAD'?undefined:path==='/robots.txt'?seo.robots:seo.sitemap);
+   }
    if(path==='/health'&&method==='GET')return json(res,{ok:true,service:'company-planning-platform'});
    if(path==='/platform/runtime.js'&&method==='GET'){res.setHeader('Content-Type','text/javascript');return res.end('globalThis.__companyMode=true;\n'+await readFile(resolve(root,'platform/startup.js'),'utf8'));}
    if(path.startsWith('/api/')){
