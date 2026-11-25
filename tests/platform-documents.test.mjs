@@ -50,6 +50,7 @@ test('orders and numbering retain tenant-scoped permissions after retiring accou
    const responses=await Promise.all([1,2].map(()=>request('/api/company/orders','POST',{offerId:'quote',source:quotes[0]})));
    assert.deepEqual(responses.map(r=>r.status).sort(),[200,201]);assert.equal(responses[0].data.id,responses[1].data.id);order=responses[0].data;
    assert.match(order.value.number,/^PRO-\d{4}-080$/);assert.equal(order.value.companyProfile.name,'Firma a');assert.equal(order.value.validUntil,'');assert.equal(order.value.sourceOfferNumber,'AN-00001');assert.deepEqual(order.value.sourceOfferSnapshot,quotes[0]);
+   const retained=await request('/api/records/offers/offers');assert.equal(retained.status,200);assert.equal(retained.data.revision,1);assert.deepEqual(retained.data.value,quotes,'Creating an order preserves the approved source offer and its revision');
    const before=totals(order.value);quotes[0].plants[0].parts[0].items[0].price=999;store();const saved=(await request('/api/company/orders')).data;assert.equal(saved.length,1);assert.deepEqual(totals(saved[0].value),before);
    const html=offerHTML(order.value,'detail',false,order.value.companyProfile);assert.match(html,/Auftragsbestätigung PRO-/);assert.match(html,/Auftragstotal/);assert.doesNotMatch(html,/Angebotstotal|Gültig bis/);
   });

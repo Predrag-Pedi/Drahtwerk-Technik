@@ -39,6 +39,6 @@ const revisions=new Map(),unsaved=new Set(),key=(area,id)=>`${account?.user.id}:
 let pendingWrites=0;
 if(serverMode&&typeof window!=='undefined')window.addEventListener('beforeunload',event=>{if(pendingWrites||unsaved.size){event.preventDefault();event.returnValue='';}});
 export async function listRecords(area){const result=await api('/records/'+area);for(const r of result)revisions.set(key(area,r.id),r.revision);return result.map(r=>({id:r.id,value:unpack(r.value)}));}
-export async function readRecord(area,id){const r=await api('/records/'+area+'/'+encodeURIComponent(id));revisions.set(key(area,id),r.revision);return r.value===null?undefined:unpack(r.value);}
+export async function readRecord(area,id,options){const r=await api('/records/'+area+'/'+encodeURIComponent(id),options);revisions.set(key(area,id),r.revision);return r.value===null?undefined:unpack(r.value);}
 export async function writeRecord(area,id,value){const k=key(area,id);pendingWrites++;unsaved.add(k);try{const r=await api('/records/'+area+'/'+encodeURIComponent(id),{method:'PUT',body:{value:await pack(value),revision:revisions.get(k)||0}});revisions.set(k,r.revision);unsaved.delete(k);}finally{pendingWrites--;}}
 export async function deleteRecord(area,id){const k=key(area,id);pendingWrites++;try{await api('/records/'+area+'/'+encodeURIComponent(id),{method:'DELETE',body:{revision:revisions.get(k)||0}});revisions.delete(k);unsaved.delete(k);}finally{pendingWrites--;}}
