@@ -1,3 +1,4 @@
+import {customerMaterials} from '../platform/material-model.mjs';
 import {restoreSbr,offerItemName} from './sbr.mjs?v=20261111-8';
 // All monetary inputs are CHF excluding VAT. Round sale unit price, then line totals.
 export const uid=()=>Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
@@ -70,6 +71,7 @@ export function offerText(doc,mode=true){
  if(mode!=='plant')out.push(`Total ${s.name}: CHF ${money(t.plants[pi].parts[si].total)}`);});out.push('',`Total ${p.name}: CHF ${money(t.plants[pi].total)}`,'');});
  out.push('ZUSAMMENSTELLUNG');t.plants.forEach((p,i)=>out.push(`${i+1}. ${doc.plants[i].name}\tCHF ${money(p.total)}`));
  out.push(`Zwischentotal: CHF ${money(t.subtotal)}`);if(doc.discount&&!doc.hideDiscount)out.push(`Rabatt ${doc.discount} %: −CHF ${money(t.discount)}`);out.push(`${isOrder?'Auftragstotal':'Angebotstotal'} exkl. MWST: CHF ${money(t.total)}`,`Zzgl. MWST ${money(t.vatRate)} %: CHF ${money(t.vat)}`,`${isOrder?'Auftragstotal':'Angebotstotal'} inkl. MWST: CHF ${money(t.gross)}`,'',doc.closing);
+ if(doc.customerMaterials?.length)out.push('ANGELIEFERTES MATERIAL · Vom Kunden bereitzustellen',...doc.customerMaterials.map(r=>`${r.qty} ${r.unit} · ${r.article} ${r.name}${r.notes?' · '+r.notes:''}`));
  return out.filter(x=>x!==undefined).join('\n').replace(/\n{3,}/g,'\n\n');
 }
 
@@ -98,6 +100,8 @@ export function validateOffer(raw){
  const num=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:fail();
  if(!raw||!Array.isArray(raw.plants)||!raw.plants.length)fail();
  if(raw.hideDiscount!==undefined&&typeof raw.hideDiscount!=='boolean')fail();
- const d={id:uid(),hideDiscount:raw.hideDiscount===true,status:offerStatus(raw.status),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();d.vatRate=raw.vatRate===undefined?8.1:num(raw.vatRate);if(d.vatRate>100)fail();for(const k of ['recipientAddress','validUntil','contact','customerNumber','customerEmail','customerPhone'])d[k]=raw[k]===undefined?'':str(raw[k]);
- d.plants=raw.plants.map(p=>{const q={id:uid(),...(p.offerDescription!==undefined?{offerDescription:str(p.offerDescription)}:{})};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),...(i.offerDescription!==undefined?{offerDescription:str(i.offerDescription)}:{}),...(i.sbr?{sbr:restoreSbr(i.sbr)}:{}),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
+ const d={id:uid(),customerMaterials:customerMaterials(raw.customerMaterials),hideDiscount:raw.hideDiscount===true,status:offerStatus(raw.status),outputMode:priceMode(raw.outputMode)};for(const k of ['number','customer','address','project','date','intro','closing'])d[k]=str(raw[k]);for(const k of ['markup','rate','discount'])d[k]=num(raw[k]);if(d.discount>100)fail();d.vatRate=raw.vatRate===undefined?8.1:num(raw.vatRate);if(d.vatRate>100)fail();for(const k of ['recipientAddress','validUntil','contact','customerNumber','customerEmail','customerPhone'])d[k]=raw[k]===undefined?'':str(raw[k]);
+ d.plants=raw.plants.map(p=>{const q={id:uid(),...(p.offerDescription!==undefined?{offerDescription:str(p.offerDescription)}:{})};for(const k of ['name','type','width','height','depth','ip','colour','notes'])q[k]=str(p[k]);if(!Array.isArray(p.parts)||!p.parts.length)fail();q.parts=p.parts.map(s=>{if(!Array.isArray(s.items))fail();return {id:uid(),name:str(s.name),notes:str(s.notes),items:s.items.map(i=>({id:uid(),...(i.offerDescription!==undefined?{offerDescription:str(i.offerDescription)}:{}),...(i.sbr?{sbr:restoreSbr(i.sbr)}:{}),...(i.cuts?{cuts:validateCuts(i.cuts)}:{}),article:str(i.article),name:str(i.name),unit:str(i.unit),qty:num(i.qty),price:i.price===null?null:num(i.price),minutes:num(i.minutes),rate:i.rate==null?null:num(i.rate),type:i.type===undefined?'Artikel':str(i.type)}))};});return q;});return d;
 }
+
+function validateCuts(cuts){if(!Array.isArray(cuts)||cuts.length>200)throw Error('Zuschnittliste ungültig.');return cuts.map(c=>{if(!Number.isFinite(c.lengthMm)||c.lengthMm<=0||c.lengthMm>100000||!Number.isInteger(c.count)||c.count<=0||c.count>10000)throw Error('Zuschnittlänge und Stückzahl prüfen.');return {lengthMm:c.lengthMm,count:c.count};});}

@@ -1,3 +1,4 @@
+import {receiveMaterials} from '../platform/material-model.mjs';
 import {randomUUID} from 'node:crypto';
 import {isDeepStrictEqual} from 'node:util';
 import {audit} from './db.mjs';
@@ -7,7 +8,7 @@ import {swissDay} from '../platform/model.mjs';
 import {validateOffer,totals} from '../offerten/core.mjs';
 import {documentDefaults,validateDocumentSettings,formatDocumentNumber,validateOrderUpdate} from '../platform/document-model.mjs';
 
-export function documentsHandler({db,body,json,freshSession,requireArea,clock}){
+export function documentsHandler({db,body,json,freshSession,requireArea,clock,inventory}){
  const record=(company,area,id)=>db.prepare('SELECT data,revision,updated_at FROM records WHERE company_id=? AND area=? AND id=?').get(company,area,id);
  const read=(company,area,id,fallback)=>{const r=record(company,area,id);return r?JSON.parse(r.data):fallback;};
  const settings=c=>({value:read(c,'documentSettings','settings',documentDefaults()),revision:record(c,'documentSettings','settings')?.revision||0});
@@ -59,13 +60,14 @@ export function documentsHandler({db,body,json,freshSession,requireArea,clock}){
     if(!snapshot.customer.trim()||!snapshot.number.trim()||!snapshot.plants.some(p=>p.parts.some(t=>t.items.some(i=>i.qty>0))))fail(400,'Kunde, Offertennummer und mindestens eine Position mit Menge ausfüllen.');
     const id=randomUUID(),config=settings(current.company.id).value.order;
     const value={...snapshot,id,documentType:'order',status:'open',number:number(current,'order',id),date:swissDay(new Date(clock())),validUntil:'',sourceOfferId:sourceId,sourceOfferNumber:source.number,sourceOfferDate:source.date,sourceOfferSnapshot:structuredClone(source),companyProfile:structuredClone(current.company.profile||{}),intro:config.intro,closing:source.closing||config.closing,deliveryDate:'',reference:'',internalNotes:'',createdAt:new Date(clock()).toISOString()};
+    value.inventory=inventory.bookOrder(current,value);
     const saved=write(current,'orders',id,value);db.prepare('INSERT INTO order_sources VALUES (?,?,?)').run(current.company.id,sourceId,id);audit(db,current.user.id,current.company.id,'order.created',id);return {id,...saved};
    });json(res,result,result.existing?200:201);return;
   }
   const order=path.match(/^\/api\/company\/orders\/([^/]+)$/);
   if(order&&method==='PATCH'){
-   requireArea(s,'orders',true);const b=await body(req,16384),current=freshSession(req,s);requireArea(current,'orders',true);
-   json(res,atomic(()=>{const old=record(current.company.id,'orders',order[1]);if(!old)fail(404,'Auftrag nicht gefunden.');if(b.revision!==old.revision)fail(409,'Der Auftrag wurde inzwischen geändert. Bitte neu laden.');const saved=write(current,'orders',order[1],validateOrderUpdate(b.value,JSON.parse(old.data)));audit(db,current.user.id,current.company.id,'order.updated',order[1]);return {id:order[1],...saved};}));return;
+   requireArea(s,'orders',true);const b=await body(req,131072),current=freshSession(req,s);requireArea(current,'orders',true);
+   json(res,atomic(()=>{const old=record(current.company.id,'orders',order[1]);if(!old)fail(404,'Auftrag nicht gefunden.');if(b.revision!==old.revision)fail(409,'Der Auftrag wurde inzwischen geändert. Bitte neu laden.');const before=JSON.parse(old.data),next=validateOrderUpdate(b.value,before);if(b.value.received!==undefined)next.materialReceipts=receiveMaterials(before,b.value.received,current.user.name,new Date(clock()).toISOString());const saved=write(current,'orders',order[1],next);audit(db,current.user.id,current.company.id,'order.updated',order[1]);return {id:order[1],...saved};}));return;
   }
   fail(405,'Methode nicht erlaubt.');
  };

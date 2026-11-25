@@ -1,3 +1,4 @@
+import {inventoryService} from './inventory.mjs';
 import {documentsHandler} from './documents.mjs';
 import {supportService} from './support.mjs';
 import {managementRequest} from '../platform/session-context.mjs';
@@ -49,7 +50,8 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
  function requireRole(s,...roles){if(!roles.includes(s.user.role))fail(403,'Keine Berechtigung für diese Aktion.');}
  function requireArea(s,area,write=false){if(s.user.role==='developer'&&s.company&&(s.company.internalWorkspace?s.company.ownerId!==s.user.id:!s.support||s.support.company.id!==s.company.id))fail(403,'Für Firmendaten ist eine gültige Supportfreigabe erforderlich.');if(!s.company)fail(403,'Zuerst einen Betrieb auswählen.');const permission=s.permissions[areas[area]||area];if(!permission||permission==='none'||write&&permission!=='write')fail(403,'Lizenz oder Benutzerberechtigung erlaubt diese Aktion nicht.');}
  function seatCheck(id,except=null){const c=object(db,'companies',id);if(!c||c.internalWorkspace)fail(404,'Betrieb nicht gefunden.');const count=db.prepare('SELECT COUNT(*) n FROM users WHERE company_id=? AND enabled=1 AND id!=?').get(id,except||'').n;if(count>=c.seats)fail(409,'Alle gebuchten Benutzerplätze sind belegt.');}
- const handleDocuments=documentsHandler({db,body,json,freshSession,requireArea,clock});
+ const inventory=inventoryService({db,body,json,freshSession,requireArea,clock});
+ const handleDocuments=documentsHandler({db,body,json,freshSession,requireArea,clock,inventory});
  const handleCatalog=catalogHandler({db,body,json,freshSession,requireArea,clock});
  const handleWorkshop=workshopHandler({db,root,body,json,freshSession,requireArea});
  return http.createServer(async(req,res)=>{
@@ -81,7 +83,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
     if((path.startsWith('/api/records/')||path.startsWith('/api/company'))&&(req.headers['x-company-id']!==(s.company?.id||'')||req.headers['x-user-id']!==s.user.id))fail(409,'Anmeldung oder Betrieb wurde in einem anderen Fenster gewechselt. Bitte neu laden.');
     if(s.user.mustChangePassword)fail(403,'Bitte zuerst das Startpasswort ändern.');
     if(path.startsWith('/api/support/')){await support.handle({req,res,path,method,s,body,json,freshSession});return;}
-    if(path.startsWith('/api/records/')||path.startsWith('/api/company/workshop/')||path.startsWith('/api/company/catalog')||/^\/api\/company\/(orders|document-settings|offer-number)(?:\/|$)/.test(path)||path.startsWith('/api/workshop-files/')){
+    if(path.startsWith('/api/records/')||path.startsWith('/api/company/workshop/')||path.startsWith('/api/company/catalog')||path.startsWith('/api/company/inventory')||/^\/api\/company\/(orders|document-settings|offer-number)(?:\/|$)/.test(path)||path.startsWith('/api/workshop-files/')){
      if(s.user.role==='developer'&&!path.startsWith('/api/workshop-files/')&&(req.headers['x-support-id']||'')!==(s.support?.request.id||''))fail(409,'Der Supportzugriff wurde gewechselt oder beendet. Bitte neu laden.');
      res.once('finish',()=>{if(res.statusCode>=200&&res.statusCode<300)support.recordAccess(s,path,method);});
     }
@@ -131,6 +133,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
     }
     if(/^\/api\/company\/(orders|document-settings|offer-number)(?:\/|$)/.test(path)){await handleDocuments({req,res,path,method,s});return;}
     if(path.startsWith('/api/company/workshop/')||path.startsWith('/api/workshop-files/')){if(await handleWorkshop({req,res,path,method,s}))return;}
+    if(path.startsWith('/api/company/inventory')){await inventory.handle({req,res,path,method,s});return;}
     if(path.startsWith('/api/company/catalog')){await handleCatalog({req,res,path,method,s});return;}
     const record=path.match(/^\/api\/records\/([A-Za-z]+)(?:\/([^/]+))?$/);
     if(record){const [,area,id]=record;if(!Object.hasOwn(areas,area))fail(404,'Unbekannter Bereich.');requireArea(s,area,method!=='GET');if(id&&id.length>200)fail(400,'Ungültige Datensatz-ID.');
@@ -147,7 +150,7 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    if(path==='/sw.js'){res.setHeader('Content-Type','text/javascript');return res.end("self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(Promise.all([caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))),self.registration.unregister()])));");}
    // Normalize before route/permission checks; redirect only verified page files.
    const pageWithSlash=/\.html\/+$/i.test(path);
-   let name=path==='/'?'home.html':path.slice(1);if(pageWithSlash)name=name.replace(/\/+$/,'');if(!name||name.includes('\\')||name.split('/').some(p=>p.startsWith('.'))||!(/^(?:platform|ui|cad|offerten|waerme|ew|EW|Aufbauabstaende|produkte|regie)\//.test(name)||/^(?:home|index|portal|login|auftraege|kunden|regierapport|cad|offerten|waermeberechnung|technik|ew|schienenrechner|drahtfarben|aufbauabstaende)\.html$/.test(name)||/^(?:icon-\d+\.png|manifest\.webmanifest|(?:ew|aufbau)-[\w-]+\.json|drahtfarben\.txt)$/.test(name)))fail(404,'Datei nicht gefunden.');
+   let name=path==='/'?'home.html':path.slice(1);if(pageWithSlash)name=name.replace(/\/+$/,'');if(!name||name.includes('\\')||name.split('/').some(p=>p.startsWith('.'))||!(/^(?:platform|ui|cad|offerten|waerme|ew|EW|Aufbauabstaende|produkte|regie)\//.test(name)||/^(?:home|index|portal|login|lager|auftraege|kunden|regierapport|cad|offerten|waermeberechnung|technik|ew|schienenrechner|drahtfarben|aufbauabstaende)\.html$/.test(name)||/^(?:icon-\d+\.png|manifest\.webmanifest|(?:ew|aufbau)-[\w-]+\.json|drahtfarben\.txt)$/.test(name)))fail(404,'Datei nicht gefunden.');
    const sharedDocumentAsset=/^offerten\/(core|sbr|offer-document|offer-pdf|image-pdf)\.(mjs|css)$/.test(name);
    const s=session(req),module=sharedDocumentAsset?null:pageModule(name),tool=sharedDocumentAsset?null:pageTool(name),privatePage=sharedDocumentAsset||['index.html','portal.html'].includes(name);if((module||tool||privatePage)&&(!s||s.user.mustChangePassword&&name!=='portal.html')){res.writeHead(302,{Location:s?'/portal.html':'/login.html'});return res.end();}if(tool==='technical'){if(!Object.values(technicalTabs).some(k=>['read','write'].includes(s.permissions[k])))fail(403,'Keine technischen Tabellen freigeschaltet.');}else if(tool)requireArea(s,tool);
    // Workshop assets have no record API but obey the same licence check.
