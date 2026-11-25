@@ -48,8 +48,7 @@ try {
     }
     specs.forEach((row, i) => {
       const tr = document.createElement('tr'); tr.className = qty(row) ? 'active' : 'inactive';
-      const name = document.createElement('td'); name.textContent = row.label;
-      const rule = document.createElement('small'); rule.className = 'rail-rule'; rule.textContent = `${{w: 'Breite', h: 'Höhe', d: 'Tiefe'}[row.dimension]} − ${row.deduction} mm`; name.append(rule);
+      const name = document.createElement('td'); name.className = 'rail-name'; name.textContent = row.label;
       const length = document.createElement('td'); length.className = 'num';
       length.textContent = basis(row) === '' ? '–' : valid(row) ? railLength(row, dimensions()).toLocaleString('de-CH') : 'Ungültig';
       const quantity = document.createElement('td'); quantity.className = 'qty';
