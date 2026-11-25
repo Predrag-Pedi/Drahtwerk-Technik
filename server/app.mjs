@@ -160,6 +160,8 @@ export function createApp({db,root,origin,codespaceProxyPort=null,secure=origin.
    }
    let bytes=await readFile(file),type={'.html':'text/html; charset=utf-8','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.pdf':'application/pdf','.webmanifest':'application/manifest+json','.txt':'text/plain'}[extname(file)]||'application/octet-stream';
    if(name.endsWith('.html')){let html=bytes.toString();if(seo.isPublic(path)){res.setHeader('X-Robots-Tag','index, follow');html=html.replace(/<head>/i,'<head>'+seo.markup(path));}html=html.replace(/if\((['"]serviceWorker['"] in navigator|['"]serviceWorker['"]in navigator)/g,'if(!globalThis.__companyMode&&($1)').replaceAll('DRAHTWERK','SchaltBase').replaceAll('Drahtwerk','SchaltBase').replaceAll('TinLine','');html=html.replace(/<head>/i,()=>'<head>'+(s&&(module||tool||privatePage)?sessionMarkup(s):'')+'<script src="/platform/runtime.js"></script>'+(module||tool||privatePage?'<script type="module" src="/platform/shell.mjs"></script>':''));bytes=Buffer.from(html);}
+   // The public brand favicon must not inherit the application's noindex rule.
+   if(name==='platform/schaltbase-icon.png')res.removeHeader('X-Robots-Tag');
    res.setHeader('Content-Type',type);res.setHeader('Content-Length',bytes.length);res.end(method==='HEAD'?undefined:bytes);
   }catch(error){const status=error.status||500;if(!res.headersSent)json(res,{error:status===500?'Interner Fehler. Bitte erneut versuchen.':error.message},status);else res.end();if(status===500)console.error('Request failed:',error.code||error.name);}
  });

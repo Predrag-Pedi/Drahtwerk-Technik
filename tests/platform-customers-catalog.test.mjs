@@ -81,6 +81,16 @@ test('customers, atomic large catalogues, explicit account status and public SEO
    const sitemap=await request('/sitemap.xml','GET',undefined,'anonymous');assert.equal(sitemap.status,200);assert.match(sitemap.data,/<loc>http:\/\/localhost\/produkte\/schema.html<\/loc>/);assert.doesNotMatch(sitemap.data,/kunden.html|portal.html|index.html|api/);
    assert.match((await request('/robots.txt')).data,/Sitemap: http:\/\/localhost\/sitemap.xml/);
    const home=await request('/','GET',undefined,'anonymous');assert.equal(home.headers['x-robots-tag'],'index, follow');assert.match(home.data,/rel="canonical" href="http:\/\/localhost\/"/);
+   assert.match(home.data,/<link rel="icon" href="platform\/schaltbase-icon\.png">/);
+   for(const method of ['GET','HEAD']){
+    const icon=await request('/platform/schaltbase-icon.png',method,undefined,'anonymous');
+    assert.equal(icon.status,200);assert.equal(icon.headers['content-type'],'image/png');
+    assert.equal(icon.headers['x-robots-tag'],undefined,'The public favicon must not exclude itself from search results');
+    assert.ok(Number(icon.headers['content-length'])>0);
+    if(method==='HEAD')assert.equal(icon.data,'');else assert.ok(icon.data.length>0);
+   }
+   assert.equal((await request('/platform/brand.css','GET',undefined,'anonymous')).headers['x-robots-tag'],'noindex, nofollow');
+   assert.equal((await request('/platform/missing.png','GET',undefined,'anonymous')).headers['x-robots-tag'],'noindex, nofollow');
    assert.equal((await request('/login.html','GET',undefined,'anonymous')).headers['x-robots-tag'],'noindex, nofollow');
    for(const [path,role,status] of [['/portal.html','anonymous',302],['/kunden.html','reader',200],['/api/records/customers','reader',200],['/api/records/customers','anonymous',401],['/missing.xml','anonymous',404]]){
     const response=await request(path,'GET',undefined,role);assert.equal(response.status,status,path);assert.equal(response.headers['x-robots-tag'],'noindex, nofollow',path);
