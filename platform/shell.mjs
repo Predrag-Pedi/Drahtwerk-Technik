@@ -18,13 +18,11 @@ if(serverMode){
   const sidebar=document.querySelector('.suite-sidebar nav');
   const navIcon='<svg class="suite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12M13 13h4M13 17h4"/></svg>';
   const orderIcon='<svg class="suite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H5v18h14V8zM14 3v5h5M8 13l2 2 5-5M8 18h7"/></svg>';
-  const moneyIcon='<svg class="suite-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="16" height="11" rx="2"/><circle cx="10" cy="8.5" r="2.5"/><path d="M5 7h.01M15 10h.01"/><ellipse cx="17" cy="17" rx="5" ry="2"/><path d="M12 17v3c0 1.1 2.2 2 5 2s5-.9 5-2v-3"/></svg>';
   if(sidebar&&!sidebar.querySelector('a[href="cad.html"]'))sidebar.insertAdjacentHTML('beforeend','<a class="suite-nav-link" href="cad.html">'+navIcon+'<span>Schema & Dispo</span></a>');
   for(const link of document.querySelectorAll('.suite-sidebar a[href="cad.html"]'))if(!link.querySelector('svg'))link.insertAdjacentHTML('afterbegin',navIcon);
-  for(const [key,href,label] of [['orders','auftraege.html','Aufträge'],['accounting','buchhaltung.html','Buchhaltung']])if(sidebar&&can(key)&&!sidebar.querySelector('a[href="'+href+'"],a[href="/'+href+'"]')){
-   const link=document.createElement('a');link.href='/'+href;link.className='suite-nav-link';link.innerHTML=(key==='accounting'?moneyIcon:orderIcon)+'<span>'+label+'</span>';if(location.pathname==='/'+href)link.setAttribute('aria-current','page');
-   if(key==='accounting'){const heading=document.createElement('p');heading.className='suite-nav-label';heading.textContent='Buchhaltung';sidebar.append(heading,link);}
-   else{const anchor=sidebar.querySelector('a[href="offerten.html"],a[href="/offerten.html"]');if(anchor)anchor.after(link);else{let heading=[...sidebar.querySelectorAll('.suite-nav-label')].find(el=>el.textContent.trim()==='Büro');if(!heading){heading=document.createElement('p');heading.className='suite-nav-label';heading.textContent='Büro';sidebar.append(heading);}heading.after(link);}}
+  if(sidebar&&can('orders')&&!sidebar.querySelector('a[href="auftraege.html"],a[href="/auftraege.html"]')){
+   const link=document.createElement('a');link.href='/auftraege.html';link.className='suite-nav-link';link.innerHTML=orderIcon+'<span>Aufträge</span>';if(location.pathname==='/auftraege.html')link.setAttribute('aria-current','page');
+   const anchor=sidebar.querySelector('a[href="offerten.html"],a[href="/offerten.html"]');if(anchor)anchor.after(link);else{let heading=[...sidebar.querySelectorAll('.suite-nav-label')].find(el=>el.textContent.trim()==='Büro');if(!heading){heading=document.createElement('p');heading.className='suite-nav-label';heading.textContent='Büro';sidebar.append(heading);}heading.after(link);}
   }
   if(sidebar&&can('customers'))sidebar.insertAdjacentHTML('beforeend','<p class="suite-nav-label">Stammdaten</p><a class="suite-nav-link" href="kunden.html">'+navIcon+'<span>Kundenstamm</span></a>');
   if(dev)sidebar?.insertAdjacentHTML('beforeend','<p class="suite-nav-label">Entwickler</p><a class="suite-nav-link" href="/portal.html?section=businesses"><span>Lizenzen & Berechtigungen</span></a>');
@@ -46,7 +44,7 @@ if(serverMode){
    const restrictTabs=()=>{const enabled=Object.keys(ids).filter(k=>can(ids[k]));for(const [key,tool] of Object.entries(ids)){const allowed=can(tool);for(const el of document.querySelectorAll(`[data-tab="${key}"],#panel-${key}`))if(!allowed){el.hidden=true;el.style.setProperty('display','none','important');}}if(!enabled.includes(location.hash.slice(1))&&enabled.length)location.replace('#'+enabled[0]);};
    restrictTabs();window.addEventListener('hashchange',restrictTabs);
   }
-  if(readOnly&&module!=='accounting'){const note=document.createElement('div');note.className='account-readonly';note.textContent='Lesezugriff · Änderungen können nicht im Betrieb gespeichert werden.';document.body.append(note);}
+  if(readOnly){const note=document.createElement('div');note.className='account-readonly';note.textContent='Lesezugriff · Änderungen können nicht im Betrieb gespeichert werden.';document.body.append(note);}
   if(document.body.classList.contains('suite-index')&&!dev&&!Object.values(account.permissions).some(p=>p!=='none')){const note=document.createElement('p');note.className='account-empty';note.textContent='Aktuell ist kein Werkzeug freigeschaltet. Dein Firmenadministrator kann deine Berechtigungen prüfen.';document.querySelector('.suite-content').append(note);}
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

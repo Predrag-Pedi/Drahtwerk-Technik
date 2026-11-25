@@ -93,7 +93,7 @@ test('report plan migration runs once and preserves custom plans and member righ
   const dir=mkdtempSync(join(tmpdir(),'report-migration-')),file=join(dir,'test.sqlite');let db=openDatabase(file);
   for(const id of ['basis','planung','komplett']) {const plan=object(db,'plans',id);plan.modules=plan.modules.filter(x=>x!=='reports');saveObject(db,'plans',plan);}
   saveObject(db,'plans',{id:'custom',name:'Custom',modules:['workshop'],seats:3});db.exec('PRAGMA user_version=3');db.close();
-  db=openDatabase(file);assert.equal(db.prepare('PRAGMA user_version').get().user_version,4);
+  db=openDatabase(file);assert.equal(db.prepare('PRAGMA user_version').get().user_version,5);
   for(const id of ['basis','planung','komplett'])assert.ok(object(db,'plans',id).modules.includes('reports'));
   assert.deepEqual(object(db,'plans','custom').modules,['workshop']);
   const company={enabled:true,startsOn:'2000-01-01',endsOn:'2099-12-31'};

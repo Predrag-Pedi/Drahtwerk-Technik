@@ -3,7 +3,7 @@ import {isDeepStrictEqual} from 'node:util';
 import {audit} from './db.mjs';
 import {fail,text} from './security.mjs';
 import {companyStorageBytes,companyStorageLimit} from './storage.mjs';
-import {swissDay,planAllows} from '../platform/model.mjs';
+import {swissDay} from '../platform/model.mjs';
 import {validateOffer,totals} from '../offerten/core.mjs';
 import {documentDefaults,validateDocumentSettings,formatDocumentNumber,validateOrderUpdate} from '../platform/document-model.mjs';
 
@@ -66,11 +66,6 @@ export function documentsHandler({db,body,json,freshSession,requireArea,clock}){
   if(order&&method==='PATCH'){
    requireArea(s,'orders',true);const b=await body(req,16384),current=freshSession(req,s);requireArea(current,'orders',true);
    json(res,atomic(()=>{const old=record(current.company.id,'orders',order[1]);if(!old)fail(404,'Auftrag nicht gefunden.');if(b.revision!==old.revision)fail(409,'Der Auftrag wurde inzwischen geändert. Bitte neu laden.');const saved=write(current,'orders',order[1],validateOrderUpdate(b.value,JSON.parse(old.data)));audit(db,current.user.id,current.company.id,'order.updated',order[1]);return {id:order[1],...saved};}));return;
-  }
-  if(path==='/api/company/accounting'&&method==='GET'){
-   requireArea(s,'accounting');const offers=planAllows(s.plan,'offers')?read(s.company.id,'offers','offers',[]):[];
-   // The export area has its own role gate. It never opens the general records API.
-   json(res,{orders:planAllows(s.plan,'orders')?orders(s.company.id).map(r=>r.value):[],offers,reports:planAllows(s.plan,'reports')?db.prepare("SELECT id,data FROM records WHERE company_id=? AND area='reports'").all(s.company.id).map(r=>({...JSON.parse(r.data),id:r.id})).filter(r=>['signed','invoiced'].includes(r.status)):[],exportedAt:new Date(clock()).toISOString(),company:s.company.profile||{}});return;
   }
   fail(405,'Methode nicht erlaubt.');
  };
