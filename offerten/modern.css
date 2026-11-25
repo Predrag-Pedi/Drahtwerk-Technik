@@ -73,3 +73,6 @@ body{background:var(--canvas);color:var(--ink);font-family:Inter,-apple-system,B
 @media(max-width:700px){
  .suite-offerten .offer-home .offer-table th.gross-cell{padding-right:10px}
 }
+
+/* Loading the shared article catalogue must not hide saved offers. */
+#catalogState{margin:18px 0;padding:14px 18px;border:1px solid #dce6ef;border-radius:10px;background:#f2f7fc;color:#45617a;font-size:14px;line-height:1.5}#catalogState p{margin:0}#catalogState button{margin-top:10px;font-size:14px;min-height:44px}#offerList[aria-busy=true]{padding:20px;font-size:14px}#offerList[aria-busy=true] .hint{font-size:14px}

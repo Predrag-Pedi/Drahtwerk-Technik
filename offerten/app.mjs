@@ -10,25 +10,33 @@ import {isVSAS} from './vsas.mjs?v=20261110-9';
 import {workspace} from './workspace.mjs?v=20261110-1';
 import {ownArticle,articleSnapshot,validateArticle,articleMinutes} from './articles.mjs?v=20261111-6';
 import {OFFER_STATUSES,offerStatus,uid,offer,plant,part,money,number,line,totals,description,offerText,parseCSV,catalogRows,validateOffer} from './core.mjs?v=20261111-16';
-import {read,write} from './storage.mjs?v=20261119-9';
+import {read,write} from './storage.mjs?v=20261125-1';
+import {offerCollection} from './collection.mjs';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let docs=[],doc,catalog=[],importedCatalog=[],ownCatalog=[],editingArticle=null,detailArticle=null,selectedPlant,selectedPart,limit=30,csvRows=null,saveQueue=Promise.resolve(),ready=false;
+let doc,catalog=[],importedCatalog=[],ownCatalog=[],editingArticle=null,detailArticle=null,selectedPlant,selectedPart,limit=30,csvRows=null;
+const offers=offerCollection({read:()=>read('offers'),write:value=>write('offers',value)});
+let catalogLoaded=false, catalogLoading=false;
 let replacingPosition=null;
 let linkedOrders=[],orderBusy=false;
 const panels=workspace({onClose:()=>{if(!$('catalogDrawer').open||!$('partDrawer').open)replacingPosition=null;renderOffers();}});
 const notice=t=>panels.notify(t);
 const currentPlant=()=>doc.plants.find(p=>p.id===selectedPlant),currentPart=()=>currentPlant().parts.find(p=>p.id===selectedPart);
-function save(){if(!ready||!can('offers',true))return Promise.resolve(false);renderOffers();const snapshot=structuredClone(docs);$('saved').textContent='Speichert …';saveQueue=saveQueue.catch(()=>{}).then(()=>write('offers',snapshot)).then(()=>{$('saved').textContent=savedLabel();return true;}).catch(error=>{$('saved').textContent='Nicht gespeichert';notice('Speichern fehlgeschlagen: '+error.message+' Bitte die Offerte über «Offerte sichern» herunterladen.');return false;});return saveQueue;}
+async function save(){
+ if(!offers.ready||!can('offers',true))return false;
+ renderOffers();$('saved').textContent='Speichert …';
+ try{await offers.save();if(!offers.pending)$('saved').textContent=savedLabel();return true;}
+ catch(error){$('saved').textContent='Nicht gespeichert';notice('Speichern fehlgeschlagen: '+error.message+' Bitte die Offerte über «Offerte sichern» herunterladen.');return false;}
+}
 function download(name,content,type='application/json'){const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 const filename=()=>[doc.number||'Offerte',doc.project||doc.customer||'Angebot'].join(' - ').replace(/[^\p{L}\p{N} ._-]/gu,'_');
 function choose(d){doc=d;selectedPlant=d.plants[0].id;selectedPart=d.plants[0].parts[0].id;draw();}
-function options(){const select=$('offers');select.innerHTML=docs.map(d=>`<option value="${esc(d.id)}">${esc([d.number,d.project||d.customer||'Neue Offerte'].filter(Boolean).join(' · '))}</option>`).join('');select.value=doc.id;}
+function options(){const select=$('offers');select.innerHTML=offers.documents.map(d=>`<option value="${esc(d.id)}">${esc([d.number,d.project||d.customer||'Neue Offerte'].filter(Boolean).join(' · '))}</option>`).join('');select.value=doc.id;}
 function form(root,obj,fields,onchange){root.replaceChildren();for(const [key,title,type='text',wide=false] of fields){const l=document.createElement('label');l.textContent=title;if(wide)l.className='wide';const input=document.createElement(type==='textarea'?'textarea':'input');if(type!=='textarea')input.type=type;input.value=obj[key]??'';input.dataset.field=key;input.setAttribute('aria-label',title);if(type==='number'){input.min='0';input.step='any';if(['discount','vatRate'].includes(key))input.max='100';}input.onchange=()=>{if(type==='number'){const n=number(input.value);if(n===null||n<0||(['discount','vatRate'].includes(key)&&n>100)){input.value=obj[key]??'';notice('Bitte eine gültige positive Zahl eingeben (Rabatt und MWST höchstens 100 %).');return;}obj[key]=n;}else obj[key]=input.value;notice('');onchange?.();save();};l.append(input);root.append(l);}}
 function subtotal(items){try{return 'CHF '+money(items.reduce((n,i)=>n+line(i,doc).total,0));}catch{return 'Preis offen';}}
-function renderOffers(){if(!$('offerList'))return;const q=$('offerSearch').value.toLowerCase();const shown=docs.filter(d=>[d.number,d.customer,d.project,OFFER_STATUSES[offerStatus(d.status)]].join(' ').toLowerCase().includes(q));$('offerCount').textContent=docs.length;$('plantCount').textContent=docs.reduce((n,d)=>n+d.plants.length,0);$('articleCount').textContent=catalog.length;$('resultCount').textContent=shown.length;
- $('offerList').innerHTML=shown.length?'<div class="scroll"><table class="offer-table"><thead><tr><th>OFFERTEN / OBJEKT</th><th>ERSTELLT</th><th>KUNDE</th><th class="amount-cell">TOTAL EXKL. MWST</th><th class="amount-cell gross-cell">TOTAL INKL. MWST</th></tr></thead><tbody>'+shown.map(d=>{let total,gross;try{const t=totals(d);total='CHF '+money(t.total);gross='CHF '+money(t.gross);}catch{total=gross='Preis offen';}return `<tr class="offer-status-row status-${offerStatus(d.status)}"><td><button class="offer-open" data-offer="${d.id}"><span class="offer-document" aria-hidden="true"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span><span class="offer-identity"><span class="offer-number">${esc(d.number||'Ohne Nummer')}</span><span class="offer-sub">${esc(d.project||'Neues Objekt')}</span></span><span class="offer-status status-${offerStatus(d.status)}">${OFFER_STATUSES[offerStatus(d.status)]}</span></button></td><td class="date-cell">${esc(/^\d{4}-\d{2}-\d{2}$/.test(d.date)?d.date.split('-').reverse().join('.'):d.date)}</td><td>${esc(d.customer||'–')}</td><td class="amount-cell"><span class="table-amount">${total}</span></td><td class="amount-cell gross-cell"><span class="table-amount">${gross}</span><span class="row-arrow" aria-hidden="true">↗</span></td></tr>`;}).join('')+'</tbody></table></div>':'<div class="empty offer-empty"><div class="empty-art" aria-hidden="true"><div class="empty-sheet"><span></span><i></i><i></i><i></i><b>+</b></div></div><p class="eyebrow">'+(docs.length?'SUCHE ANPASSEN':'BEREIT FÜR DEIN NÄCHSTES PROJEKT')+'</p><h3>'+(docs.length?'Keine passende Offerte':'Hier beginnt deine nächste Offerte.')+'</h3><p>'+(docs.length?'Versuche eine andere Nummer, einen Kunden oder ein Objekt.':'Erstelle dein Angebot, gliedere deine Anlagen und füge Artikel hinzu.')+'</p><button class="primary" id="emptyAction">'+(docs.length?'Suche zurücksetzen':'Erste Offerte erstellen <span aria-hidden="true">→</span>')+'</button></div>';
- if($('emptyAction'))$('emptyAction').onclick=()=>{if(docs.length){$('offerSearch').value='';renderOffers();}else $('new').click();};
- $('offerList').querySelectorAll('[data-offer]').forEach(b=>b.onclick=()=>{choose(docs.find(d=>d.id===b.dataset.offer));panels.tab('offerData');panels.open('offerDrawer','OFFERTEN / '+(doc.number||'ENTWURF'));});
+function renderOffers(){if(!offers.ready||!$('offerList'))return;const q=$('offerSearch').value.toLowerCase();const shown=offers.documents.filter(d=>[d.number,d.customer,d.project,OFFER_STATUSES[offerStatus(d.status)]].join(' ').toLowerCase().includes(q));$('offerCount').textContent=offers.documents.length;$('plantCount').textContent=offers.documents.reduce((n,d)=>n+d.plants.length,0);$('articleCount').textContent=catalogLoaded?catalog.length:'…';$('resultCount').textContent=shown.length;
+ $('offerList').innerHTML=shown.length?'<div class="scroll"><table class="offer-table"><thead><tr><th>OFFERTEN / OBJEKT</th><th>ERSTELLT</th><th>KUNDE</th><th class="amount-cell">TOTAL EXKL. MWST</th><th class="amount-cell gross-cell">TOTAL INKL. MWST</th></tr></thead><tbody>'+shown.map(d=>{let total,gross;try{const t=totals(d);total='CHF '+money(t.total);gross='CHF '+money(t.gross);}catch{total=gross='Preis offen';}return `<tr class="offer-status-row status-${offerStatus(d.status)}"><td><button class="offer-open" data-offer="${d.id}"><span class="offer-document" aria-hidden="true"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span><span class="offer-identity"><span class="offer-number">${esc(d.number||'Ohne Nummer')}</span><span class="offer-sub">${esc(d.project||'Neues Objekt')}</span></span><span class="offer-status status-${offerStatus(d.status)}">${OFFER_STATUSES[offerStatus(d.status)]}</span></button></td><td class="date-cell">${esc(/^\d{4}-\d{2}-\d{2}$/.test(d.date)?d.date.split('-').reverse().join('.'):d.date)}</td><td>${esc(d.customer||'–')}</td><td class="amount-cell"><span class="table-amount">${total}</span></td><td class="amount-cell gross-cell"><span class="table-amount">${gross}</span><span class="row-arrow" aria-hidden="true">↗</span></td></tr>`;}).join('')+'</tbody></table></div>':'<div class="empty offer-empty"><div class="empty-art" aria-hidden="true"><div class="empty-sheet"><span></span><i></i><i></i><i></i><b>+</b></div></div><p class="eyebrow">'+(offers.documents.length?'SUCHE ANPASSEN':'BEREIT FÜR DEIN NÄCHSTES PROJEKT')+'</p><h3>'+(offers.documents.length?'Keine passende Offerte':'Hier beginnt deine nächste Offerte.')+'</h3><p>'+(offers.documents.length?'Versuche eine andere Nummer, einen Kunden oder ein Objekt.':'Erstelle dein Angebot, gliedere deine Anlagen und füge Artikel hinzu.')+'</p><button class="primary" id="emptyAction">'+(offers.documents.length?'Suche zurücksetzen':'Erste Offerte erstellen <span aria-hidden="true">→</span>')+'</button></div>';
+ if($('emptyAction'))$('emptyAction').onclick=()=>{if(offers.documents.length){$('offerSearch').value='';renderOffers();}else $('new').click();};
+ $('offerList').querySelectorAll('[data-offer]').forEach(b=>b.onclick=()=>{choose(offers.documents.find(d=>d.id===b.dataset.offer));panels.tab('offerData');panels.open('offerDrawer','OFFERTEN / '+(doc.number||'ENTWURF'));});
 }
 function renderTree(){const root=$('tree');root.innerHTML=doc.plants.map((p,i)=>`<div class="entity-row"><button class="entity-open" data-plant="${p.id}"><strong>${i+1}. ${esc(p.name)}</strong><small>${p.parts.length} Anlagenteile · ${p.parts.reduce((n,s)=>n+s.items.length,0)} Positionen</small></button><span class="sum">${subtotal(p.parts.flatMap(s=>s.items))}</span><span>›</span></div>`).join('');root.querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>{selectedPlant=b.dataset.plant;selectedPart=currentPlant().parts[0].id;drawSelection();panels.open('plantDrawer',doc.number+' / '+currentPlant().name);});
  $('partList').innerHTML=currentPlant().parts.map((s,j)=>`<div class="entity-row"><button class="entity-open" data-part="${s.id}"><strong>${j+1}. ${esc(s.name)}</strong><small>${s.items.length} Positionen</small></button><span class="sum">${subtotal(s.items)}</span><span>›</span></div>`).join('');$('partList').querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>{selectedPart=b.dataset.part;drawSelection();panels.open('partDrawer',currentPlant().name+' / '+currentPart().name);});$('target').textContent=replacingPosition?'Produkt ersetzen: '+replacingPosition.qty+' × '+replacingPosition.name:panels.isOpen('partDrawer')?'Artikel hinzufügen zu: '+currentPlant().name+' → '+currentPart().name:'Artikelstamm verwalten · Zum Einfügen zuerst eine Offerte und einen Anlagenteil öffnen.';
@@ -37,6 +45,7 @@ let pdfBusy=false;
 function calculate(){let text='';try{const t=totals(doc);$('totals').innerHTML=t.plants.map((p,i)=>`<p><span>${esc(doc.plants[i].name)}</span><strong>CHF ${money(p.total)}</strong></p>`).join('')+`<p><span>Rabatt ${doc.discount} %</span><span>−CHF ${money(t.discount)}</span></p><p class="grand"><span>Total exkl. MWST</span><span>CHF ${money(t.total)}</span></p><p><span>MWST ${money(t.vatRate)} %</span><span>CHF ${money(t.vat)}</span></p><p class="grand"><span>Total inkl. MWST</span><span>CHF ${money(t.gross)}</span></p>`;text=offerText(doc,$('textMode').value);$('offerPreview').innerHTML=offerHTML(doc,$('textMode').value);
  $('editOfferTexts').disabled=false;$('copyText').disabled=false;$('downloadText').disabled=false;$('downloadPdf').disabled=pdfBusy;}catch(e){$('offerPreview').textContent=e.message;$('totals').textContent=e.message;$('editOfferTexts').disabled=true;$('copyText').disabled=true;$('downloadText').disabled=true;$('downloadPdf').disabled=true;}$('output').value=text;}
 function startReplacement(item){
+ if(!catalogLoaded){notice('Bitte zuerst den Artikelstamm vollständig laden.');return;}
  panels.open('catalogDrawer',currentPlant().name+' / '+currentPart().name);
  replacingPosition={id:item.id,part:currentPart(),name:item.name,qty:item.qty};
  for(const id of ['search','category','brandFilter','typeFilter','sourceFilter'])$(id).value='';
@@ -156,11 +165,11 @@ function mapForm(){const root=$('mapping');root.innerHTML='<h3>Spalten zuweisen<
 }
 function clonePlant(p){const copy=structuredClone(p);copy.id=uid();copy.name+=' (Kopie)';for(const s of copy.parts){s.id=uid();for(const i of s.items)i.id=uid();}return copy;}
 let newBusy=false;
-async function createOffer(copy=false){if(newBusy||!can('offers',true))return;newBusy=true;try{const d=copy?validateOffer(doc):offer();d.status='open';if(copy)d.project+=' (Kopie)';if(serverMode){const assigned=await api('/company/offer-number',{method:'POST',body:{id:d.id}});d.number=assigned.number;if(!copy){d.intro=assigned.template.intro;d.closing=assigned.template.closing;}}else d.number=copy&&doc.number?doc.number+'-Kopie':'';docs.push(d);choose(d);await save();panels.tab('offerData');panels.open('offerDrawer','NEUE OFFERTE');}catch(error){notice(error.message);}finally{newBusy=false;}}
-$('new').onclick=()=>createOffer();$('duplicate').onclick=()=>createOffer(true);$('deleteOffer').onclick=()=>{if(!confirm('Diese Offerte auf diesem Gerät löschen?'))return;docs=docs.filter(d=>d.id!==doc.id);panels.close('offerDrawer');choose(docs[0]||offer());save();};$('offers').onchange=()=>choose(docs.find(d=>d.id===$('offers').value));
+async function createOffer(copy=false){if(!offers.ready||newBusy||orderBusy||!can('offers',true))return;newBusy=true;try{const d=copy?validateOffer(doc):offer();d.status='open';if(copy)d.project+=' (Kopie)';if(serverMode){const assigned=await api('/company/offer-number',{method:'POST',body:{id:d.id}});d.number=assigned.number;if(!copy){d.intro=assigned.template.intro;d.closing=assigned.template.closing;}}else d.number=copy&&doc.number?doc.number+'-Kopie':'';offers.add(d);choose(d);panels.tab('offerData');panels.open('offerDrawer','NEUE OFFERTE');await save();}catch(error){notice(error.message);}finally{newBusy=false;}}
+$('new').onclick=()=>createOffer();$('duplicate').onclick=()=>createOffer(true);$('deleteOffer').onclick=()=>{if(!confirm('Diese Offerte auf diesem Gerät löschen?'))return;offers.remove(doc.id);panels.close('offerDrawer');choose(offers.documents[0]||offer());save();};$('offers').onchange=()=>choose(offers.documents.find(d=>d.id===$('offers').value));
 $('addPlant').onclick=()=>{const p=plant('Neue Anlage');doc.plants.push(p);selectedPlant=p.id;selectedPart=p.parts[0].id;drawSelection();save();panels.open('plantDrawer',doc.number+' / Neue Anlage');};$('copyPlant').onclick=()=>{const p=clonePlant(currentPlant());doc.plants.push(p);selectedPlant=p.id;selectedPart=p.parts[0].id;drawSelection();save();};$('deletePlant').onclick=()=>{if(doc.plants.length===1||!confirm('Anlage mit allen Teilen und Positionen entfernen?'))return;doc.plants=doc.plants.filter(p=>p.id!==selectedPlant);choose(doc);save();panels.close('plantDrawer');};
 $('addPart').onclick=()=>{const p=part('Neuer Teil');currentPlant().parts.push(p);selectedPart=p.id;drawSelection();save();panels.open('partDrawer',currentPlant().name+' / Neuer Teil');};$('copyPart').onclick=()=>{const p=structuredClone(currentPart());p.id=uid();p.name+=' (Kopie)';p.items.forEach(i=>i.id=uid());currentPlant().parts.push(p);selectedPart=p.id;drawSelection();save();};$('movePartUp').onclick=()=>{const a=currentPlant().parts,i=a.indexOf(currentPart());if(i>0)[a[i-1],a[i]]=[a[i],a[i-1]];drawSelection();save();};$('deletePart').onclick=()=>{const p=currentPlant();if(p.parts.length===1||!confirm('Anlagenteil mit allen Positionen entfernen?'))return;p.parts=p.parts.filter(s=>s.id!==selectedPart);selectedPart=p.parts[0].id;drawSelection();save();panels.close('partDrawer');};$('manual').onclick=()=>{currentPart().items.push({id:uid(),article:'',name:'Neue Position',qty:1,unit:'Stk.',price:null,minutes:0});drawSelection();save();};
-$('backup').onclick=()=>download(filename()+'.json',JSON.stringify({format:'drahtwerk-offerte',version:1,offer:doc},null,2));$('restore').onchange=async()=>{try{const file=$('restore').files[0];if(!file)return;if(file.size>10000000)throw Error('Offertendatei ist zu gross (max. 10 MB).');const raw=JSON.parse(await file.text());if(raw.format!=='drahtwerk-offerte'||raw.version!==1)throw Error('Keine unterstützte Offertendatei.');const d=validateOffer(raw.offer);d.status='open';if(serverMode){const assigned=await api('/company/offer-number',{method:'POST',body:{id:d.id}});d.number=assigned.number;}docs.push(d);choose(d);save();panels.tab('offerData');panels.open('offerDrawer','OFFERTEN / '+doc.number);notice('Offerte als neue Kopie geöffnet.');}catch(e){notice(e.message);}finally{$('restore').value='';}};
+$('backup').onclick=()=>download(filename()+'.json',JSON.stringify({format:'drahtwerk-offerte',version:1,offer:doc},null,2));$('restore').onchange=async()=>{if(!offers.ready||!can('offers',true))return;try{const file=$('restore').files[0];if(!file)return;if(file.size>10000000)throw Error('Offertendatei ist zu gross (max. 10 MB).');const raw=JSON.parse(await file.text());if(raw.format!=='drahtwerk-offerte'||raw.version!==1)throw Error('Keine unterstützte Offertendatei.');const d=validateOffer(raw.offer);d.status='open';if(serverMode){const assigned=await api('/company/offer-number',{method:'POST',body:{id:d.id}});d.number=assigned.number;}offers.add(d);choose(d);save();panels.tab('offerData');panels.open('offerDrawer','OFFERTEN / '+doc.number);notice('Offerte als neue Kopie geöffnet.');}catch(e){notice(e.message);}finally{$('restore').value='';}};
 let searchTimer; $('search').oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{limit=30;products();},180);};$('category').onchange=()=>{limit=30;products();};$('more').onclick=()=>{limit+=30;products();};$('catalogFile').onchange=loadCSV;$('encoding').onchange=loadCSV;$('delimiter').onchange=loadCSV;
 $('exportCatalog').onclick=()=>{if(!catalog.length){notice('Noch keine Artikeldaten vorhanden.');return;}const rows=[['Artikelnummer','Bezeichnung','Preis','Einheit','Kategorie','Hersteller','Minuten','Stundensatz','Artikeltyp'],...catalog.map(p=>[p.article,p.name,p.price,p.unit,p.category,p.brand,p.minutes,p.rate??'',p.type||'Artikel'])];download('Artikel.csv','\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(';')).join('\r\n'),'text/csv;charset=utf-8');};
 $('textMode').onchange=()=>{doc.outputMode=$('textMode').value;calculate();save();};
@@ -170,13 +179,11 @@ $('copyText').onclick=async()=>{try{
  await navigator.clipboard.writeText(text);notice('Offerte als Text kopiert. In Bexio einfügen und Preispositionen separat übernehmen.');
  }catch{$('plainText').open=true;$('output').focus();$('output').select();notice('Automatisches Kopieren nicht verfügbar. Der Text ist markiert: bitte über «Kopieren» übernehmen.');}};
 $('downloadText').onclick=()=>download(filename()+'.txt',$('output').value,'text/plain;charset=utf-8');
-try{[docs,importedCatalog,ownCatalog]=await Promise.all([read('offers'),read('catalog'),read('ownCatalog')]);docs=docs||[];importedCatalog=importedCatalog||[];ownCatalog=ownCatalog||[];catalog=[...importedCatalog,...ownCatalog];}catch(error){notice('Firmendaten konnten nicht vollständig geladen werden: '+error.message);globalThis.__schaltbaseStartupError?.('Offerten konnten nicht geladen werden.',error.message+' Bitte neu laden. Bestehende Daten bleiben erhalten.');throw error;}
-ready=true;if(serverMode&&can('orders')){try{linkedOrders=await api('/company/orders');}catch(error){notice('Auftragsverknüpfungen konnten nicht geladen werden: '+error.message);}}choose(docs[0]||offer());catalogReady();renderOffers();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 $('offerSearch').oninput=renderOffers;
-$('manageArticles').onclick=()=>{replacingPosition=null;panels.open('catalogDrawer','ARTIKELSTAMM');renderTree();products();};
-$('openProducts').onclick=()=>{replacingPosition=null;panels.open('catalogDrawer',currentPlant().name+' / '+currentPart().name);renderTree();products();};
+$('manageArticles').onclick=()=>{if(!offers.ready||!catalogLoaded)return;replacingPosition=null;panels.open('catalogDrawer','ARTIKELSTAMM');renderTree();products();};
+$('openProducts').onclick=()=>{if(!catalogLoaded){notice('Der Artikelstamm wird noch geladen. Bitte kurz warten oder den Artikelstamm erneut laden.');return;}replacingPosition=null;panels.open('catalogDrawer',currentPlant().name+' / '+currentPart().name);renderTree();products();};
 $('sourceFilter').onchange=()=>{limit=30;products();};
 $('createArticle').onclick=()=>editArticle();
 $('cancelArticle').onclick=()=>panels.close('articleDrawer');
@@ -199,3 +206,46 @@ $('addProductDetail').onclick=()=>{const qty=number($('productQuantity').value);
 $('downloadPdf').onclick=async()=>{if(pdfBusy)return;pdfBusy=true;const button=$('downloadPdf'),snapshot=structuredClone(doc),mode=$('textMode').value,name=filename();button.disabled=true;button.textContent='PDF wird erstellt …';try{const {exportOfferPdf}=await import('./offer-pdf.mjs?v=20261119-9');const blob=await exportOfferPdf(snapshot,mode);download(name+'.pdf',blob,'application/pdf');notice('Offerte als PDF erstellt. Der Download wurde gestartet.');}catch(e){notice('PDF konnte nicht erstellt werden: '+e.message);}finally{pdfBusy=false;button.textContent='Offerte als PDF herunterladen';calculate();}};
 
 $('editOfferTexts').onclick=()=>editOfferTexts(doc,$('textMode').value,()=>{draw();save();notice('Angebotstexte gespeichert und für alle Exporte übernommen.');});
+
+
+function updateStartupControls(){
+ $('new').disabled=!offers.ready||!can('offers',true);
+ $('restore').disabled=!offers.ready||!can('offers',true);
+ $('manageArticles').disabled=!offers.ready||!catalogLoaded;
+ $('openProducts').disabled=!catalogLoaded;
+}
+async function loadOffers(){
+ updateStartupControls();$('offerList').setAttribute('aria-busy','true');
+ $('offerList').innerHTML='<p role="status" class="hint">Offerten werden geladen …</p>';
+ try{
+  await offers.load();
+  choose(offers.documents[0]||offer());renderOffers();updateStartupControls();
+ }catch(error){
+  $('offerList').innerHTML='<div class="empty"><h3>Offerten konnten nicht geladen werden</h3><p role="alert">'+esc(error.message)+'</p><p>Bestehende Offerten bleiben erhalten. Bitte erneut laden, bevor du eine neue Offerte erstellst.</p><button type="button" id="retryOffers">Erneut laden</button></div>';
+  $('retryOffers').onclick=loadOffers;
+ }finally{$('offerList').setAttribute('aria-busy','false');}
+}
+async function loadArticles(){
+ if(catalogLoading||catalogLoaded)return;
+ catalogLoading=true;$('catalogState').hidden=false;
+ $('catalogStateText').textContent='Artikelstamm wird geladen. Gespeicherte Offerten können bereits geöffnet und bearbeitet werden.';
+ $('retryCatalog').hidden=true;
+ try{
+  const [imported,own]=await Promise.all([read('catalog'),read('ownCatalog')]);
+  if(imported!==undefined&&!Array.isArray(imported)||own!==undefined&&!Array.isArray(own))throw Error('Die Artikeldaten konnten nicht vollständig gelesen werden.');
+  importedCatalog=imported||[];ownCatalog=own||[];catalog=[...importedCatalog,...ownCatalog];catalogLoaded=true;
+  catalogReady();$('articleCount').textContent=catalog.length;$('catalogState').hidden=true;renderOffers();
+ }catch(error){
+  $('catalogStateText').textContent='Artikelstamm nicht geladen: '+error.message+' Deine Offerten bleiben verfügbar. Artikelimport und Artikelbearbeitung sind bis zum erfolgreichen Laden gesperrt.';
+  $('retryCatalog').hidden=false;
+ }finally{catalogLoading=false;updateStartupControls();}
+}
+async function loadOrderLinks(){
+ if(!serverMode||!can('orders'))return;
+ try{linkedOrders=await api('/company/orders',{timeoutMs:15000});if(doc)drawOrderAction();}
+ catch(error){notice('Auftragsverknüpfungen konnten nicht geladen werden: '+error.message);}
+}
+$('retryCatalog').onclick=loadArticles;
+// Bind all handlers first, then start independent reads. No later response may
+// replace the selected/new offer or reset the editable collection.
+loadOffers();loadArticles();loadOrderLinks();
