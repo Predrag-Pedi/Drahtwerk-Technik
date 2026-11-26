@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102b4c">
-<meta name="description" content="SchaltBase für den Schaltanlagenbau: Schema mit Makros, eigenständige Dispo, automatische Dispo-Erzeugung, Offerten und gemeinsame Werkstattwerkzeuge. Entdecke alle Anwendungen in animierten Produktdemos.">
+<meta name="description" content="SchaltBase für den Schaltanlagenbau: Schema, Dispo, Offerten, Aufträge und Lager. Erstelle Aufträge aus Offerten und buche vorhandenes Material automatisch ab. Entdecke den Ablauf in animierten Produktbeispielen.">
 <title>SchaltBase · Von der Planung bis in die Werkstatt.</title>
 <link rel="icon" href="platform/schaltbase-icon.png">
 <link rel="apple-touch-icon" href="platform/schaltbase-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="platform/home.css?v=20261123-demos">
+<link rel="stylesheet" href="platform/home.css?v=20261126-workflow">
 <link rel="stylesheet" href="platform/brand.css?v=20261123">
-<link rel="stylesheet" href="/platform/public-nav.css"></head>
+<link rel="stylesheet" href="/platform/public-nav.css"><link rel="stylesheet" href="/platform/workflow-demo.css?v=20261126"></head>
 <body>
 <a class="skip-link" href="#inhalt">Zum Inhalt</a>
-<header class="home-header"><a class="home-brand" href="/home.html" aria-label="SchaltBase Startseite"><img class="sb-icon" src="/platform/schaltbase-icon.png" width="36" height="36" alt="">SchaltBase</a><nav aria-label="Hauptnavigation"><details class="products-menu"><summary>Werkzeuge</summary><div class="products-dropdown"><div><p>Planung</p><a href="/produkte/schema.html">Schema<small>Makros & Stromkreise</small></a><a href="/produkte/dispo.html">Disposition<small>Aufbau & Anordnung</small></a></div><div><p>Werkstatt</p><a href="/produkte/schienenrechner.html">Schienenrechner<small>Masse & Zuschnitt</small></a><a href="/produkte/ew-vorschriften.html">EW-Vorschriften<small>Unterlagen & Wissen</small></a><a href="/produkte/aufbauabstaende.html">Aufbauabstände<small>Zeichnungen & Vorgaben</small></a><a href="/produkte/drahtfarben.html">Drahtfarben<small>Leiter & Anwendungen</small></a><a href="/produkte/litzenquerschnitte.html">Litzenquerschnitte<small>Technische Tabellen</small></a><a href="/produkte/kupferschienen.html">Kupferschienen<small>Dimensionen & Strom</small></a><a href="/produkte/abb-smissline.html">ABB Smissline<small>Schienen & Einheiten</small></a><a href="/produkte/hager-uniway.html">Hager Uniway<small>Stecksockel & Systemlängen</small></a></div><div><p>Büro</p><a href="/produkte/offerten.html">Offerten<small>Material & Kalkulation</small></a><a href="/produkte/regierapport.html">Regierapporte<small>Einsatz & Kundenbestätigung</small></a><a href="/produkte/waermeberechnung.html">Wärmeberechnung<small>Analyse & Nachweise</small></a></div></div></details><a class="home-jump" href="/home.html#demo">In Aktion</a><a class="home-jump" href="/home.html#team">Dein Team</a></nav><a class="login-link" href="/login.html">Anmelden</a></header>
+<header class="home-header"><a class="home-brand" href="/home.html" aria-label="SchaltBase Startseite"><img class="sb-icon" src="/platform/schaltbase-icon.png" width="36" height="36" alt="">SchaltBase</a><nav aria-label="Hauptnavigation"><details class="products-menu"><summary>Werkzeuge</summary><div class="products-dropdown"><div><p>Planung</p><a href="/produkte/schema.html">Schema<small>Makros & Stromkreise</small></a><a href="/produkte/dispo.html">Disposition<small>Aufbau & Anordnung</small></a></div><div><p>Werkstatt</p><a href="/produkte/lager.html">Lager<small>Bestände & Zuschnitt</small></a><a href="/produkte/schienenrechner.html">Schienenrechner<small>Masse & Zuschnitt</small></a><a href="/produkte/ew-vorschriften.html">EW-Vorschriften<small>Unterlagen & Wissen</small></a><a href="/produkte/aufbauabstaende.html">Aufbauabstände<small>Zeichnungen & Vorgaben</small></a><a href="/produkte/drahtfarben.html">Drahtfarben<small>Leiter & Anwendungen</small></a><a href="/produkte/litzenquerschnitte.html">Litzenquerschnitte<small>Technische Tabellen</small></a><a href="/produkte/kupferschienen.html">Kupferschienen<small>Dimensionen & Strom</small></a><a href="/produkte/abb-smissline.html">ABB Smissline<small>Schienen & Einheiten</small></a><a href="/produkte/hager-uniway.html">Hager Uniway<small>Stecksockel & Systemlängen</small></a></div><div><p>Büro</p><a href="/produkte/offerten.html">Offerten<small>Material & Kalkulation</small></a><a href="/produkte/auftraege.html">Aufträge<small>Bestätigung & Material</small></a><a href="/produkte/regierapport.html">Regierapporte<small>Einsatz & Kundenbestätigung</small></a></div></div></details><a class="home-jump" href="/home.html#demo">In Aktion</a><a class="home-jump" href="/home.html#team">Dein Team</a></nav><a class="login-link" href="/login.html">Anmelden</a></header>
 <main id="inhalt">
 <section class="hero" aria-labelledby="hero-title">
 <div class="hero-grid" aria-hidden="true">
@@ -22,10 +22,10 @@
 <div class="hero-inner">
 <div class="hero-copy">
 <p class="eyebrow light">DEINE BASIS IM SCHALTANLAGENBAU</p>
-<h1 id="hero-title">Gute Planung.<br>
-<span>Starker Aufbau.</span>
+<h1 id="hero-title">Gut geplant.<br>
+<span>Bis ins Lager.</span>
 </h1>
-<p class="hero-description">Vom ersten Makro bis zur fertigen Zuschnittliste. Schema, Dispo, Offerten und Werkstattwissen – verbunden in SchaltBase.</p>
+<p class="hero-description">Von der Offerte zum Auftrag. Vom Schema in die Werkstatt. SchaltBase verbindet eure Planung mit dem Material: Auftrag erstellen – vorhandene Lagerartikel werden automatisch abgebucht.</p>
 <div class="hero-actions">
 <a class="button primary" href="#demo">Werkzeuge in Aktion erleben</a>
 <a class="hero-login" href="login.html">Zum Arbeitsplatz</a>
@@ -40,65 +40,55 @@
 <div class="product-top">
 <img src="platform/schaltbase-icon.png" width="24" height="24" alt="">
 <strong>SchaltBase</strong>
-<span>Planung in Bewegung</span>
+<span>Dein Betrieb. Ein gemeinsamer Ablauf.</span>
 </div>
-<div class="clip hero-clip" id="hero-clip" data-clip>
-<div class="clip-stage">
-<div class="clip-frame " data-frame data-caption="Schema mit Makros" data-detail="">
-<div class="drawing-paper">
-<img class="" src="platform/demos/schema-1.svg" alt="Makros auswählen und platzieren" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Makros auswählen und platzieren</span>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Planung im Schema" data-detail="">
-<div class="drawing-paper">
-<img class="" src="platform/demos/schema-3.svg" alt="Stromkreise erfassen und verbinden" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Stromkreise erfassen und verbinden</span>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Aufbau vorbereiten" data-detail="">
-<div class="drawing-paper">
-<img class="" src="platform/demos/dispo-frame.svg" alt="Rahmen und Schienen anlegen" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Rahmen und Schienen anlegen</span>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Vom Schema in die Dispo" data-detail="">
-<div class="drawing-paper">
-<img class="" src="platform/demos/dispo-complete.svg" alt="Dispo erzeugen und weiterplanen" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Dispo erzeugen und weiterplanen</span>
-</div>
-</div>
-</div>
+<div class="clip hero-clip" id="hero-clip" data-step-ms="6000" data-clip>
+<div class="clip-stage"><!-- hero-workflow:start -->
+<div class="clip-frame" data-frame data-caption="Auftrag erstellt. Lager aktualisiert." data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>OFFERTE · AUFTRAG · LAGER</p><h4>Ein Auftrag. Alles verbunden.</h4></div><span class="flow-badge ok">AU-00028</span></div><div class="flow-hero-order"><span class="flow-doc-icon">AB</span><div><strong>UV Werkstatt</strong><small>Muster AG · aus Offerte AN-00104</small></div><b>✓</b></div><div class="flow-hero-stock"><span>Leitungsschutzschalter</span><div><s>24</s><strong>18 <small>Stück</small></strong><b>−6</b></div><p>Beim Erstellen des Auftrags automatisch abgebucht.</p></div><div class="flow-note ">Auftragsbestätigung und Lagerauszug bereit.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Jede Abbuchung nachvollziehen." data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div>
+<!-- hero-workflow:end --></div>
 <div class="mini-controls">
-<span data-clip-caption>Schema mit Makros</span>
+<span data-clip-caption>Auftrag erstellt. Lager aktualisiert.</span>
 <button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
 </div>
 </div>
 <div class="product-sticker">
-<span>Schema</span>
+<span>Offerte</span>
 <b>+</b>
-<span>Dispo</span>
-<small>Ein Projekt. Viele Möglichkeiten.</small>
+<span>Auftrag</span>
+<b>+</b>
+<span>Lager</span>
 </div>
 </div>
 </div>
 <div class="hero-bottom">
 <span>PLANEN</span>
 <span>KALKULIEREN</span>
+<span>BEAUFTRAGEN</span>
 <span>BAUEN</span>
 <button type="button" id="motion-toggle" hidden>Animationen pausieren</button>
 </div>
+</section>
+<section class="connected-section section-wrap" aria-labelledby="connected-title">
+<div class="connected-intro"><div><p class="eyebrow">VOM ANGEBOT BIS ZUM MATERIAL</p><h2 id="connected-title">Einmal erfasst.<br>Im nächsten Schritt schon da.</h2></div><p>Kundendaten, Positionen und Mengen bleiben verbunden. So wird aus einer Zusage ein Auftrag, mit dem Büro und Werkstatt weiterarbeiten können.</p></div>
+<div class="connected-cards"><article class="connected-card"><p class="eyebrow">AUFTRÄGE</p><h3>Bestätigen. Organisieren. Loslegen.</h3><p>Übernimm die genehmigte Offerte, lade die Auftragsbestätigung herunter und verfolge, welches Kundenmaterial noch fehlt.</p><div class="connected-links"><a href="#demo" data-show-demo="orders">Ablauf im Clip ansehen</a><a href="/produkte/auftraege.html">Aufträge kennenlernen</a></div></article>
+<article class="connected-card inventory-card"><p class="eyebrow">LAGER</p><h3>Dein Auftrag bucht mit.</h3><p>Schon beim Offerieren die Verfügbarkeit sehen. Beim Erstellen des Auftrags wird das vorhandene Material automatisch vom Bestand abgezogen.</p><div class="connected-links"><a href="#demo" data-show-demo="inventory">Lager im Clip ansehen</a><a href="/produkte/lager.html">Lager kennenlernen</a></div></article></div>
+<p class="connected-rule"><strong>Der richtige Moment zählt:</strong> Die Offerte zeigt den aktuellen Bestand. Erst «Auftrag erstellen» löst die Abbuchung aus. Fehlmengen bleiben sichtbar; die ursprüngliche Offerte bleibt erhalten.</p>
 </section>
 <section class="section-wrap demo-section" id="demo" aria-labelledby="demo-heading">
 <div class="section-heading">
 <div>
 <p class="eyebrow">SCHAU DEINEN WERKZEUGEN BEI DER ARBEIT ZU</p>
-<h2 id="demo-heading">Für jeden Schritt.<br>Das passende Werkzeug.</h2>
+<h2 id="demo-heading">So greift eines<br>ins andere.</h2>
 </div>
-<p>Die Vorführungen starten automatisch. Wähle eine Anwendung und sieh dir den Ablauf an – mit Pause und einzelnen Schritten.</p>
+<p>Ein Musterprojekt, verständliche Schritte. Die Clips starten automatisch. Wähle ein Werkzeug, pausiere den Ablauf oder springe direkt zum gewünschten Schritt.</p>
 </div>
 <div class="demo-tabs" role="tablist" aria-label="Anwendung auswählen">
-<button id="tab-schema" type="button" role="tab" aria-selected="true" aria-controls="panel-schema" tabindex="0" data-demo="schema">Schema</button>
+<!-- workflow-tabs:start -->
+<button id="tab-orders" type="button" role="tab" aria-selected="true" aria-controls="panel-orders" tabindex="0" data-demo="orders">Aufträge</button>
+<button id="tab-inventory" type="button" role="tab" aria-selected="false" aria-controls="panel-inventory" tabindex="-1" data-demo="inventory">Lager & Zuschnitt</button>
+<!-- workflow-tabs:end -->
+<button id="tab-schema" type="button" role="tab" aria-selected="false" aria-controls="panel-schema" tabindex="-1" data-demo="schema">Schema</button>
 <button id="tab-dispo" type="button" role="tab" aria-selected="false" aria-controls="panel-dispo" tabindex="-1" data-demo="dispo">Dispo</button>
 <button id="tab-together" type="button" role="tab" aria-selected="false" aria-controls="panel-together" tabindex="-1" data-demo="together">Schema + Dispo</button>
 <button id="tab-offers" type="button" role="tab" aria-selected="false" aria-controls="panel-offers" tabindex="-1" data-demo="offers">Offerten</button>
@@ -114,10 +104,21 @@
 <i>
 </i>
 </span>
-<strong id="demo-window-title">SchaltBase / Schema</strong>
+<strong id="demo-window-title">SchaltBase / Aufträge</strong>
 <span>BEISPIELPROJEKT</span>
 </div>
-<div id="panel-schema" role="tabpanel" aria-labelledby="tab-schema" tabindex="0" data-title="Mit Makros schneller zum Schema." data-description="Dein Schema-Werkzeug funktioniert eigenständig: Vorlagen auswählen, anpassen und auf dem Blatt platzieren. Stromkreise und Beschriftungen bleiben bearbeitbar." >
+<!-- workflow-panels:start -->
+<div id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" tabindex="0" data-title="Aus einer Zusage wird ein Auftrag." data-description="Die genehmigte Offerte wird zum Auftrag mit eigener Nummer und Auftragsbestätigung. Gleichzeitig wird vorhandenes, zugeordnetes Material aus eurem Lager abgebucht."><div class="clip main-clip flow-clip" id="clip-orders" data-clip data-step-ms="6000"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Genehmigte Offerte übernehmen" data-detail="Kunde, Positionen und Preise sind bereits erfasst."><div class="flow-scene"><div class="flow-head"><div><p>OFFERTE AN-00104 · MUSTER AG</p><h4>UV Werkstatt</h4></div><span class="flow-badge ok">Genehmigt</span></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>6 Stück · CHF 29.00 / Stück</small></div><b>CHF 174.00</b></div><div class="flow-row"><div><strong>DIN-Schienen · SBR dynamisch</strong><small>4 Stück à 1500 mm · CHF 5.00 / m</small></div><b>CHF 30.00</b></div><div class="flow-row"><div><strong>Montage</strong><small>2 Stunden · CHF 95.00 / h</small></div><b>CHF 190.00</b></div><div class="flow-total"><span>Beispielbetrag · exkl. MwSt.</span><strong>CHF 394.00</strong></div><div class="flow-bottom"><span class="flow-action">Auftrag erstellen</span><small>Bestand noch unverändert</small></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Auftrag erstellen" data-detail="Auftragsbestätigung und Lagerbuchung entstehen zusammen."><div class="flow-scene"><div class="flow-head"><div><p>AUFTRAG AU-00028</p><h4>Auftrag erstellt.</h4></div><span class="flow-badge ok">Gespeichert</span></div><div class="flow-document"><div><span class="flow-doc-icon">AB</span><strong>Auftragsbestätigung<small>Muster AG · UV Werkstatt</small></strong></div><span>PDF</span></div><div class="flow-row"><div><strong>Offerte AN-00104</strong><small>Original bleibt gespeichert</small></div><b>CHF 394.00</b></div><div class="flow-row"><div><strong>Lagerbuchung</strong><small>6 Leitungsschutzschalter automatisch abgebucht</small></div><b>24 → 18</b></div><div class="flow-note pending">Angeliefertes Material ausstehend · 0 von 2 Geräten</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Lagerbuchung nachvollziehen" data-detail="24 Stück vorhanden, 6 verwendet, 18 verbleiben."><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Kundenmaterial verfolgen" data-detail="Teillieferungen erfassen; fehlendes Material bleibt sichtbar."><div class="flow-scene"><div class="flow-head"><div><p>AUFTRAG / ANGELIEFERTES MATERIAL</p><h4>Noch nicht vollständig.</h4></div><span class="flow-badge pending">Ausstehend</span></div><div class="flow-row"><div><strong>Leistungsschalter vom Kunden</strong><small>Erwartet: 2 Stück</small></div><b>1 / 2</b></div><div class="flow-receipts"><span class="received">✓ 1 Stück erhalten</span><span>1 Stück ausstehend</span></div><div class="flow-note pending">Teilmenge erfassen und speichern. Die offene Menge bleibt am Auftrag rot sichtbar.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Lieferung vervollständigen" data-detail="Sind alle Kundenpositionen da, wird der Status grün."><div class="flow-scene"><div class="flow-head"><div><p>AUFTRAG / ANGELIEFERTES MATERIAL</p><h4>Alles angekommen.</h4></div><span class="flow-badge ok">Vollständig</span></div><div class="flow-row"><div><strong>Leistungsschalter vom Kunden</strong><small>Erwartet: 2 Stück</small></div><b>2 / 2</b></div><div class="flow-receipts"><span class="received">✓ 2 Stück erhalten</span></div><div class="flow-complete"><span>✓</span><div><strong>Angeliefertes Material vollständig</strong><p>Alle vorgesehenen Kundenpositionen sind eingetroffen.</p></div></div></div></div></div></div></div>
+<div id="panel-inventory" role="tabpanel" aria-labelledby="tab-inventory" tabindex="0" data-title="Bestand im Blick. Bis zum letzten Schnitt." data-description="Geräte, Platten und Schienen aus eurem Artikelstamm oder manuell erfassen. Schon in der Offerte seht ihr verfügbare Mengen und Fehlmengen. Gebucht wird beim Erstellen des Auftrags." hidden><div class="clip main-clip flow-clip" id="clip-inventory" data-clip data-step-ms="6000"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Bestand und Fehlmengen sehen" data-detail="Der Lagerbestand gehört eurer Firma. Lagerplätze sind optional."><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ARTIKELBESTAND</p><h4>Alles an seinem Platz.</h4></div><span class="flow-badge neutral">Firmenbestand</span></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>LS-3P · Stückartikel</small></div><b><span class="flow-badge ok">24 Stk.</span></b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>DIN-35 · 2 Stangen à 6000 mm</small></div><b><span class="flow-badge ok">12 m</span></b></div><div class="flow-row"><div><strong>Installationsschütz</strong><small>IS-25 · Bedarf in Offerte: 2 Stück</small></div><b><span class="flow-badge pending">2 fehlen</span></b></div><div class="flow-note ">Artikel aus eurem Katalog oder manuell erfassen. Lagerplätze lassen sich optional einschalten.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Längen aus der Offerte nutzen" data-detail="SBR und Aufbau dynamisch liefern Stückzahlen und Schnittlängen."><div class="flow-scene"><div class="flow-head"><div><p>SBR & AUFBAU DYNAMISCH</p><h4>Stückzahlen schon erfasst.</h4></div><span class="flow-badge neutral">Zuschnitt</span></div><div class="flow-cut-order"><strong>4 <small>Stück</small> × 1500 <small>mm</small></strong><p>Schienen aus der Offerte direkt übernehmen.</p></div><div class="flow-row"><div><strong>Stangenlänge</strong><small>2 ganze Stangen im Lager</small></div><b>6000 mm</b></div><div class="flow-row"><div><strong>Schnittbreite</strong><small>Im Lagerartikel einstellbar</small></div><b>3 mm</b></div><div class="flow-note ">Vier Stück passen wegen der Schnittbreite nicht auf eine 6-m-Stange.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Schnittbreite berücksichtigen" data-detail="4 × 1500 mm benötigen bei 3 mm Schnittbreite zwei 6-m-Stangen."><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ZUSCHNITT ZUM AUFTRAG</p><h4>Jeder Schnitt zählt.</h4></div><span class="flow-badge ok">2 Stangen</span></div><div class="flow-cut-plan"><p>Stange 1 · drei Zuschnitte</p><div class="flow-bar" aria-label="3 Stück à 1500 mm, Rest 1491 mm"><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><b style="flex:1491">1491 mm</b></div><p>Stange 2 · ein Zuschnitt</p><div class="flow-bar" aria-label="1 Stück à 1500 mm, Rest 4497 mm"><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><b style="flex:4497">4497 mm</b></div></div><div class="flow-legend"><span>Blau: Zuschnitte</span><span>Grün: Reststücke</span></div><div class="flow-row"><div><strong>6 m Zuschnitte · 12 mm Schnittverlust</strong><small>Reststücke: 1491 mm + 4497 mm</small></div><b>5,988 m Rest</b></div><div class="flow-note ">Die berechneten Reste bleiben im Bestand und werden bei weiteren Zuschnitten berücksichtigt.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Auszug zum Auftrag öffnen" data-detail="Unter «Abgebuchte Aufträge» bleibt die Materialverwendung sichtbar."><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div></div></div></div>
+<!-- workflow-panels:end -->
+<div id="panel-schema" hidden role="tabpanel" aria-labelledby="tab-schema" tabindex="0" data-title="Mit Makros schneller zum Schema." data-description="Dein Schema-Werkzeug funktioniert eigenständig: Vorlagen auswählen, anpassen und auf dem Blatt platzieren. Stromkreise und Beschriftungen bleiben bearbeitbar." >
 <div class="clip main-clip" id="clip-schema" data-clip>
 <div class="clip-stage">
 <div class="clip-frame " data-frame data-caption="Makro auswählen" data-detail="Vorlagenbibliothek statt jedes Symbol neu zeichnen.">
@@ -401,16 +402,17 @@
 </div>
 </div>
 <div class="demo-explanation">
-<p class="eyebrow" id="demo-kicker">SCHEMA</p>
-<h3 id="demo-title">Mit Makros schneller zum Schema.</h3>
-<p id="demo-description">Dein Schema-Werkzeug funktioniert eigenständig: Vorlagen auswählen, anpassen und auf dem Blatt platzieren. Stromkreise und Beschriftungen bleiben bearbeitbar.</p>
+<p class="eyebrow" id="demo-kicker">AUFTRÄGE</p>
+<h3 id="demo-title">Aus einer Zusage wird ein Auftrag.</h3>
+<p id="demo-description">Die genehmigte Offerte wird zum Auftrag mit eigener Nummer und Auftragsbestätigung. Gleichzeitig wird vorhandenes, zugeordnetes Material aus eurem Lager abgebucht.</p>
+<a id="demo-detail" href="/produkte/auftraege.html">Aufträge im Detail kennenlernen</a>
 <ol id="demo-steps" class="demo-steps">
 </ol>
 <label class="cycle-choice">
 <input type="checkbox" id="demo-cycle" checked> Anwendungen nacheinander zeigen</label>
 </div>
 </div>
-<p class="demo-note">Animierte Produktbeispiele mit Musterwerten und Zeichnungen aus dem CAD-Werkzeug. Keine Kundenprojekte. Technische Angaben und Kalkulationen im eigenen Projekt prüfen.</p>
+<p class="demo-note">Animierte Produktbeispiele mit fiktiven Artikeln, Musterpreisen und Zeichnungen aus dem CAD-Werkzeug. Keine Kundenprojekte. Schnittbreite und Artikelzuordnung werden im eigenen Betrieb hinterlegt.</p>
 <noscript>
 <p>Für die animierten Vorführungen bitte JavaScript aktivieren. Die Werkzeugübersicht ist auch ohne Animation verfügbar.</p>
 </noscript>
@@ -777,66 +779,10 @@
 <p>Strombelastbarkeit für Litzen und Kupferschienen sowie Schienenlängen und Platzeinheiten für ABB Smissline.</p>
 </div>
 </article>
-<article class="tool-card" id="tool-heat">
-<div class="tool-preview">
-<div class="tool-window-title">Wärmeberechnung<span>PRODUKTDEMO</span>
-</div>
-<div class="clip mini-clip" id="clip-heat" data-clip>
-<div class="clip-stage">
-<div class="clip-frame " data-frame data-caption="Projekt &amp; Unterlagen erfassen" data-detail="">
-<span class="mini-kicker">WÄRMEBERECHNUNG</span>
-<div class="import-pair">
-<span>Schema<br>
-<b>PDF</b>
-</span>
-<span>Dispo<br>
-<b>PDF</b>
-</span>
-</div>
-<p>Unterlagen einlesen und Anlagendaten erfassen.</p>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Werte kontrollieren" data-detail="">
-<span class="mini-kicker">VERLUSTLEISTUNG</span>
-<div class="heat-bars">
-<span>
-<b>Geräte</b>
-<i>
-</i>
-</span>
-<span>
-<b>Zuordnung</b>
-<i>
-</i>
-</span>
-<span>
-<b>Zuschlag</b>
-<i>
-</i>
-</span>
-</div>
-<p>Erkannte Werte prüfen und ergänzen.</p>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Speichern &amp; dokumentieren" data-detail="">
-<div class="mini-success">✓</div>
-<h4>Berechnung<br>dokumentieren.</h4>
-<div class="export-chips">
-<span>Excel</span>
-<span>PDF</span>
-</div>
-<p>Projekt speichern und Ergebnisse ausgeben.</p>
-</div>
-</div>
-<div class="mini-controls">
-<span data-clip-caption>Projekt &amp; Unterlagen erfassen</span>
-<button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
-</div>
-</div>
-</div>
-<div class="tool-copy">
-<p class="eyebrow">Wärmeberechnung</p>
-<h3>Von Unterlagen zur Dokumentation.</h3>
-<p>Schema und Dispo einlesen, Geräte und Verlustleistungen prüfen und die Berechnung mit Excel- und PDF-Ausgabe dokumentieren.</p>
-<a class="product-detail-link" href="/produkte/waermeberechnung.html">Funktionen entdecken</a></div></article>
+<!-- inventory-card:start -->
+<article class="tool-card" id="tool-inventory"><div class="tool-preview"><div class="tool-window-title">Lager<span>PRODUKTDEMO</span></div><div class="clip mini-clip flow-mini" id="clip-stock-mini" data-clip data-step-ms="6000"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Bestand für den Betrieb erfassen" data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ARTIKELBESTAND</p><h4>Alles an seinem Platz.</h4></div><span class="flow-badge neutral">Firmenbestand</span></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>LS-3P · Stückartikel</small></div><b><span class="flow-badge ok">24 Stk.</span></b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>DIN-35 · 2 Stangen à 6000 mm</small></div><b><span class="flow-badge ok">12 m</span></b></div><div class="flow-row"><div><strong>Installationsschütz</strong><small>IS-25 · Bedarf in Offerte: 2 Stück</small></div><b><span class="flow-badge pending">2 fehlen</span></b></div><div class="flow-note ">Artikel aus eurem Katalog oder manuell erfassen. Lagerplätze lassen sich optional einschalten.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Material automatisch abbuchen" data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div></div><div class="mini-controls"><span data-clip-caption>Bestand für den Betrieb erfassen</span><button type="button" data-clip-toggle aria-label="Lagervorführung pausieren">Pause</button></div></div></div><div class="tool-copy"><p class="eyebrow">Lagerverwaltung</p><h3>Wissen, was noch da ist.</h3><p>Geräte, Platten und Schienen verwalten. Mit optionalen Lagerplätzen, nachvollziehbaren Auftragsbuchungen und Reststücken aus dem Zuschnitt.</p><a class="product-detail-link" href="/produkte/lager.html">Funktionen entdecken</a></div></article>
+<!-- inventory-card:end -->
 </div>
 <p class="reference-note">Technische Tabellen und Beispieldarstellungen unterstützen die Arbeit. Die aktuellen Vorschriften, Herstellerangaben und die fachgerechte Auslegung bleiben massgebend.</p>
 </div>
@@ -862,7 +808,7 @@
 <div class="team-record">
 <span class="mini-check">✓</span>
 <div>
-<strong>Projekte & Offerten</strong>
+<strong>Offerten, Aufträge & Lager</strong>
 <small>Gemeinsam gespeichert. Persönliche Zugriffe.</small>
 </div>
 </div>
@@ -874,12 +820,13 @@
 <ul class="team-benefits">
 <li>Schienenlisten und Abzüge je Verteilungstiefe</li>
 <li>Eigene EW-Unterlagen und Aufbauzeichnungen</li>
-<li>Gemeinsame Projekte und Offerten im Betrieb</li>
+<li>Gemeinsame Offerten, Aufträge und Lagerbestände</li>
+<li>Eigene Dokumentpräfixe für Offerten und Aufträge</li>
 <li>Persönliche Konten und passende Berechtigungen</li>
 </ul>
 </div>
 </section>
-<section class="home-product-directory section-wrap"><p class="eyebrow">JEDES WERKZEUG IM DETAIL</p><h2>Was möchtest du genauer kennenlernen?</h2><div class="home-product-links"><a href="/produkte/schema.html"><strong>Schema</strong><span>Makros & Stromkreise</span></a><a href="/produkte/dispo.html"><strong>Disposition</strong><span>Aufbau & Anordnung</span></a><a href="/produkte/offerten.html"><strong>Offerten</strong><span>Material & Kalkulation</span></a><a href="/produkte/regierapport.html"><strong>Regierapporte</strong><span>Einsatz & Kundenbestätigung</span></a><a href="/produkte/schienenrechner.html"><strong>Schienenrechner</strong><span>Masse & Zuschnitt</span></a><a href="/produkte/ew-vorschriften.html"><strong>EW-Vorschriften</strong><span>Unterlagen & Wissen</span></a><a href="/produkte/aufbauabstaende.html"><strong>Aufbauabstände</strong><span>Zeichnungen & Vorgaben</span></a><a href="/produkte/drahtfarben.html"><strong>Drahtfarben</strong><span>Leiter & Anwendungen</span></a><a href="/produkte/litzenquerschnitte.html"><strong>Litzenquerschnitte</strong><span>Technische Tabellen</span></a><a href="/produkte/kupferschienen.html"><strong>Kupferschienen</strong><span>Dimensionen & Strom</span></a><a href="/produkte/abb-smissline.html"><strong>ABB Smissline</strong><span>Schienen & Einheiten</span></a><a href="/produkte/hager-uniway.html"><strong>Hager Uniway</strong><span>Stecksockel & Systemlängen</span></a><a href="/produkte/waermeberechnung.html"><strong>Wärmeberechnung</strong><span>Analyse & Nachweise</span></a></div></section><section class="closing">
+<section class="home-product-directory section-wrap"><p class="eyebrow">JEDES WERKZEUG IM DETAIL</p><h2>Was möchtest du genauer kennenlernen?</h2><div class="home-product-links"><a href="/produkte/schema.html"><strong>Schema</strong><span>Makros & Stromkreise</span></a><a href="/produkte/dispo.html"><strong>Disposition</strong><span>Aufbau & Anordnung</span></a><a href="/produkte/offerten.html"><strong>Offerten</strong><span>Material & Kalkulation</span></a><a href="/produkte/auftraege.html"><strong>Aufträge</strong><span>Bestätigung & Material</span></a><a href="/produkte/lager.html"><strong>Lager</strong><span>Bestände & Zuschnitt</span></a><a href="/produkte/regierapport.html"><strong>Regierapporte</strong><span>Einsatz & Kundenbestätigung</span></a><a href="/produkte/schienenrechner.html"><strong>Schienenrechner</strong><span>Masse & Zuschnitt</span></a><a href="/produkte/ew-vorschriften.html"><strong>EW-Vorschriften</strong><span>Unterlagen & Wissen</span></a><a href="/produkte/aufbauabstaende.html"><strong>Aufbauabstände</strong><span>Zeichnungen & Vorgaben</span></a><a href="/produkte/drahtfarben.html"><strong>Drahtfarben</strong><span>Leiter & Anwendungen</span></a><a href="/produkte/litzenquerschnitte.html"><strong>Litzenquerschnitte</strong><span>Technische Tabellen</span></a><a href="/produkte/kupferschienen.html"><strong>Kupferschienen</strong><span>Dimensionen & Strom</span></a><a href="/produkte/abb-smissline.html"><strong>ABB Smissline</strong><span>Schienen & Einheiten</span></a><a href="/produkte/hager-uniway.html"><strong>Hager Uniway</strong><span>Stecksockel & Systemlängen</span></a></div></section><section class="closing">
 <p class="eyebrow light">VON DER PLANUNG BIS IN DIE WERKSTATT</p>
 <h2>Alles an seinem Platz.<br>Auch dein nächstes Projekt.</h2>
 <a class="button primary" href="login.html">Bei SchaltBase anmelden</a>
@@ -892,7 +839,7 @@
 <span>Planen. Bauen. Dokumentieren.</span>
 <a href="login.html">Anmelden</a>
 </footer>
-<script type="module" src="platform/home-demo.mjs?v=20261123-demos">
+<script type="module" src="platform/home-demo.mjs?v=20261126-workflow">
 </script>
 <script type="module" src="/platform/public-nav.mjs"></script></body>
 </html>

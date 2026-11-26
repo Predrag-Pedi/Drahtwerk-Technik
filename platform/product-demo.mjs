@@ -1,8 +1,11 @@
 import {products} from './products.mjs';
+import {workflowScene} from './workflow-demo.mjs';
 const p=products.find(x=>x.id===document.body.dataset.product),stage=document.getElementById('productPreview'),pause=document.getElementById('productPause');
 const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const line=(a,b)=>`<div class="preview-line"><span>${a}</span><strong>${b}</strong></div>`;
 function example(i){
+ if(p.id==='auftraege')return workflowScene(['quote','order','received'][i]);
+ if(p.id==='lager')return workflowScene(['inventory','cuts','remnants'][i]);
  let body='',foot=p.steps[i][1];
  if(p.id==='regierapport')body=i===0?line('Einsatzort','Musterstrasse 12')+line('Verdrahtung angepasst','2,5 h')+line('Reihenklemmen','12 Stk.')+line('Anfahrt','24 km'):i===1?line('Kundenbestätigung','Alex Muster')+'<svg class="preview-signature" viewBox="0 0 180 60" aria-label="Illustrative Beispielunterschrift"><path d="M8 47Q32 2 35 15L20 49M15 36L43 33Q64 7 56 25T41 48Q60 20 70 33T91 31Q72 61 112 37T164 32M50 52L166 45" fill="none" stroke="#244c59" stroke-width="2.5" stroke-linecap="round"/></svg>'+line('Rapport','Unterschrieben'):line('Firmenablage','Gemeinsam gespeichert')+line('Ausgabe','Drucken / PDF')+line('Status','Abgerechnet');
  else if(p.id==='schienenrechner')body=i===0?line('Breite / Höhe','800 / 1200 mm')+line('Verteilungstiefe','165 mm'):i===1?line('Vorlage','165 mm')+line('Seitenschiene','Höhe − 40 mm')+line('Zuschnitt','1160 mm'):line('Stückzahl','2')+line('Zuschnitt je Schiene','1160 mm')+line('Ausgabe','CSV / Druck');
