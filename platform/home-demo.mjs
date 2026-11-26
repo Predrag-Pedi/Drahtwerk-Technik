@@ -5,7 +5,9 @@ const clips = [...document.querySelectorAll('[data-clip]')].map(el => ({
   el, stepMs: Number(el.dataset.stepMs) || 4000, frames: [...el.querySelectorAll('[data-frame]')], elapsed: 0, index: -1, visible: false, paused: false,
 }));
 const tabs = [...document.querySelectorAll('[data-demo]')];
-let selected = 'orders', globalPaused = reducedMotion.matches, frameId = 0, lastTime = 0;
+const hero = clips.find(clip => clip.el.id === 'hero-clip');
+const heroChapters = [...document.querySelectorAll('[data-hero-step]')];
+let selected = tabs.find(tab => tab.getAttribute('aria-selected') === 'true').dataset.demo, globalPaused = reducedMotion.matches, frameId = 0, lastTime = 0;
 const active = () => clips.find(c => c.el.id === 'clip-' + selected);
 const mainClip = c => c.el.classList.contains('main-clip');
 const eligible = c => !mainClip(c) || c === active();
@@ -18,6 +20,10 @@ function draw(c) {
     c.frames.forEach((f, i) => {f.hidden = i !== index;});
     const caption = c.el.querySelector('[data-clip-caption]');
     if (caption) caption.textContent = c.frames[index].dataset.caption;
+    if (c === hero) heroChapters.forEach((chapter, i) => {
+      if (i === index) chapter.setAttribute('aria-current', 'step');
+      else chapter.removeAttribute('aria-current');
+    });
     if (c === active()) for (const step of document.querySelectorAll('[data-step]')) {
       if (Number(step.dataset.step) === index) step.setAttribute('aria-current', 'step');
       else step.removeAttribute('aria-current');
@@ -78,11 +84,45 @@ function select(name, manual = false) {
     const li = document.createElement('li'), button = document.createElement('button'), number = document.createElement('span'), content = document.createElement('div'), title = document.createElement('strong'), detail = document.createElement('small');
     button.type = 'button'; button.dataset.step = i; number.textContent = String(i + 1).padStart(2, '0'); title.textContent = f.dataset.caption; detail.textContent = f.dataset.detail;
     content.append(title, detail); button.append(number, content); li.append(button);
-    button.onclick = () => {c.paused = true; c.still = true; $('demo-cycle').checked = false; c.elapsed = i * c.stepMs; draw(c); sync(); if(matchMedia('(max-width:760px)').matches) $('demo-player').scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});};
+    button.onclick = () => {
+      showStep(c, i);
+      if (matchMedia('(max-width:760px)').matches) $('demo-player').scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
+    };
     return li;
   }));
   draw(c); sync();
 }
+function showStep(clip, index) {
+  clip.paused = true;
+  clip.still = true;
+  $('demo-cycle').checked = false;
+  clip.elapsed = index * clip.stepMs;
+  draw(clip);
+  sync();
+}
+for (const button of document.querySelectorAll('[data-cad-next]')) {
+  button.addEventListener('focus', () => {
+    const clip = active();
+    clip.paused = true;
+    sync();
+  });
+  button.addEventListener('click', () => {
+    const clip = active();
+    showStep(clip, clip.index + 1);
+    // Keep keyboard focus in the clip after its previous frame becomes hidden.
+    const next = clip.frames[clip.index].querySelector('[data-cad-next]') || $('demo-play');
+    next.focus({preventScroll: true});
+  });
+}
+for (const chapter of heroChapters) chapter.addEventListener('click', event => {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  hero.paused = true;
+  hero.still = true;
+  hero.elapsed = Number(chapter.dataset.heroStep) * hero.stepMs;
+  draw(hero);
+  sync();
+});
 for(const link of document.querySelectorAll('[data-show-demo]'))link.addEventListener('click',()=>select(link.dataset.showDemo,true));
 for (const tab of tabs) {
   tab.onclick = () => select(tab.dataset.demo, true);
@@ -111,4 +151,4 @@ const observer = new IntersectionObserver(entries => {
 for (const c of clips) observer.observe(c.el);
 $('motion-toggle').hidden = false;
 document.querySelector('[data-demo-controls]').hidden = false;
-select('orders');
+select(selected);
