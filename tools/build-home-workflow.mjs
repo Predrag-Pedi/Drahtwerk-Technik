@@ -1,6 +1,6 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {cadClips, heroCad} from './home-cad-clips.mjs';
-import {workflowScene,workflowClips} from '../platform/workflow-demo.mjs';
+import {quoteTotal,workflowScene,workflowClips} from '../platform/workflow-demo.mjs';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function frame(caption, detail, content, index) {
  return `<div class="clip-frame" data-frame${index ? ' hidden' : ''} data-caption="${esc(caption)}" data-detail="${esc(detail || '')}">${content}</div>`;
@@ -12,6 +12,8 @@ const replace=(html,key,content)=>{
  return html.replace(`<!-- ${key} -->`,block);
 };
 let home=readFileSync('home.html','utf8');
+home = replace(home, 'offer-calculation', workflowScene('estimate'));
+home = replace(home, 'offer-saved-total', `<b>${quoteTotal}</b>`);
 const tabs = {offers:'Offerte', orders:'Auftrag', schema:'Schema', dispo:'Dispo', together:'Schema + Dispo', inventory:'Lager & Zuschnitt'};
 home = replace(home, 'workflow-tabs', Object.entries(tabs).map(([id,label], i) =>
  `<button id="tab-${id}" type="button" role="tab" aria-selected="${i===0}" aria-controls="panel-${id}" tabindex="${i===0 ? 0 : -1}" data-demo="${id}">${label}</button>`

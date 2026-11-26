@@ -67,3 +67,57 @@ button.tour-command:hover {background: #174e9f;}
 @media (max-width: 760px) {
   :is(#clip-schema, #clip-dispo, #clip-together) .clip-stage {height: clamp(450px, 66svh, 550px);}
 }
+
+/* Let the complete quote determine the height if descriptions wrap. */
+.hero-clip {--quote-min-height: 430px;}
+.flow-clip {--quote-min-height: 470px;}
+#clip-offers {--quote-min-height: 440px;}
+.product-page[data-product="auftraege"] {--quote-min-height: 455px;}
+.clip-stage:has(> .clip-frame:not([hidden]) > .quote-sheet),
+.clip-frame:has(> .quote-sheet),
+.product-page[data-product="auftraege"] .product-preview:has(> .quote-sheet) {height: auto;}
+.flow-scene.quote-sheet {
+  container: quote / inline-size;
+  height: auto;
+  min-height: var(--quote-min-height);
+  overflow: visible;
+  gap: 12px;
+  padding: 18px clamp(12px, 2vw, 26px);
+}
+.quote-items {width: 100%; border-collapse: collapse; font-size: .875rem; color: #213f61;}
+.quote-items th, .quote-items td {padding: 8px 0; border-bottom: 1px solid #dae4ed; vertical-align: middle;}
+.quote-items thead th {padding-top: 0; color: #587089; font-size: .75rem; font-weight: 550;}
+.quote-items th {text-align: left;}
+.quote-items tbody th {font-weight: 400; overflow-wrap: anywhere;}
+.quote-items strong, .quote-items small {display: inline-block;}
+.quote-items small {color: #587089; font-size: .78rem; font-weight: 400;}
+.quote-items :is(td, th):nth-child(n+2) {text-align: right; padding-left: 8px; white-space: nowrap; font-variant-numeric: tabular-nums;}
+.quote-items thead th:nth-child(n+2), .quote-items td:nth-child(2) {white-space: normal;}
+.quote-items td:last-child {font-weight: 650;}
+.quote-sheet .flow-total {flex-wrap: wrap; font-variant-numeric: tabular-nums;}
+@media (max-width: 760px) {
+  .hero-inner {grid-template-columns: minmax(0, 1fr);}
+  .hero-clip {--quote-min-height: 445px;}
+  .flow-clip, .product-page[data-product="auftraege"] {--quote-min-height: 535px;}
+  #clip-offers {--quote-min-height: 410px;}
+  .quote-items :is(th, td) {padding-block: 7px;}
+}
+@media (max-width: 360px) {
+  .hero-chapters a {padding-inline: 5px;}
+}
+
+@container quote (max-width: 13rem) {
+  .quote-items, .quote-items tbody {display: block;}
+  .quote-items thead {position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);}
+  .quote-items tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 3px 8px;
+    padding-block: 8px;
+    border-bottom: 1px solid #dae4ed;
+  }
+  .quote-items tbody th {flex-basis: 100%;}
+  .quote-items tbody :is(th, td):nth-child(n) {padding: 0; border: 0;}
+  .quote-items td:last-child::before {content: "CHF ";}
+}
