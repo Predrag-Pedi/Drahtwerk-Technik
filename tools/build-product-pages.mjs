@@ -12,6 +12,12 @@ if(!home.includes('public-nav.css'))home=home.replace('</head>','<link rel="styl
 const copy={'tool-rails':'schienenrechner','tool-ew':'ew-vorschriften','tool-spacing':'aufbauabstaende','tool-colors':'drahtfarben','tool-inventory':'lager'};
 for(const [id,slug] of Object.entries(copy)){home=home.replace(new RegExp(`(<article class="tool-card" id="${id}">[\\s\\S]*?)(</article>)`),(all,start,end)=>start.includes('product-detail-link')?all:start.replace(/<\/div>\s*$/,'<a class="product-detail-link" href="/produkte/'+slug+'.html">Funktionen entdecken</a></div>')+end);}
 home=home.replace('Firmenadministratoren pflegen eigene Schienenregeln, Farben und Unterlagen.','Mitarbeitende mit dem passenden Schreibrecht pflegen eigene Schienenregeln, Farben und Unterlagen.');
-const directory=`<section class="home-product-directory section-wrap"><p class="eyebrow">JEDES WERKZEUG IM DETAIL</p><h2>Was möchtest du genauer kennenlernen?</h2><div class="home-product-links">${promoted.map(p=>`<a href="/produkte/${p.id}.html"><strong>${p.title}</strong><span>${p.tag}</span></a>`).join('')}</div></section>`;
+const directoryGroups = ['Planung', 'Büro', 'Werkstatt'].map(group => {
+  const links = promoted.filter(product => product.group === group).map(product =>
+    `<a href="/produkte/${product.id}.html"><strong>${product.title}</strong><span>${product.tag}</span></a>`
+  ).join('');
+  return `<div><h3>${group}</h3><div class="directory-links">${links}</div></div>`;
+}).join('');
+const directory = `<section class="home-product-directory section-wrap" aria-labelledby="directory-title"><h2 id="directory-title">Alle Werkzeuge</h2><div class="directory-groups">${directoryGroups}</div></section>`;
 if(home.includes('home-product-directory'))home=home.replace(/<section class="home-product-directory[\s\S]*?<\/section>/,directory);else home=home.replace('<section class="closing',directory+'<section class="closing');
 writeFileSync('home.html',home);

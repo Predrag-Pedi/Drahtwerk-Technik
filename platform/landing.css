@@ -1,0 +1,233 @@
+/* The public homepage uses the same CAD drawings and demos as the product pages. */
+.public-home {
+  --navy: #102a43;
+  --pen: #1d3650;
+  --blue: #155ba7;
+  --line: #cdd8df;
+  --paper: #f5f7f7;
+  --gutter: clamp(20px, 5vw, 80px);
+  --measure: 1440px;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  color: var(--navy);
+  line-height: 1.5;
+}
+.public-home .section-wrap,
+.intro-inner {
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.public-home h2 {
+  font-size: clamp(2rem, 3.2vw, 3.1rem);
+  font-weight: 570;
+  line-height: 1.09;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.public-home .home-header {
+  position: sticky;
+  top: 0;
+  left: auto;
+  transform: none;
+  width: 100%;
+  height: 72px;
+  margin: 0;
+  padding-inline: max(var(--gutter), calc((100% - var(--measure)) / 2 + var(--gutter)));
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  background: white;
+}
+.public-home .home-brand {font-size: 1.44rem; letter-spacing: -.055em;}
+.public-home .home-header nav {margin-left: auto; gap: clamp(15px, 2.5vw, 38px);}
+.public-home .home-jump, .public-home .products-menu summary {color: var(--pen); font-weight: 530;}
+.public-home .login-link, .landing-button {
+  background: var(--blue);
+  color: #fff;
+  border: 1px solid var(--blue);
+  border-radius: 4px;
+  font-weight: 600;
+}
+.public-home .login-link:hover, .landing-button:hover {background: #104882;}
+.public-home .login-link {font-size: .875rem; padding: 8px 17px;}
+.public-home .products-dropdown {
+  top: 100%;
+  left: max(var(--gutter), calc((100% - var(--measure)) / 2 + var(--gutter)));
+  right: max(var(--gutter), calc((100% - var(--measure)) / 2 + var(--gutter)));
+  border-radius: 0 0 5px 5px;
+}
+.landing-intro {background: var(--paper); border-bottom: 1px solid var(--line);}
+.intro-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(30px, 5vw, 90px);
+  padding-block: clamp(36px, 4vw, 64px);
+}
+.intro-copy {padding-block: 12px;}
+.section-label {
+  margin: 0 0 20px;
+  color: var(--blue);
+  font-weight: 600;
+  font-size: .875rem;
+  line-height: 1.4;
+}
+.intro-copy h1 {
+  font-size: clamp(3.4rem, 5.85vw, 5.85rem);
+  font-weight: 570;
+  line-height: 1.04;
+  letter-spacing: -.065em;
+  margin: 0;
+}
+.intro-copy h1 em {
+  font-family: "Baskerville", "Iowan Old Style", Georgia, serif;
+  font-size: 1.02em;
+  font-weight: 400;
+  letter-spacing: -.065em;
+  color: var(--blue);
+}
+.intro-copy > p:not(.section-label),
+.story-copy > p:not(.section-label),
+.workshop-intro > p:not(.section-label),
+.public-home .team-section p:not(.section-label) {
+  font-size: clamp(1rem, 1.25vw, 1.14rem);
+  line-height: 1.65;
+  color: #3f5262;
+}
+.intro-copy > p:not(.section-label) {margin: 25px 0; max-width: 42ch;}
+.landing-button {display: inline-block; padding: 12px 18px; font-size: .94rem;}
+.plan {
+  margin: 0;
+  padding: 16px 22px;
+  color: #f0f6ff;
+  background: #173d67;
+}
+.plan figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #7491b0;
+}
+.plan figcaption strong {font-size: .9rem; font-weight: 600;}
+.plan figcaption span {font-size: .8125rem; color: #d1e2f1;}
+.plan-drawing {
+  height: clamp(295px, 25vw, 380px);
+  background-image: linear-gradient(#c4dcf00d 1px, transparent 1px), linear-gradient(90deg, #c4dcf00d 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: center;
+}
+.plan-drawing img {display: none; width: 100%; height: 100%; object-fit: contain; filter: grayscale(1) invert(1); mix-blend-mode: screen;}
+.plan-drawing .plan-complete {display: block;}
+.plan:has(input[value="rahmen"]:checked) .plan-frame,
+.plan:has(input[value="platten"]:checked) .plan-plates {display: block;}
+.plan:has(input:not([value="bestueckt"]):checked) .plan-complete {display: none;}
+.plan-switch {display: flex; justify-content: center; gap: 5px; margin: 0; padding: 10px 0 0; border: 0; border-top: 1px solid #7491b0;}
+.plan-switch label {position: relative; cursor: pointer; padding: 5px 13px; color: #e3edf6; border: 1px solid transparent; border-radius: 2px; font-size: .875rem; line-height: 1.4;}
+.plan-switch input {width: 1px; height: 1px; opacity: 0; position: absolute;}
+.plan-switch label:has(:checked) {color: #173d67; background: #ecf3fa;}
+.plan-switch label:hover {border-color: #a9c6de;}
+.plan-switch label:focus-within {outline: 2px solid #a3d5ff; outline-offset: 2px;}
+.order-story {display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: clamp(40px, 8vw, 130px); padding-block: clamp(55px, 6vw, 92px);}
+.story-copy h2 {max-width: 19ch;}
+.story-copy p {margin: 18px 0;}
+.story-copy .section-label {margin: 0 0 15px;}
+.inline-link, .directory-groups a:hover strong {color: var(--blue); text-decoration: underline; text-underline-offset: .23em;}
+.inline-link {font-size: .9375rem; font-weight: 600;}
+.booking-slip {border-top: 3px solid var(--navy); margin: 0; padding: 0 0 12px;}
+.booking-slip figcaption {display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; border-bottom: 1px solid var(--line); padding: 13px 0;}
+.booking-slip figcaption strong {font-size: 1.06rem; font-weight: 600;}
+.booking-slip figcaption span, .booking-slip caption span {color: #526476; font-size: .8125rem;}
+.booking-slip table {border-collapse: collapse; width: 100%; font-size: .95rem; font-variant-numeric: tabular-nums;}
+.booking-slip caption {text-align: left; padding: 15px 0 7px; font-weight: 600;}
+.booking-slip caption span {display: block; font-weight: 400;}
+.booking-slip th, .booking-slip td {padding: 8px 0; font-weight: 400;}
+.booking-slip th {text-align: left;}
+.booking-slip td {text-align: right; white-space: nowrap;}
+.booking-slip tfoot {border-block: 1px solid var(--line); color: var(--navy);}
+.booking-slip tfoot :is(th,td) {font-weight: 650;}
+.booking-slip > p {max-width: 53ch; margin: 12px 0 0; font-size: .88rem; line-height: 1.55; color: #4c6171;}
+.public-home .demo-section {padding-block: clamp(42px, 5vw, 68px); border-top: 1px solid var(--line);}
+.public-home .section-heading {align-items: end; margin-bottom: 26px; gap: 22px; flex-wrap: wrap;}
+.public-home .section-heading .section-label {margin-bottom: 12px;}
+.motion-control {border: 0; border-bottom: 1px solid #708499; color: #35516b; padding: 5px 0; background: transparent; font-size: .875rem;}
+.public-home .demo-tabs {gap: 4px 22px; border-bottom: 1px solid var(--line); padding: 0; border-radius: 0; background: transparent; margin: 0 0 27px;}
+.public-home .demo-tabs > button {flex: none; margin: 0 0 -1px; padding: 10px 3px; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; box-shadow: none; font-size: .9375rem; color: #435b70;}
+.public-home .demo-tabs > button[aria-selected="true"] {color: var(--blue); border-color: var(--blue);}
+.public-home .demo-player, .public-home .tool-preview {border-radius: 4px; box-shadow: none;}
+.public-home .demo-explanation {padding-top: 0;}
+.public-home .demo-explanation > .eyebrow {color: var(--blue); font-size: .875rem; letter-spacing: 0;}
+.public-home .demo-explanation > h3 {font-size: clamp(1.5rem, 2.2vw, 2rem); font-weight: 560;}
+.public-home .demo-note {color: #516577; font-size: .8125rem;}
+.public-home .workshop-section {padding-block: clamp(48px, 5vw, 80px); background: var(--paper); border-block: 1px solid var(--line);}
+.public-home .workshop-section > .section-wrap {display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.65fr); align-items: start; column-gap: clamp(32px, 6vw, 95px);}
+.workshop-intro .section-label {margin-bottom: 13px;}
+.workshop-intro > p {max-width: 36ch;}
+.workshop-list {border-top: 2px solid var(--navy); min-width: 0;}
+.workshop-tool {border-bottom: 1px solid #b8c8d2;}
+.workshop-tool summary {display: flex; justify-content: space-between; align-items: center; padding: 13px 2px; font-size: 1.05rem; font-weight: 620; cursor: pointer; list-style: none;}
+.workshop-tool summary::-webkit-details-marker {display: none;}
+.workshop-tool summary::after {content: '+'; color: var(--blue); font-size: 1.4rem; font-weight: 400;}
+.workshop-tool[open] summary::after {content: '−';}
+.workshop-tool summary:focus-visible {outline: 2px solid var(--blue); outline-offset: 2px;}
+.public-home .workshop-tool .tool-card {display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); align-items: center; gap: 18px; padding-bottom: 22px; border: 0; background: transparent; box-shadow: none; border-radius: 0; overflow: visible;}
+.public-home .tool-preview {margin: 0; min-width: 0;}
+.public-home .tool-copy {padding: 0;}
+.public-home .tool-copy h3 {font-size: 1.24rem; line-height: 1.25; letter-spacing: -.025em; margin: 0 0 7px;}
+.public-home .tool-copy p {font-size: .95rem; line-height: 1.6; color: #455967; margin: 0;}
+.public-home .tool-copy a {text-decoration: underline; text-underline-offset: .23em;}
+.public-home .reference-note {grid-column: 2; color: #556673; font-size: .8rem;}
+.public-home .team-section {padding-block: clamp(45px, 5vw, 76px); align-items: start; gap: clamp(32px, 6vw, 95px); grid-template-columns: .8fr 1.65fr;}
+.public-home .team-section .section-label {margin: 0 0 14px;}
+.public-home .team-section p:not(.section-label) {margin: 0 0 11px; max-width: 65ch;}
+.public-home .home-product-directory {padding-block: 38px 64px; border-top: 1px solid var(--line);}
+.public-home .home-product-directory h2 {font-size: clamp(1.8rem,3vw,2.6rem);}
+.directory-groups {display: grid; grid-template-columns: .8fr 1fr 2fr; gap: 28px; margin-top: 28px;}
+.directory-groups h3 {font-size: .875rem; padding-bottom: 9px; border-bottom: 1px solid #a5b7c5; color: #4b6274; margin: 0 0 10px;}
+.directory-links {display: grid; gap: 10px; align-content: start;}
+.directory-groups > div:last-child .directory-links {grid-template-columns: 1fr 1fr; gap: 10px 24px;}
+.directory-links a {display: block;}
+.directory-links strong, .directory-links span {display: block;}
+.directory-links strong {font-size: 1rem; font-weight: 590;}
+.directory-links span {color: #546b7b; font-size: .84rem;}
+.public-home .home-footer {max-width: none; background: #102e4b; color: white; border: 0; padding: 24px max(var(--gutter),calc((100% - var(--measure)) / 2 + var(--gutter))); display: flex; flex-direction: row; justify-content: space-between; align-items: center;}
+.public-home .home-footer a {color: inherit;}
+@media (max-width: 1050px) {
+  .public-home .workshop-section > .section-wrap, .public-home .team-section {grid-template-columns: 1fr 1.5fr; gap: 30px;}
+  .public-home .workshop-tool .tool-card {grid-template-columns: 1fr;}
+  .public-home .workshop-tool .tool-copy {max-width: 52ch;}
+}
+@media (max-width: 760px) {
+  .public-home .home-header {height: 59px;}
+  .public-home .home-header nav {gap: 0;}
+  .public-home .products-menu summary {padding: 12px 5px;}
+  .intro-inner {grid-template-columns: 1fr; gap: 26px; padding-block: 30px;}
+  .intro-copy {padding: 0;}
+  .intro-copy h1 {font-size: clamp(3.3rem, 9.5vw, 4.4rem);}
+  .intro-copy > p:not(.section-label) {max-width: 53ch; margin: 16px 0 21px;}
+  .intro-copy .section-label {margin-bottom: 10px;}
+  .plan {padding: 11px 15px;}
+  .plan-drawing {height: clamp(235px, 52vw, 320px);}
+  .plan figcaption {padding-bottom: 8px;}
+  .plan-switch {padding-top: 7px;}
+  .order-story {grid-template-columns: 1fr; gap: 28px; padding-block: 42px;}
+  .public-home .section-heading {align-items: start;}
+  .public-home .demo-tabs {gap: 1px 14px;}
+  .public-home .demo-tabs > button {font-size: .88rem;}
+  .public-home .workshop-section > .section-wrap, .public-home .team-section {grid-template-columns: 1fr; gap: 18px;}
+  .workshop-intro > p {max-width: 55ch;}
+  .public-home .reference-note {grid-column: 1; margin: 0;}
+  .public-home .team-section p:not(.section-label) {font-size: 1rem;}
+  .directory-groups {grid-template-columns: 1fr 1fr; gap: 20px;}
+  .directory-groups > div:last-child {grid-column: 1 / -1;}
+}
+@media (max-width: 400px) {
+  .public-home .home-header {gap: 8px;}
+  .public-home .home-brand {font-size: 1.08rem;}
+  .public-home .login-link {font-size: .8125rem; padding: 7px 9px;}
+  .plan-switch label {padding: 7px 10px;}
+}
