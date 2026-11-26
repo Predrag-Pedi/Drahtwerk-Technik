@@ -1,7 +1,9 @@
 <!doctype html>
-<html lang="de-CH">
+<html lang="de-CH" data-type="software">
 <head>
 <meta charset="utf-8">
+<meta name="page-type" content="software">
+<meta name="site-kind" content="software">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102b4c">
 <meta name="description" content="SchaltBase für den Schaltanlagenbau: Schema, Dispo, Offerten, Aufträge und Lager. Erstelle Aufträge aus Offerten und buche vorhandenes Material automatisch ab. Entdecke den Ablauf in animierten Produktbeispielen.">
@@ -11,36 +13,32 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="platform/home.css?v=20261126-workflow">
 <link rel="stylesheet" href="platform/brand.css?v=20261123">
-<link rel="stylesheet" href="/platform/public-nav.css"><link rel="stylesheet" href="/platform/workflow-demo.css?v=20261126"></head>
+<link rel="stylesheet" href="/platform/public-nav.css"><link rel="stylesheet" href="/platform/workflow-demo.css?v=20261126">
+<link rel="stylesheet" href="platform/home-redesign.css">
+</head>
 <body>
 <a class="skip-link" href="#inhalt">Zum Inhalt</a>
 <header class="home-header"><a class="home-brand" href="/home.html" aria-label="SchaltBase Startseite"><img class="sb-icon" src="/platform/schaltbase-icon.png" width="36" height="36" alt="">SchaltBase</a><nav aria-label="Hauptnavigation"><details class="products-menu"><summary>Werkzeuge</summary><div class="products-dropdown"><div><p>Planung</p><a href="/produkte/schema.html">Schema<small>Makros & Stromkreise</small></a><a href="/produkte/dispo.html">Disposition<small>Aufbau & Anordnung</small></a></div><div><p>Werkstatt</p><a href="/produkte/lager.html">Lager<small>Bestände & Zuschnitt</small></a><a href="/produkte/schienenrechner.html">Schienenrechner<small>Masse & Zuschnitt</small></a><a href="/produkte/ew-vorschriften.html">EW-Vorschriften<small>Unterlagen & Wissen</small></a><a href="/produkte/aufbauabstaende.html">Aufbauabstände<small>Zeichnungen & Vorgaben</small></a><a href="/produkte/drahtfarben.html">Drahtfarben<small>Leiter & Anwendungen</small></a><a href="/produkte/litzenquerschnitte.html">Litzenquerschnitte<small>Technische Tabellen</small></a><a href="/produkte/kupferschienen.html">Kupferschienen<small>Dimensionen & Strom</small></a><a href="/produkte/abb-smissline.html">ABB Smissline<small>Schienen & Einheiten</small></a><a href="/produkte/hager-uniway.html">Hager Uniway<small>Stecksockel & Systemlängen</small></a></div><div><p>Büro</p><a href="/produkte/offerten.html">Offerten<small>Material & Kalkulation</small></a><a href="/produkte/auftraege.html">Aufträge<small>Bestätigung & Material</small></a><a href="/produkte/regierapport.html">Regierapporte<small>Einsatz & Kundenbestätigung</small></a></div></div></details><a class="home-jump" href="/home.html#demo">In Aktion</a><a class="home-jump" href="/home.html#team">Dein Team</a></nav><a class="login-link" href="/login.html">Anmelden</a></header>
 <main id="inhalt">
-<section class="hero" aria-labelledby="hero-title">
+<!-- Taste hero-centred composition with SchaltBase’s live walkthrough. -->
+<section class="hero hero--centred" data-enter aria-labelledby="hero-title">
 <div class="hero-grid" aria-hidden="true">
 </div>
 <div class="hero-inner">
 <div class="hero-copy">
-<p class="eyebrow light">DEINE BASIS IM SCHALTANLAGENBAU</p>
-<h1 id="hero-title">Gut geplant.<br>
-<span>Bis ins Lager.</span>
-</h1>
-<p class="hero-description">Von der Offerte zum Auftrag. Vom Schema in die Werkstatt. SchaltBase verbindet eure Planung mit dem Material: Auftrag erstellen – vorhandene Lagerartikel werden automatisch abgebucht.</p>
+<h1 id="hero-title">Die Schaltanlage planen.<br><span>Den Auftrag im Griff behalten.</span></h1>
+<p class="hero-description">SchaltBase verbindet Schema, Dispo, Offerten, Aufträge und Lager für den Schaltanlagenbau.</p>
 <div class="hero-actions">
-<a class="button primary" href="#demo">Werkzeuge in Aktion erleben</a>
-<a class="hero-login" href="login.html">Zum Arbeitsplatz</a>
+<a class="button primary" href="#demo">Produktdemo ansehen</a>
+<a class="hero-login" href="login.html">Anmelden</a>
 </div>
-<div class="hero-pills">
-<span>Im Browser</span>
-<span>Im Betrieb geteilt</span>
-<span>Auch am Tablet</span>
-</div>
+
 </div>
 <div class="hero-product">
 <div class="product-top">
 <img src="platform/schaltbase-icon.png" width="24" height="24" alt="">
 <strong>SchaltBase</strong>
-<span>Dein Betrieb. Ein gemeinsamer Ablauf.</span>
+<span>Aufträge und Lager</span>
 </div>
 <div class="clip hero-clip" id="hero-clip" data-step-ms="6000" data-clip>
 <div class="clip-stage"><!-- hero-workflow:start -->
@@ -52,36 +50,33 @@
 <button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
 </div>
 </div>
-<div class="product-sticker">
-<span>Offerte</span>
-<b>+</b>
-<span>Auftrag</span>
-<b>+</b>
-<span>Lager</span>
+
 </div>
 </div>
-</div>
-<div class="hero-bottom">
-<span>PLANEN</span>
-<span>KALKULIEREN</span>
-<span>BEAUFTRAGEN</span>
-<span>BAUEN</span>
-<button type="button" id="motion-toggle" hidden>Animationen pausieren</button>
+<div class="hero-bottom"><button type="button" id="motion-toggle" hidden>Animationen pausieren</button>
 </div>
 </section>
-<section class="connected-section section-wrap" aria-labelledby="connected-title">
-<div class="connected-intro"><div><p class="eyebrow">VOM ANGEBOT BIS ZUM MATERIAL</p><h2 id="connected-title">Einmal erfasst.<br>Im nächsten Schritt schon da.</h2></div><p>Kundendaten, Positionen und Mengen bleiben verbunden. So wird aus einer Zusage ein Auftrag, mit dem Büro und Werkstatt weiterarbeiten können.</p></div>
-<div class="connected-cards"><article class="connected-card"><p class="eyebrow">AUFTRÄGE</p><h3>Bestätigen. Organisieren. Loslegen.</h3><p>Übernimm die genehmigte Offerte, lade die Auftragsbestätigung herunter und verfolge, welches Kundenmaterial noch fehlt.</p><div class="connected-links"><a href="#demo" data-show-demo="orders">Ablauf im Clip ansehen</a><a href="/produkte/auftraege.html">Aufträge kennenlernen</a></div></article>
-<article class="connected-card inventory-card"><p class="eyebrow">LAGER</p><h3>Dein Auftrag bucht mit.</h3><p>Schon beim Offerieren die Verfügbarkeit sehen. Beim Erstellen des Auftrags wird das vorhandene Material automatisch vom Bestand abgezogen.</p><div class="connected-links"><a href="#demo" data-show-demo="inventory">Lager im Clip ansehen</a><a href="/produkte/lager.html">Lager kennenlernen</a></div></article></div>
-<p class="connected-rule"><strong>Der richtige Moment zählt:</strong> Die Offerte zeigt den aktuellen Bestand. Erst «Auftrag erstellen» löst die Abbuchung aus. Fehlmengen bleiben sichtbar; die ursprüngliche Offerte bleibt erhalten.</p>
+<section class="connected-section" aria-labelledby="connected-title">
+<div class="section-wrap">
+  <h2 id="connected-title">Material buchen beim Auftragserstellen.</h2>
+  <div class="stock-moment" aria-label="24 Stück Lagerbestand minus 6 Stück für den Auftrag ergeben 18 Stück Restbestand">
+    <div><strong>24</strong><span>Stück am Lager</span></div>
+    <div><strong>−6</strong><span>Stück im Auftrag</span></div>
+    <div><strong>18</strong><span>Stück verfügbar</span></div>
+  </div>
+  <div class="connected-cards">
+    <article class="connected-card"><h3>Auftragsbestätigung</h3><p>Erstelle den Auftrag aus der genehmigten Offerte, lade die Bestätigung herunter und verfolge den Eingang von Kundenmaterial.</p><a href="/produkte/auftraege.html">Auftragstool ansehen →</a></article>
+    <article class="connected-card"><h3>Lagerbuchung</h3><p>Beim Erstellen des Auftrags bucht SchaltBase die verfügbaren Lagerartikel ab. Fehlmengen und abgebuchte Aufträge bleiben einsehbar.</p><a href="/produkte/lager.html">Lagertool ansehen →</a></article>
+  </div>
+</div>
 </section>
 <section class="section-wrap demo-section" id="demo" aria-labelledby="demo-heading">
 <div class="section-heading">
 <div>
-<p class="eyebrow">SCHAU DEINEN WERKZEUGEN BEI DER ARBEIT ZU</p>
-<h2 id="demo-heading">So greift eines<br>ins andere.</h2>
+<p class="eyebrow">PRODUKTDEMOS</p>
+<h2 id="demo-heading">SchaltBase im Einsatz.</h2>
 </div>
-<p>Ein Musterprojekt, verständliche Schritte. Die Clips starten automatisch. Wähle ein Werkzeug, pausiere den Ablauf oder springe direkt zum gewünschten Schritt.</p>
+<p>Wähle ein Werkzeug und springe in der Demo direkt zum gewünschten Arbeitsschritt.</p>
 </div>
 <div class="demo-tabs" role="tablist" aria-label="Anwendung auswählen">
 <!-- workflow-tabs:start -->
@@ -409,7 +404,7 @@
 <ol id="demo-steps" class="demo-steps">
 </ol>
 <label class="cycle-choice">
-<input type="checkbox" id="demo-cycle" checked> Anwendungen nacheinander zeigen</label>
+<input type="checkbox" id="demo-cycle"> Anwendungen nacheinander zeigen</label>
 </div>
 </div>
 <p class="demo-note">Animierte Produktbeispiele mit fiktiven Artikeln, Musterpreisen und Zeichnungen aus dem CAD-Werkzeug. Keine Kundenprojekte. Schnittbreite und Artikelzuordnung werden im eigenen Betrieb hinterlegt.</p>
@@ -421,8 +416,8 @@
 <div class="section-wrap">
 <div class="section-heading">
 <div>
-<p class="eyebrow">WISSEN GRIFFBEREIT. ARBEIT IM FLUSS.</p>
-<h2 id="workshop-heading">Deine ganze Werkstatt.<br>Mit einem Klick dabei.</h2>
+<p class="eyebrow">WERKSTATT</p>
+<h2 id="workshop-heading">Werkzeuge für die Werkbank.</h2>
 </div>
 <p>Berechnen, nachschlagen und dokumentieren. Die Helfer für deinen Arbeitsalltag – mit gemeinsamen Vorlagen für deinen Betrieb.</p>
 </div>
@@ -815,7 +810,7 @@
 </div>
 <div>
 <p class="eyebrow">DEINE FIRMA. DEINE ABLÄUFE.</p>
-<h2>Gemeinsam arbeiten.<br>Alles im Blick.</h2>
+<h2>Ein Arbeitsplatz<br>für das ganze Team.</h2>
 <p class="section-description">Planung, Werkstatt und Büro arbeiten mit denselben Vorlagen, Unterlagen und Betriebsdaten. Über persönliche Konten und passende Berechtigungen legst du fest, wer welche Werkzeuge nutzen und Inhalte bearbeiten darf.</p>
 <ul class="team-benefits">
 <li>Eure Vorlagen und Unterlagen an einem Ort</li>
@@ -825,9 +820,9 @@
 </ul>
 </div>
 </section>
-<section class="home-product-directory section-wrap"><p class="eyebrow">JEDES WERKZEUG IM DETAIL</p><h2>Was möchtest du genauer kennenlernen?</h2><div class="home-product-links"><a href="/produkte/schema.html"><strong>Schema</strong><span>Makros & Stromkreise</span></a><a href="/produkte/dispo.html"><strong>Disposition</strong><span>Aufbau & Anordnung</span></a><a href="/produkte/offerten.html"><strong>Offerten</strong><span>Material & Kalkulation</span></a><a href="/produkte/auftraege.html"><strong>Aufträge</strong><span>Bestätigung & Material</span></a><a href="/produkte/lager.html"><strong>Lager</strong><span>Bestände & Zuschnitt</span></a><a href="/produkte/regierapport.html"><strong>Regierapporte</strong><span>Einsatz & Kundenbestätigung</span></a><a href="/produkte/schienenrechner.html"><strong>Schienenrechner</strong><span>Masse & Zuschnitt</span></a><a href="/produkte/ew-vorschriften.html"><strong>EW-Vorschriften</strong><span>Unterlagen & Wissen</span></a><a href="/produkte/aufbauabstaende.html"><strong>Aufbauabstände</strong><span>Zeichnungen & Vorgaben</span></a><a href="/produkte/drahtfarben.html"><strong>Drahtfarben</strong><span>Leiter & Anwendungen</span></a><a href="/produkte/litzenquerschnitte.html"><strong>Litzenquerschnitte</strong><span>Technische Tabellen</span></a><a href="/produkte/kupferschienen.html"><strong>Kupferschienen</strong><span>Dimensionen & Strom</span></a><a href="/produkte/abb-smissline.html"><strong>ABB Smissline</strong><span>Schienen & Einheiten</span></a><a href="/produkte/hager-uniway.html"><strong>Hager Uniway</strong><span>Stecksockel & Systemlängen</span></a></div></section><section class="closing">
+<section class="home-product-directory section-wrap"><p class="eyebrow">JEDES WERKZEUG IM DETAIL</p><h2>Alle Werkzeuge im Überblick.</h2><div class="home-product-links"><a href="/produkte/schema.html"><strong>Schema</strong><span>Makros & Stromkreise</span></a><a href="/produkte/dispo.html"><strong>Disposition</strong><span>Aufbau & Anordnung</span></a><a href="/produkte/offerten.html"><strong>Offerten</strong><span>Material & Kalkulation</span></a><a href="/produkte/auftraege.html"><strong>Aufträge</strong><span>Bestätigung & Material</span></a><a href="/produkte/lager.html"><strong>Lager</strong><span>Bestände & Zuschnitt</span></a><a href="/produkte/regierapport.html"><strong>Regierapporte</strong><span>Einsatz & Kundenbestätigung</span></a><a href="/produkte/schienenrechner.html"><strong>Schienenrechner</strong><span>Masse & Zuschnitt</span></a><a href="/produkte/ew-vorschriften.html"><strong>EW-Vorschriften</strong><span>Unterlagen & Wissen</span></a><a href="/produkte/aufbauabstaende.html"><strong>Aufbauabstände</strong><span>Zeichnungen & Vorgaben</span></a><a href="/produkte/drahtfarben.html"><strong>Drahtfarben</strong><span>Leiter & Anwendungen</span></a><a href="/produkte/litzenquerschnitte.html"><strong>Litzenquerschnitte</strong><span>Technische Tabellen</span></a><a href="/produkte/kupferschienen.html"><strong>Kupferschienen</strong><span>Dimensionen & Strom</span></a><a href="/produkte/abb-smissline.html"><strong>ABB Smissline</strong><span>Schienen & Einheiten</span></a><a href="/produkte/hager-uniway.html"><strong>Hager Uniway</strong><span>Stecksockel & Systemlängen</span></a></div></section><section class="closing">
 <p class="eyebrow light">VON DER PLANUNG BIS IN DIE WERKSTATT</p>
-<h2>Alles an seinem Platz.<br>Auch dein nächstes Projekt.</h2>
+<h2>Öffne deinen Arbeitsplatz.</h2>
 <a class="button primary" href="login.html">Bei SchaltBase anmelden</a>
 <p>Der Arbeitsplatz ist nur mit einem freigeschalteten Benutzerkonto zugänglich.</p>
 </section>
