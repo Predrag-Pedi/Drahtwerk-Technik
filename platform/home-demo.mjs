@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const clips = [...document.querySelectorAll('[data-clip]')].map(el => ({
-  el, stepMs: Number(el.dataset.stepMs) || 4000, frames: [...el.querySelectorAll('[data-frame]')], elapsed: 0, index: -1, visible: false, paused: false,
+  el, stepMs: Number(el.dataset.stepMs) || 4000, frames: [...el.querySelectorAll('[data-frame]')], elapsed: 0, index: -1, visible: false, paused: true, still: true,
 }));
 const tabs = [...document.querySelectorAll('[data-demo]')];
 let selected = 'orders', globalPaused = reducedMotion.matches, frameId = 0, lastTime = 0;
@@ -10,6 +10,7 @@ const active = () => clips.find(c => c.el.id === 'clip-' + selected);
 const mainClip = c => c.el.classList.contains('main-clip');
 const eligible = c => !mainClip(c) || c === active();
 const running = c => c.visible && eligible(c) && !c.paused && !globalPaused && !document.hidden;
+const allPaused = () => globalPaused || clips.every(c => c.paused);
 const seconds = ms => '0:' + String(Math.floor(ms / 1000)).padStart(2, '0');
 function draw(c) {
   const index = Math.min(c.frames.length - 1, Math.floor(c.elapsed / c.stepMs));
@@ -33,13 +34,13 @@ function draw(c) {
 function sync() {
   for (const c of clips) {
     const playing = running(c), button = c.el.querySelector('[data-clip-toggle]');
-    c.el.classList.toggle('is-playing', playing); c.el.classList.toggle('is-still', !!c.still);
+    c.el.classList.toggle('is-playing', playing); c.el.classList.toggle('is-still', c.still);
     if (button) {button.textContent = c.paused || globalPaused ? 'Abspielen' : 'Pause'; button.setAttribute('aria-label', (c.paused || globalPaused ? 'Vorführung abspielen: ' : 'Vorführung pausieren: ') + c.frames[0].dataset.caption);}
   }
   const paused = active().paused || globalPaused;
   $('demo-play').textContent = paused ? 'Abspielen' : 'Pause';
   $('demo-play').setAttribute('aria-label', paused ? 'Demo abspielen' : 'Demo pausieren');
-  $('motion-toggle').textContent = globalPaused ? 'Animationen abspielen' : 'Animationen pausieren';
+  $('motion-toggle').textContent = allPaused() ? 'Alle Beispiele abspielen' : 'Alle Beispiele pausieren';
   if (clips.some(running) && !frameId) {lastTime = performance.now(); frameId = requestAnimationFrame(tick);}
   else if (!clips.some(running) && frameId) {cancelAnimationFrame(frameId); frameId = 0;}
 }
@@ -56,10 +57,10 @@ function tick(now) {
     }
     draw(c);
   }
-  if (nextTour) select(tabs[(tabs.findIndex(t => t.dataset.demo === selected) + 1) % tabs.length].dataset.demo);
+  if (nextTour) select(tabs[(tabs.findIndex(t => t.dataset.demo === selected) + 1) % tabs.length].dataset.demo, false, true);
   if (!frameId && clips.some(running)) frameId = requestAnimationFrame(tick);
 }
-function select(name, manual = false) {
+function select(name, manual = false, autoplay = false) {
   selected = name;
   if (manual) $('demo-cycle').checked = false;
   for (const tab of tabs) {
@@ -68,12 +69,13 @@ function select(name, manual = false) {
     $('panel-' + tab.dataset.demo).hidden = !chosen;
   }
   const panel = $('panel-' + name), c = active(); c.elapsed = 0; c.index = -1;
+  if (autoplay) {c.paused = false; c.still = false;}
   $('demo-window-title').textContent = 'SchaltBase / ' + tabs.find(t => t.dataset.demo === name).textContent;
-  $('demo-kicker').textContent = tabs.find(t => t.dataset.demo === name).textContent;
   $('demo-title').textContent = panel.dataset.title;
   $('demo-description').textContent = panel.dataset.description;
   const detail=$('demo-detail'),slug={orders:'auftraege',inventory:'lager',offers:'offerten',together:'dispo',schema:'schema',dispo:'dispo'}[name];
-  detail.href='/produkte/'+slug+'.html'; detail.textContent=(name==='inventory'?'Lager':tabs.find(t=>t.dataset.demo===name).textContent)+' im Detail kennenlernen';
+  const productName = {inventory:'Lager',dispo:'Disposition',together:'Disposition'}[name] || tabs.find(t => t.dataset.demo === name).textContent;
+  detail.href='/produkte/'+slug+'.html'; detail.textContent=productName+' im Detail';
   $('demo-steps').replaceChildren(...c.frames.map((f, i) => {
     const li = document.createElement('li'), button = document.createElement('button'), number = document.createElement('span'), content = document.createElement('div'), title = document.createElement('strong'), detail = document.createElement('small');
     button.type = 'button'; button.dataset.step = i; number.textContent = String(i + 1).padStart(2, '0'); title.textContent = f.dataset.caption; detail.textContent = f.dataset.detail;
@@ -83,7 +85,6 @@ function select(name, manual = false) {
   }));
   draw(c); sync();
 }
-for(const link of document.querySelectorAll('[data-show-demo]'))link.addEventListener('click',()=>select(link.dataset.showDemo,true));
 for (const tab of tabs) {
   tab.onclick = () => select(tab.dataset.demo, true);
   tab.onkeydown = e => {
@@ -94,6 +95,7 @@ for (const tab of tabs) {
   };
 }
 function toggle(c) {
+  if (globalPaused) for (const clip of clips) clip.paused = true;
   if (globalPaused || c.paused) {globalPaused = false; c.paused = false; c.still = false;} else c.paused = true;
   sync();
 }
@@ -101,7 +103,12 @@ for (const c of clips) {draw(c); c.el.querySelector('[data-clip-toggle]')?.addEv
 $('demo-play').onclick = () => toggle(active());
 $('demo-restart').onclick = () => {const c = active(); c.elapsed = 0; c.index = -1; draw(c); sync();};
 $('demo-progress').oninput = e => {const c = active(); c.paused = true; c.still = true; $('demo-cycle').checked = false; c.elapsed = Number(e.target.value); draw(c); sync();};
-$('motion-toggle').onclick = () => {globalPaused = !globalPaused; sync();};
+$('motion-toggle').onclick = () => {
+  const play = allPaused();
+  globalPaused = !play;
+  for (const c of clips) {c.paused = !play; if (play) c.still = false;}
+  sync();
+};
 document.addEventListener('visibilitychange', sync);
 reducedMotion.addEventListener('change', e => {globalPaused = e.matches; sync();});
 const observer = new IntersectionObserver(entries => {
