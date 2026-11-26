@@ -1,18 +1,18 @@
 // Public, silent illustrative walkthroughs. No customer APIs or project writes.
 const $ = id => document.getElementById(id);
-const stepMs = 4000, reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const clips = [...document.querySelectorAll('[data-clip]')].map(el => ({
-  el, frames: [...el.querySelectorAll('[data-frame]')], elapsed: 0, index: -1, visible: false, paused: false,
+  el, stepMs: Number(el.dataset.stepMs) || 4000, frames: [...el.querySelectorAll('[data-frame]')], elapsed: 0, index: -1, visible: false, paused: false,
 }));
 const tabs = [...document.querySelectorAll('[data-demo]')];
-let selected = 'schema', globalPaused = reducedMotion.matches, frameId = 0, lastTime = 0;
+let selected = 'orders', globalPaused = reducedMotion.matches, frameId = 0, lastTime = 0;
 const active = () => clips.find(c => c.el.id === 'clip-' + selected);
 const mainClip = c => c.el.classList.contains('main-clip');
 const eligible = c => !mainClip(c) || c === active();
 const running = c => c.visible && eligible(c) && !c.paused && !globalPaused && !document.hidden;
 const seconds = ms => '0:' + String(Math.floor(ms / 1000)).padStart(2, '0');
 function draw(c) {
-  const index = Math.min(c.frames.length - 1, Math.floor(c.elapsed / stepMs));
+  const index = Math.min(c.frames.length - 1, Math.floor(c.elapsed / c.stepMs));
   if (c.index !== index) {
     c.index = index;
     c.frames.forEach((f, i) => {f.hidden = i !== index;});
@@ -24,7 +24,7 @@ function draw(c) {
     }
   }
   if (c === active()) {
-    const duration = c.frames.length * stepMs;
+    const duration = c.frames.length * c.stepMs;
     $('demo-progress').max = duration; $('demo-progress').value = c.elapsed;
     $('demo-progress').setAttribute('aria-valuetext', `${Math.floor(c.elapsed / 1000)} von ${duration / 1000} Sekunden`);
     $('demo-time').textContent = `${seconds(c.elapsed)} / ${seconds(duration)}`;
@@ -48,7 +48,7 @@ function tick(now) {
   const delta = Math.max(0, Math.min(250, now - lastTime)); lastTime = now;
   let nextTour = false;
   for (const c of clips) if (running(c)) {
-    const duration = c.frames.length * stepMs;
+    const duration = c.frames.length * c.stepMs;
     c.elapsed += delta;
     if (c.elapsed >= duration) {
       c.elapsed %= duration;
@@ -72,15 +72,18 @@ function select(name, manual = false) {
   $('demo-kicker').textContent = tabs.find(t => t.dataset.demo === name).textContent;
   $('demo-title').textContent = panel.dataset.title;
   $('demo-description').textContent = panel.dataset.description;
+  const detail=$('demo-detail'),slug={orders:'auftraege',inventory:'lager',offers:'offerten',together:'dispo',schema:'schema',dispo:'dispo'}[name];
+  detail.href='/produkte/'+slug+'.html'; detail.textContent=(name==='inventory'?'Lager':tabs.find(t=>t.dataset.demo===name).textContent)+' im Detail kennenlernen';
   $('demo-steps').replaceChildren(...c.frames.map((f, i) => {
     const li = document.createElement('li'), button = document.createElement('button'), number = document.createElement('span'), content = document.createElement('div'), title = document.createElement('strong'), detail = document.createElement('small');
     button.type = 'button'; button.dataset.step = i; number.textContent = String(i + 1).padStart(2, '0'); title.textContent = f.dataset.caption; detail.textContent = f.dataset.detail;
     content.append(title, detail); button.append(number, content); li.append(button);
-    button.onclick = () => {c.paused = true; c.still = true; $('demo-cycle').checked = false; c.elapsed = i * stepMs; draw(c); sync();};
+    button.onclick = () => {c.paused = true; c.still = true; $('demo-cycle').checked = false; c.elapsed = i * c.stepMs; draw(c); sync(); if(matchMedia('(max-width:760px)').matches) $('demo-player').scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});};
     return li;
   }));
   draw(c); sync();
 }
+for(const link of document.querySelectorAll('[data-show-demo]'))link.addEventListener('click',()=>select(link.dataset.showDemo,true));
 for (const tab of tabs) {
   tab.onclick = () => select(tab.dataset.demo, true);
   tab.onkeydown = e => {
@@ -108,4 +111,4 @@ const observer = new IntersectionObserver(entries => {
 for (const c of clips) observer.observe(c.el);
 $('motion-toggle').hidden = false;
 document.querySelector('[data-demo-controls]').hidden = false;
-select('schema');
+select('orders');

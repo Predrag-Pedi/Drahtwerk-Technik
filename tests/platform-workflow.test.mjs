@@ -17,11 +17,13 @@ test('landing, username login, developer workspace and individual tool rights th
  try{
   await t.test('anonymous visitors see the landing and login, but no dashboard or management page',async()=>{
    const home=await request('/');assert.equal(home.status,200);assert.match(home.data,/<title>SchaltBase/);assert.match(home.data,/data-demo="dispo"/);assert.match(home.data,/data-demo="offers"/);
-   for(const [path,type] of [['/platform/home-demo.mjs','text/javascript'],['/platform/home.css','text/css'],['/platform/brand.css','text/css'],['/platform/demo-dispo.svg','image/svg+xml'],['/platform/demo-schema.svg','image/svg+xml'],['/platform/schaltbase-icon.png','image/png']]){const asset=await request(path);assert.equal(asset.status,200);assert.equal(asset.headers.get('content-type'),type);}
+   for(const [path,type] of [['/platform/workflow-demo.mjs','text/javascript'],['/platform/workflow-demo.css','text/css'],['/platform/home-demo.mjs','text/javascript'],['/platform/home.css','text/css'],['/platform/brand.css','text/css'],['/platform/demo-dispo.svg','image/svg+xml'],['/platform/demo-schema.svg','image/svg+xml'],['/platform/schaltbase-icon.png','image/png']]){const asset=await request(path);assert.equal(asset.status,200);assert.equal(asset.headers.get('content-type'),type);}
    for(const name of ['macro','schema-1','schema-2','schema-3','schema-source','dispo-frame','dispo-plates','dispo-complete']){const asset=await request(`/platform/demos/${name}.svg`);assert.equal(asset.status,200);assert.equal(asset.headers.get('content-type'),'image/svg+xml');}
+   for(const path of ['/produkte/auftraege.html','/produkte/lager.html']){const page=await request(path);assert.equal(page.status,200);assert.equal(page.headers.get('x-robots-tag'),'index, follow');assert.match(page.data,/flow-scene/);}
+   const sitemap=await request('/sitemap.xml');for(const slug of ['auftraege','lager'])assert.ok(sitemap.data.includes('/produkte/'+slug+'.html'));
    assert.equal(JSON.parse((await request('/manifest.webmanifest')).data).name,'SchaltBase');
    assert.match((await request('/login.html')).data,/Benutzername oder E-Mail/);
-   for(const path of ['/index.html','/portal.html','/cad.html','/offerten.html']){const r=await request(path);assert.equal(r.status,302);assert.equal(r.headers.get('location'),'/login.html');}
+   for(const path of ['/index.html','/portal.html','/cad.html','/offerten.html','/auftraege.html','/lager.html']){const r=await request(path);assert.equal(r.status,302);assert.equal(r.headers.get('location'),'/login.html');}
    assert.equal((await request('/',undefined,undefined,{}, {'X-Forwarded-Host':'foreign.test'})).status,400);
   });
   const login=await request('/api/login','POST',{identifier:'Predrag.Test',password});assert.equal(login.status,200);assert.match(login.headers.get('set-cookie'),/__Host-session=.*HttpOnly; SameSite=Strict;.*Secure/);
