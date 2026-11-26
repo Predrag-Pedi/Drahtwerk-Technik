@@ -21,13 +21,13 @@ export function workflowScene(name){
  return `<div class="flow-scene">${scenes[name]()}</div>`;
 }
 export const workflowClips={
- orders:{title:'Aus einer Zusage wird ein Auftrag.',description:'Die genehmigte Offerte wird zum Auftrag mit eigener Nummer und Auftragsbestätigung. Gleichzeitig wird vorhandenes, zugeordnetes Material aus eurem Lager abgebucht.',steps:[
+ orders:{title:'Von der Offerte zum Auftrag',description:'Die genehmigte Offerte wird zum Auftrag mit eigener Nummer und Auftragsbestätigung. Gleichzeitig wird vorhandenes, zugeordnetes Material aus eurem Lager abgebucht.',steps:[
  ['quote','Genehmigte Offerte übernehmen','Kunde, Positionen und Preise sind bereits erfasst.'],
  ['order','Auftrag erstellen','Auftragsbestätigung und Lagerbuchung entstehen zusammen.'],
  ['booking','Lagerbuchung nachvollziehen','24 Stück vorhanden, 6 verwendet, 18 verbleiben.'],
  ['supplied','Kundenmaterial verfolgen','Teillieferungen erfassen; fehlendes Material bleibt sichtbar.'],
  ['received','Lieferung vervollständigen','Sind alle Kundenpositionen da, wird der Status grün.']]},
- inventory:{title:'Bestand im Blick. Bis zum letzten Schnitt.',description:'Geräte, Platten und Schienen aus eurem Artikelstamm oder manuell erfassen. Schon in der Offerte seht ihr verfügbare Mengen und Fehlmengen. Gebucht wird beim Erstellen des Auftrags.',steps:[
+ inventory:{title:'Material und Zuschnitt im Lager',description:'Geräte, Platten und Schienen aus eurem Artikelstamm oder manuell erfassen. Schon in der Offerte seht ihr verfügbare Mengen und Fehlmengen. Gebucht wird beim Erstellen des Auftrags.',steps:[
  ['inventory','Bestand und Fehlmengen sehen','Der Lagerbestand gehört eurer Firma. Lagerplätze sind optional.'],
  ['cuts','Längen aus der Offerte nutzen','SBR und Aufbau dynamisch liefern Stückzahlen und Schnittlängen.'],
  ['remnants','Schnittbreite berücksichtigen','4 × 1500 mm benötigen bei 3 mm Schnittbreite zwei 6-m-Stangen.'],
