@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102b4c">
-<meta name="description" content="SchaltBase für den Schaltanlagenbau: Schema, Dispo, Offerten, Aufträge und Lager. Erstelle Aufträge aus Offerten und buche vorhandenes Material automatisch ab. Entdecke den Ablauf in animierten Produktbeispielen.">
+<meta name="description" content="Offerte, Auftrag und Lager für den Schaltanlagenbau. Im integrierten Web-CAD zeichnest du das Schema und erstellst daraus die Dispo. Schau dir den Ablauf am Beispiel an.">
 <title>SchaltBase · Von der Planung bis in die Werkstatt.</title>
 <link rel="icon" href="platform/schaltbase-icon.png">
 <link rel="apple-touch-icon" href="platform/schaltbase-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="platform/home.css?v=20261126-workflow">
 <link rel="stylesheet" href="platform/brand.css?v=20261123">
-<link rel="stylesheet" href="/platform/public-nav.css"><link rel="stylesheet" href="/platform/workflow-demo.css?v=20261126"></head>
+<link rel="stylesheet" href="/platform/public-nav.css"><link rel="stylesheet" href="/platform/workflow-demo.css?v=20261126-cadtour"></head>
 <body>
 <a class="skip-link" href="#inhalt">Zum Inhalt</a>
 <header class="home-header"><a class="home-brand" href="/home.html" aria-label="SchaltBase Startseite"><img class="sb-icon" src="/platform/schaltbase-icon.png" width="36" height="36" alt="">SchaltBase</a><nav aria-label="Hauptnavigation"><details class="products-menu"><summary>Werkzeuge</summary><div class="products-dropdown"><div><p>Planung</p><a href="/produkte/schema.html">Schema<small>Makros & Stromkreise</small></a><a href="/produkte/dispo.html">Disposition<small>Aufbau & Anordnung</small></a></div><div><p>Werkstatt</p><a href="/produkte/lager.html">Lager<small>Bestände & Zuschnitt</small></a><a href="/produkte/schienenrechner.html">Schienenrechner<small>Masse & Zuschnitt</small></a><a href="/produkte/ew-vorschriften.html">EW-Vorschriften<small>Unterlagen & Wissen</small></a><a href="/produkte/aufbauabstaende.html">Aufbauabstände<small>Zeichnungen & Vorgaben</small></a><a href="/produkte/drahtfarben.html">Drahtfarben<small>Leiter & Anwendungen</small></a><a href="/produkte/litzenquerschnitte.html">Litzenquerschnitte<small>Technische Tabellen</small></a><a href="/produkte/kupferschienen.html">Kupferschienen<small>Dimensionen & Strom</small></a><a href="/produkte/abb-smissline.html">ABB Smissline<small>Schienen & Einheiten</small></a><a href="/produkte/hager-uniway.html">Hager Uniway<small>Stecksockel & Systemlängen</small></a></div><div><p>Büro</p><a href="/produkte/offerten.html">Offerten<small>Material & Kalkulation</small></a><a href="/produkte/auftraege.html">Aufträge<small>Bestätigung & Material</small></a><a href="/produkte/regierapport.html">Regierapporte<small>Einsatz & Kundenbestätigung</small></a></div></div></details><a class="home-jump" href="/home.html#demo">In Aktion</a><a class="home-jump" href="/home.html#team">Dein Team</a></nav><a class="login-link" href="/login.html">Anmelden</a></header>
@@ -23,11 +23,11 @@
 <div class="hero-copy">
 <p class="eyebrow light">DEINE BASIS IM SCHALTANLAGENBAU</p>
 <h1 id="hero-title">Gut geplant.<br>
-<span>Bis ins Lager.</span>
+<span>Vom Schema zur Dispo.</span>
 </h1>
-<p class="hero-description">Von der Offerte zum Auftrag. Vom Schema in die Werkstatt. SchaltBase verbindet eure Planung mit dem Material: Auftrag erstellen – vorhandene Lagerartikel werden automatisch abgebucht.</p>
+<p class="hero-description">Kalkuliere die Offerte und übernimm sie bei Zusage als Auftrag. Im integrierten Web-CAD zeichnest du das Schema und erzeugst daraus die Dispo. Welche Artikel für den Auftrag abgebucht wurden, siehst du im Lager.</p>
 <div class="hero-actions">
-<a class="button primary" href="#demo">Werkzeuge in Aktion erleben</a>
+<a class="button primary" href="#demo" data-show-demo="together">Vom Schema zur Dispo ansehen</a>
 <a class="hero-login" href="login.html">Zum Arbeitsplatz</a>
 </div>
 <div class="hero-pills">
@@ -40,40 +40,44 @@
 <div class="product-top">
 <img src="platform/schaltbase-icon.png" width="24" height="24" alt="">
 <strong>SchaltBase</strong>
-<span>Dein Betrieb. Ein gemeinsamer Ablauf.</span>
+<span>Beispielprojekt · UV Werkstatt</span>
 </div>
 <div class="clip hero-clip" id="hero-clip" data-step-ms="6000" data-clip>
 <div class="clip-stage"><!-- hero-workflow:start -->
-<div class="clip-frame" data-frame data-caption="Auftrag erstellt. Lager aktualisiert." data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>OFFERTE · AUFTRAG · LAGER</p><h4>Ein Auftrag. Alles verbunden.</h4></div><span class="flow-badge ok">AU-00028</span></div><div class="flow-hero-order"><span class="flow-doc-icon">AB</span><div><strong>UV Werkstatt</strong><small>Muster AG · aus Offerte AN-00104</small></div><b>✓</b></div><div class="flow-hero-stock"><span>Leitungsschutzschalter</span><div><s>24</s><strong>18 <small>Stück</small></strong><b>−6</b></div><p>Beim Erstellen des Auftrags automatisch abgebucht.</p></div><div class="flow-note ">Auftragsbestätigung und Lagerauszug bereit.</div></div></div>
-<div class="clip-frame" data-frame hidden data-caption="Jede Abbuchung nachvollziehen." data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div>
+<div class="clip-frame" data-frame data-caption="Material und Montage kalkulieren" data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>OFFERTE AN-00104 · MUSTER AG</p><h4>UV Werkstatt</h4></div><span class="flow-badge neutral">In Bearbeitung</span></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>6 Stück · CHF 29.00 / Stück</small></div><b>CHF 174.00</b></div><div class="flow-row"><div><strong>DIN-Schienen · SBR dynamisch</strong><small>4 Stück à 1500 mm · CHF 5.00 / m</small></div><b>CHF 30.00</b></div><div class="flow-row"><div><strong>Montage</strong><small>2 Stunden · CHF 95.00 / h</small></div><b>CHF 190.00</b></div><div class="flow-total"><span>Beispielbetrag · exkl. MwSt.</span><strong>CHF 394.00</strong></div><div class="flow-note ">Material und Montagezeit ergeben den Offertbetrag.</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Die bestätigte Offerte als Auftrag eröffnen" data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>AUFTRAG AU-00028</p><h4>Auftrag erstellt.</h4></div><span class="flow-badge ok">Gespeichert</span></div><div class="flow-document"><div><span class="flow-doc-icon">AB</span><strong>Auftragsbestätigung<small>Muster AG · UV Werkstatt</small></strong></div><span>PDF</span></div><div class="flow-row"><div><strong>Offerte AN-00104</strong><small>Original bleibt gespeichert</small></div><b>CHF 394.00</b></div><div class="flow-row"><div><strong>Lagerbuchung</strong><small>6 Leitungsschutzschalter automatisch abgebucht</small></div><b>24 → 18</b></div><div class="flow-note pending">Angeliefertes Material ausstehend · 0 von 2 Geräten</div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Zähler und Abgänge im Browser zeichnen" data-detail=""><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Schema · Blatt 10</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Zähler auswählen</h4><div class="tour-field tour-selected"><small>Betriebsmittel</small><strong>10P1</strong></div><div class="tour-field"><small>Bezeichnung</small><strong>Allgemein</strong></div></div><div class="tour-paper"><img src="platform/demos/schema-source.svg#allgemein" alt="Ausschnitt aus Blatt 10 mit dem Zähler 10P1 und seinen Abgängen" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Aus den Schema-Geräten den Aufbau berechnen" data-detail=""><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Varianten vergleichen</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>SBR / Standard · Hager</h4><div class="tour-field"><small>Berechneter Aufbau</small><strong>758 × 1520 mm</strong></div><div class="tour-field"><small>Tiefe</small><strong>165 mm</strong></div><span class="tour-command">Diese Variante übernehmen</span></div><div class="tour-paper"><img src="platform/demos/sbr-variante.svg" alt="Berechnete Frontansicht mit drei Zählerplätzen, 10P1 links markiert" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Die Materialbuchung zum Auftrag nachschlagen" data-detail=""><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div>
 <!-- hero-workflow:end --></div>
 <div class="mini-controls">
-<span data-clip-caption>Auftrag erstellt. Lager aktualisiert.</span>
+<span data-clip-caption>Material und Montage kalkulieren</span>
 <button type="button" data-clip-toggle aria-label="Vorführung pausieren">Pause</button>
 </div>
 </div>
-<div class="product-sticker">
-<span>Offerte</span>
-<b>+</b>
-<span>Auftrag</span>
-<b>+</b>
-<span>Lager</span>
-</div>
+<nav class="product-sticker hero-chapters" aria-label="Schritte im Beispielprojekt"><!-- hero-chapters:start -->
+<a href="/produkte/offerten.html" data-hero-step="0" aria-current="step">Offerte</a>
+<a href="/produkte/auftraege.html" data-hero-step="1">Auftrag</a>
+<a href="/produkte/schema.html" data-hero-step="2">Schema</a>
+<a href="/produkte/dispo.html" data-hero-step="3">Dispo</a>
+<a href="/produkte/lager.html" data-hero-step="4">Lager</a>
+<!-- hero-chapters:end --></nav>
 </div>
 </div>
 <div class="hero-bottom">
-<span>PLANEN</span>
-<span>KALKULIEREN</span>
-<span>BEAUFTRAGEN</span>
-<span>BAUEN</span>
+<span>OFFERTE</span>
+<span>AUFTRAG</span>
+<span>SCHEMA</span>
+<span>DISPO</span>
+<span>LAGER</span>
 <button type="button" id="motion-toggle" hidden>Animationen pausieren</button>
 </div>
 </section>
 <section class="connected-section section-wrap" aria-labelledby="connected-title">
-<div class="connected-intro"><div><p class="eyebrow">VOM ANGEBOT BIS ZUM MATERIAL</p><h2 id="connected-title">Einmal erfasst.<br>Im nächsten Schritt schon da.</h2></div><p>Kundendaten, Positionen und Mengen bleiben verbunden. So wird aus einer Zusage ein Auftrag, mit dem Büro und Werkstatt weiterarbeiten können.</p></div>
+<div class="connected-intro"><div><p class="eyebrow">BÜRO UND PLANUNG</p><h2 id="connected-title">Einmal erfasst.<br>Im nächsten Schritt schon da.</h2></div><p>Aus der bestätigten Offerte übernimmt SchaltBase Kunde und Positionen in den Auftrag. Im CAD dienen die gezeichneten Geräte als Grundlage für den Aufbau.</p></div>
 <div class="connected-cards"><article class="connected-card"><p class="eyebrow">AUFTRÄGE</p><h3>Bestätigen. Organisieren. Loslegen.</h3><p>Übernimm die genehmigte Offerte, lade die Auftragsbestätigung herunter und verfolge, welches Kundenmaterial noch fehlt.</p><div class="connected-links"><a href="#demo" data-show-demo="orders">Ablauf im Clip ansehen</a><a href="/produkte/auftraege.html">Aufträge kennenlernen</a></div></article>
-<article class="connected-card inventory-card"><p class="eyebrow">LAGER</p><h3>Dein Auftrag bucht mit.</h3><p>Schon beim Offerieren die Verfügbarkeit sehen. Beim Erstellen des Auftrags wird das vorhandene Material automatisch vom Bestand abgezogen.</p><div class="connected-links"><a href="#demo" data-show-demo="inventory">Lager im Clip ansehen</a><a href="/produkte/lager.html">Lager kennenlernen</a></div></article></div>
-<p class="connected-rule"><strong>Der richtige Moment zählt:</strong> Die Offerte zeigt den aktuellen Bestand. Erst «Auftrag erstellen» löst die Abbuchung aus. Fehlmengen bleiben sichtbar; die ursprüngliche Offerte bleibt erhalten.</p>
+<article class="connected-card"><p class="eyebrow">WEB-CAD</p><h3>Vom Schema auf die Zählerplatte.</h3><p>Zeichne Zähler und Abgänge im Browser. Vergleiche Aufbauvarianten und übernimm die passende Dispo. Die Zählerplätze kannst du danach im Rahmen tauschen.</p><div class="connected-links"><a href="#demo" data-show-demo="together">Schema und Dispo im Clip</a><a href="/produkte/dispo.html">Dispo kennenlernen</a></div></article></div>
+<p class="connected-rule"><strong>Der richtige Moment zählt:</strong> Die Offerte zeigt den aktuellen Bestand. Erst «Auftrag erstellen» löst die Abbuchung aus. Fehlmengen bleiben sichtbar; die ursprüngliche Offerte bleibt erhalten. <a href="#demo" data-show-demo="inventory">Lagerbuchung im Clip ansehen</a></p>
 </section>
 <section class="section-wrap demo-section" id="demo" aria-labelledby="demo-heading">
 <div class="section-heading">
@@ -85,13 +89,13 @@
 </div>
 <div class="demo-tabs" role="tablist" aria-label="Anwendung auswählen">
 <!-- workflow-tabs:start -->
-<button id="tab-orders" type="button" role="tab" aria-selected="true" aria-controls="panel-orders" tabindex="0" data-demo="orders">Aufträge</button>
-<button id="tab-inventory" type="button" role="tab" aria-selected="false" aria-controls="panel-inventory" tabindex="-1" data-demo="inventory">Lager & Zuschnitt</button>
-<!-- workflow-tabs:end -->
+<button id="tab-offers" type="button" role="tab" aria-selected="true" aria-controls="panel-offers" tabindex="0" data-demo="offers">Offerte</button>
+<button id="tab-orders" type="button" role="tab" aria-selected="false" aria-controls="panel-orders" tabindex="-1" data-demo="orders">Auftrag</button>
 <button id="tab-schema" type="button" role="tab" aria-selected="false" aria-controls="panel-schema" tabindex="-1" data-demo="schema">Schema</button>
 <button id="tab-dispo" type="button" role="tab" aria-selected="false" aria-controls="panel-dispo" tabindex="-1" data-demo="dispo">Dispo</button>
 <button id="tab-together" type="button" role="tab" aria-selected="false" aria-controls="panel-together" tabindex="-1" data-demo="together">Schema + Dispo</button>
-<button id="tab-offers" type="button" role="tab" aria-selected="false" aria-controls="panel-offers" tabindex="-1" data-demo="offers">Offerten</button>
+<button id="tab-inventory" type="button" role="tab" aria-selected="false" aria-controls="panel-inventory" tabindex="-1" data-demo="inventory">Lager & Zuschnitt</button>
+<!-- workflow-tabs:end -->
 </div>
 <div class="demo-layout">
 <div class="demo-player" id="demo-player">
@@ -104,11 +108,11 @@
 <i>
 </i>
 </span>
-<strong id="demo-window-title">SchaltBase / Aufträge</strong>
+<strong id="demo-window-title">SchaltBase / Offerte</strong>
 <span>BEISPIELPROJEKT</span>
 </div>
 <!-- workflow-panels:start -->
-<div id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" tabindex="0" data-title="Aus einer Zusage wird ein Auftrag." data-description="Die genehmigte Offerte wird zum Auftrag mit eigener Nummer und Auftragsbestätigung. Gleichzeitig wird vorhandenes, zugeordnetes Material aus eurem Lager abgebucht."><div class="clip main-clip flow-clip" id="clip-orders" data-clip data-step-ms="6000"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Genehmigte Offerte übernehmen" data-detail="Kunde, Positionen und Preise sind bereits erfasst."><div class="flow-scene"><div class="flow-head"><div><p>OFFERTE AN-00104 · MUSTER AG</p><h4>UV Werkstatt</h4></div><span class="flow-badge ok">Genehmigt</span></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>6 Stück · CHF 29.00 / Stück</small></div><b>CHF 174.00</b></div><div class="flow-row"><div><strong>DIN-Schienen · SBR dynamisch</strong><small>4 Stück à 1500 mm · CHF 5.00 / m</small></div><b>CHF 30.00</b></div><div class="flow-row"><div><strong>Montage</strong><small>2 Stunden · CHF 95.00 / h</small></div><b>CHF 190.00</b></div><div class="flow-total"><span>Beispielbetrag · exkl. MwSt.</span><strong>CHF 394.00</strong></div><div class="flow-bottom"><span class="flow-action">Auftrag erstellen</span><small>Bestand noch unverändert</small></div></div></div>
+<div id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" tabindex="0" data-title="Aus einer Zusage wird ein Auftrag." data-description="Die genehmigte Offerte wird zum Auftrag mit eigener Nummer und Auftragsbestätigung. Gleichzeitig wird vorhandenes, zugeordnetes Material aus eurem Lager abgebucht." hidden><div class="clip main-clip flow-clip" id="clip-orders" data-clip data-step-ms="6000"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Genehmigte Offerte übernehmen" data-detail="Kunde, Positionen und Preise sind bereits erfasst."><div class="flow-scene"><div class="flow-head"><div><p>OFFERTE AN-00104 · MUSTER AG</p><h4>UV Werkstatt</h4></div><span class="flow-badge ok">Genehmigt</span></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>6 Stück · CHF 29.00 / Stück</small></div><b>CHF 174.00</b></div><div class="flow-row"><div><strong>DIN-Schienen · SBR dynamisch</strong><small>4 Stück à 1500 mm · CHF 5.00 / m</small></div><b>CHF 30.00</b></div><div class="flow-row"><div><strong>Montage</strong><small>2 Stunden · CHF 95.00 / h</small></div><b>CHF 190.00</b></div><div class="flow-total"><span>Beispielbetrag · exkl. MwSt.</span><strong>CHF 394.00</strong></div><div class="flow-bottom"><span class="flow-action">Auftrag erstellen</span><small>Bestand noch unverändert</small></div></div></div>
 <div class="clip-frame" data-frame hidden data-caption="Auftrag erstellen" data-detail="Auftragsbestätigung und Lagerbuchung entstehen zusammen."><div class="flow-scene"><div class="flow-head"><div><p>AUFTRAG AU-00028</p><h4>Auftrag erstellt.</h4></div><span class="flow-badge ok">Gespeichert</span></div><div class="flow-document"><div><span class="flow-doc-icon">AB</span><strong>Auftragsbestätigung<small>Muster AG · UV Werkstatt</small></strong></div><span>PDF</span></div><div class="flow-row"><div><strong>Offerte AN-00104</strong><small>Original bleibt gespeichert</small></div><b>CHF 394.00</b></div><div class="flow-row"><div><strong>Lagerbuchung</strong><small>6 Leitungsschutzschalter automatisch abgebucht</small></div><b>24 → 18</b></div><div class="flow-note pending">Angeliefertes Material ausstehend · 0 von 2 Geräten</div></div></div>
 <div class="clip-frame" data-frame hidden data-caption="Lagerbuchung nachvollziehen" data-detail="24 Stück vorhanden, 6 verwendet, 18 verbleiben."><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div>
 <div class="clip-frame" data-frame hidden data-caption="Kundenmaterial verfolgen" data-detail="Teillieferungen erfassen; fehlendes Material bleibt sichtbar."><div class="flow-scene"><div class="flow-head"><div><p>AUFTRAG / ANGELIEFERTES MATERIAL</p><h4>Noch nicht vollständig.</h4></div><span class="flow-badge pending">Ausstehend</span></div><div class="flow-row"><div><strong>Leistungsschalter vom Kunden</strong><small>Erwartet: 2 Stück</small></div><b>1 / 2</b></div><div class="flow-receipts"><span class="received">✓ 1 Stück erhalten</span><span>1 Stück ausstehend</span></div><div class="flow-note pending">Teilmenge erfassen und speichern. Die offene Menge bleibt am Auftrag rot sichtbar.</div></div></div>
@@ -118,203 +122,22 @@
 <div class="clip-frame" data-frame hidden data-caption="Schnittbreite berücksichtigen" data-detail="4 × 1500 mm benötigen bei 3 mm Schnittbreite zwei 6-m-Stangen."><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ZUSCHNITT ZUM AUFTRAG</p><h4>Jeder Schnitt zählt.</h4></div><span class="flow-badge ok">2 Stangen</span></div><div class="flow-cut-plan"><p>Stange 1 · drei Zuschnitte</p><div class="flow-bar" aria-label="3 Stück à 1500 mm, Rest 1491 mm"><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><b style="flex:1491">1491 mm</b></div><p>Stange 2 · ein Zuschnitt</p><div class="flow-bar" aria-label="1 Stück à 1500 mm, Rest 4497 mm"><span style="flex:1500">1500</span><i style="flex:3" title="3 mm Schnitt"></i><b style="flex:4497">4497 mm</b></div></div><div class="flow-legend"><span>Blau: Zuschnitte</span><span>Grün: Reststücke</span></div><div class="flow-row"><div><strong>6 m Zuschnitte · 12 mm Schnittverlust</strong><small>Reststücke: 1491 mm + 4497 mm</small></div><b>5,988 m Rest</b></div><div class="flow-note ">Die berechneten Reste bleiben im Bestand und werden bei weiteren Zuschnitten berücksichtigt.</div></div></div>
 <div class="clip-frame" data-frame hidden data-caption="Auszug zum Auftrag öffnen" data-detail="Unter «Abgebuchte Aufträge» bleibt die Materialverwendung sichtbar."><div class="flow-scene"><div class="flow-head"><div><p>LAGER / ABGEBUCHTE AUFTRÄGE</p><h4>AU-00028</h4></div><span class="flow-badge ok">Gebucht</span></div><div class="flow-counter"><div><span>Vorher</span><strong>24</strong></div><div class="flow-deduction"><span>Auftrag</span><strong>−6</strong></div><div><span>Jetzt im Lager</span><strong>18<small> Stück</small></strong></div></div><div class="flow-row"><div><strong>Leitungsschutzschalter</strong><small>Artikel LS-3P · UV Werkstatt</small></div><b>6 Stk.</b></div><div class="flow-row"><div><strong>DIN-Schiene</strong><small>4 × 1500 mm · Zuschnitt mit 3 mm Schnittbreite</small></div><b>6 m</b></div><div class="flow-note ">Material, Mengen und Zuschnitt bleiben am Auftrag nachvollziehbar.</div></div></div></div></div></div>
 <!-- workflow-panels:end -->
-<div id="panel-schema" hidden role="tabpanel" aria-labelledby="tab-schema" tabindex="0" data-title="Mit Makros schneller zum Schema." data-description="Dein Schema-Werkzeug funktioniert eigenständig: Vorlagen auswählen, anpassen und auf dem Blatt platzieren. Stromkreise und Beschriftungen bleiben bearbeitbar." >
-<div class="clip main-clip" id="clip-schema" data-clip>
-<div class="clip-stage">
-<div class="clip-frame " data-frame data-caption="Makro auswählen" data-detail="Vorlagenbibliothek statt jedes Symbol neu zeichnen.">
-<div class="macro-browser">
-<aside>
-<span class="mini-kicker">MAKROBIBLIOTHEK</span>
-<strong>Schema</strong>
-<span>Messung</span>
-<span class="chosen">LS-Abgänge</span>
-<span>FI / FI-LS</span>
-<span>Steuerung</span>
-</aside>
-<div class="macro-cards">
-<div>
-<img class="" src="platform/demos/macro.svg" alt="Vorlage eines LS-Abgangs mit Anschlüssen" width="1000" height="700" loading="lazy">
-<strong>LS · 3L/N/PE</strong>
-<small>Mit Klemmen und Anschlüssen</small>
-</div>
-<div class="selected-macro">
-<img class="" src="platform/demos/macro.svg" alt="Ausgewähltes Schema-Makro" width="1000" height="700" loading="lazy">
-<strong>Makro auswählen</strong>
-<small>Werte individuell anpassen</small>
-</div>
-</div>
-<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
-<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
-</svg>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Werte anpassen" data-detail="Strom, Charakteristik und Strompfad festlegen.">
-<div class="macro-config">
-<div class="macro-large">
-<img class="" src="platform/demos/macro.svg" alt="LS-Makro aus der vorhandenen Vorlagenbibliothek" width="1000" height="700" loading="lazy">
-</div>
-<div>
-<span class="mini-kicker">MAKRO KONFIGURIEREN</span>
-<h4>Dein Abgang.<br>Deine Angaben.</h4>
-<div class="mock-field typed">
-<small>Bemessungsstrom</small>
-<strong>16 A</strong>
-</div>
-<div class="mock-field ">
-<small>Charakteristik</small>
-<strong>C</strong>
-</div>
-<div class="mock-field ">
-<small>Strompfad</small>
-<strong>4</strong>
-</div>
-<span class="mock-action">Auf Pfad platzieren</span>
-</div>
-<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
-<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
-</svg>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Im Schema platzieren" data-detail="Das Makro vor dem Einsetzen an der gewünschten Stelle sehen.">
-<div class="placement-scene">
-<div class="drawing-paper">
-<img class="" src="platform/demos/schema-1.svg" alt="Schema · Seite 12" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Schema · Seite 12</span>
-</div>
-<div class="ghost-macro">
-<img class="" src="platform/demos/macro.svg" alt="Vorschau vor dem Platzieren" width="1000" height="700" loading="lazy">
-</div>
-<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
-<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
-</svg>
-<span class="canvas-tip">Vorschau am Mauszeiger · Pfad wählen</span>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Schema weiterbearbeiten" data-detail="Weitere Abgänge ergänzen, verbinden und beschriften.">
-<div class="placement-scene">
-<div class="drawing-paper">
-<img class="" src="platform/demos/schema-3.svg" alt="Makros platziert · Kennzeichen zugeordnet" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Makros platziert · Kennzeichen zugeordnet</span>
-</div>
-<span class="success-note">LS-Abgänge & Messung im gleichen Schema</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="panel-dispo" role="tabpanel" aria-labelledby="tab-dispo" tabindex="0" data-title="Dein Aufbau. Bis ins Detail." data-description="Plane deine Disposition auch ohne fertiges Schema. Rahmen, Platten, Schienen und Geräte lassen sich im eigenen Aufbau anordnen." hidden>
-<div class="clip main-clip" id="clip-dispo" data-clip>
-<div class="clip-stage">
-<div class="clip-frame " data-frame data-caption="Rahmen festlegen" data-detail="Dispo auch ohne ein fertiges Schema aufbauen.">
-<div class="manual-config">
-<div>
-<span class="mini-kicker">DISPO OHNE SCHEMA STARTEN</span>
-<h4>Mit dem Rahmen<br>beginnt dein Aufbau.</h4>
-<div class="mock-field ">
-<small>Verteilungsart</small>
-<strong>Selbstbaurahmen</strong>
-</div>
-<div class="mock-field ">
-<small>Breite × Höhe × Tiefe</small>
-<strong>1008 × 1520 × 165 mm</strong>
-</div>
-<span class="mock-action">Rahmen erstellen</span>
-</div>
-<div class="drawing-paper">
-<img class="" src="platform/demos/dispo-frame.svg" alt="Rahmen und Schienen" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Rahmen und Schienen</span>
-</div>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Bauteile anordnen" data-detail="Platten, Schienen und Kanäle für deinen Aufbau platzieren.">
-<div class="parts-scene">
-<aside>
-<strong>Bauteile</strong>
-<span>Rahmen</span>
-<span class="chosen">Zählerplatte</span>
-<span>DIN-Schiene</span>
-<span>Kanal</span>
-</aside>
-<div class="drawing-paper">
-<img class="" src="platform/demos/dispo-plates.svg" alt="Platten & Schienen anordnen" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Platten & Schienen anordnen</span>
-</div>
-<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
-<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
-</svg>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Geräte platzieren" data-detail="Abmessungen prüfen, Geräte ausrichten und den Aufbau weiterbearbeiten.">
-<div class="drawing-paper">
-<img class="" src="platform/demos/dispo-complete.svg" alt="Geräte einsetzen · Aufbau prüfen" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Geräte einsetzen · Aufbau prüfen</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="panel-together" role="tabpanel" aria-labelledby="tab-together" tabindex="0" data-title="Einzeln praktisch. Zusammen noch besser." data-description="Erfasse die Geräte im Schema und erzeuge daraus die Disposition. So kannst du den Aufbau auf Basis deiner Planung weiterentwickeln." hidden>
-<div class="clip main-clip" id="clip-together" data-clip>
-<div class="clip-stage">
-<div class="clip-frame " data-frame data-caption="Schema als Ausgangspunkt" data-detail="Die erfassten Geräte bilden die Grundlage für die Disposition.">
-<div class="connected-scene">
-<span class="flow-label">SCHEMA</span>
-<div class="drawing-paper">
-<img class="" src="platform/demos/schema-source.svg" alt="Geräte und Stromkreise erfassen" width="1000" height="700" loading="lazy">
-<span class="drawing-caption">Geräte und Stromkreise erfassen</span>
-</div>
-<span class="transfer-line">
-</span>
-<span class="transfer-destination">DISPO</span>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Dispo erzeugen" data-detail="Abmessungen und Reserve festlegen, Geräte übernehmen.">
-<div class="generate-scene">
-<div>
-<span class="mini-kicker">DISPOSITION ERZEUGEN</span>
-<h4>Aus Geräten<br>wird ein Aufbau.</h4>
-<div class="mock-field ">
-<small>Rahmen</small>
-<strong>1008 × 1520 mm</strong>
-</div>
-<div class="mock-field ">
-<small>Reserve</small>
-<strong>20 %</strong>
-</div>
-<span class="mock-action">Disposition erstellen</span>
-</div>
-<div class="device-stack">
-<span>Messung</span>
-<span>Sicherungen</span>
-<span>LS-Abgänge</span>
-<div class="build-progress">
-<i>
-</i>
-</div>
-<small>Geräte übernehmen und anordnen</small>
-</div>
-<svg class="demo-cursor" viewBox="0 0 32 40" aria-hidden="true">
-<path d="M3 2v29l8-7 6 13 6-3-6-12h12Z" fill="#1f67e3" stroke="white" stroke-width="2"/>
-</svg>
-</div>
-</div>
-<div class="clip-frame " data-frame hidden data-caption="Zusammen weiterplanen" data-detail="Schema und Dispo bleiben im gleichen Planungsprojekt. Den erzeugten Aufbau fachlich prüfen und anpassen.">
-<div class="result-pair">
-<div>
-<img class="" src="platform/demos/schema-source.svg" alt="Ausgangspunkt: Schema mit Zählergruppen" width="1000" height="700" loading="lazy">
-<span>Schema</span>
-</div>
-<div>
-<img class="" src="platform/demos/dispo-complete.svg" alt="Ergebnis: Disposition mit Platten und Geräten" width="1000" height="700" loading="lazy">
-<span>Disposition</span>
-</div>
-</div>
-<span class="success-note">Ergebnis prüfen und individuell weiterplanen</span>
-</div>
-</div>
-</div>
-</div>
-<div id="panel-offers" role="tabpanel" aria-labelledby="tab-offers" tabindex="0" data-title="Vom ersten Artikel bis zur Offerte." data-description="Anlagen, Material und Arbeitszeit kalkulieren. Offerten zentral für den Betrieb speichern und für den nächsten Schritt ausgeben." hidden>
+<!-- cad-panels:start -->
+<div id="panel-schema" role="tabpanel" aria-labelledby="tab-schema" tabindex="0" data-title="Einen LS-Abgang auf Blatt 12 zeichnen" data-description="Setze einen zweiten Abgang neben den bestehenden. Das Beispiel zeigt die Eingabe und das Kennzeichen, das beim Platzieren entsteht." hidden><div class="clip main-clip" id="clip-schema" data-clip data-step-ms="6500"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Makro auswählen" data-detail="Wähle in der Vorlagenbibliothek den dreipoligen LS-Abgang mit N und PE."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Schema · Makrobibliothek</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>LS-Abgänge</h4><div class="tour-field tour-selected"><small>Vorlage</small><strong>LS · 3L/N/PE</strong></div></div><div class="tour-paper"><img src="platform/demos/macro.svg" alt="Originalvorlage mit Leitungsschutzschalter und Anschlussklemmen" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Wert und Strompfad wählen" data-detail="Trage 16 A ein. Auf Blatt 12 ist Pfad 2 bereits belegt, Pfad 4 ist frei."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Schema · Blatt 12</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Abgang vorbereiten</h4><div class="tour-field tour-selected"><small>Bemessungsstrom</small><strong>16 A</strong></div><div class="tour-field"><small>Strompfad</small><strong>4</strong></div></div><div class="tour-paper"><img src="platform/demos/schema-1.svg#abgaenge" alt="Erster Abgang auf Pfad 2. Der Platz rechts daneben ist frei." class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Abgang auf Pfad 4 einsetzen" data-detail="Mit der Pfadwahl setzt SchaltBase das Makro an die richtige Stelle. Der neue LS erhält das Kennzeichen 12F4, die Klemmen 12X4."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Schema · Blatt 12</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Auf Pfad einsetzen</h4><div class="tour-field"><small>Blatt / Pfad</small><strong>12 / 4</strong></div><div class="tour-field tour-selected"><small>Neuer LS</small><strong>12F4</strong></div><div class="tour-field"><small>Klemmen</small><strong>12X4</strong></div></div><div class="tour-paper tour-change tour-place"><img src="platform/demos/schema-2.svg#abgaenge" alt="Zweiter Abgang 12F4 mit 16 A rechts neben 12F2" class="" loading="lazy"><img src="platform/demos/schema-1.svg#abgaenge" alt="" class="tour-before" loading="lazy"><i class="tour-pointer" aria-hidden="true"></i></div></div></div></div></div></div></div>
+<div id="panel-dispo" role="tabpanel" aria-labelledby="tab-dispo" tabindex="0" data-title="Einen Selbstbaurahmen aufbauen" data-description="In der manuellen Dispo legst du die Rahmenmasse fest, platzierst die Platten und ordnest die Geräte an." hidden><div class="clip main-clip" id="clip-dispo" data-clip data-step-ms="6500"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Rahmenmasse eingeben" data-detail="Für diesen Aufbau gibst du 1008 mm Breite, 1520 mm Höhe und 165 mm Tiefe vor."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Manuelle Eingabe</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Selbstbaurahmen</h4><div class="tour-field"><small>Feldbreite</small><strong>1008 mm</strong></div><div class="tour-field"><small>Höhe / Tiefe</small><strong>1520 / 165 mm</strong></div></div><div class="tour-paper"><img src="platform/demos/dispo-frame.svg" alt="Bemasster Selbstbaurahmen mit Schienen und Kanälen" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Zählerplatten einsetzen" data-detail="Platziere die Platten nebeneinander im Rahmen. Der Objektfang hilft beim Ausrichten an der Nachbarkante."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Bauteile</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Platten platzieren</h4><div class="tour-field tour-selected"><small>Bauteil</small><strong>Zählerplatte</strong></div><div class="tour-field"><small>Ausrichtung</small><strong>Objektfang</strong></div></div><div class="tour-paper tour-change tour-place"><img src="platform/demos/dispo-plates.svg" alt="Die drei Zählerplatten sind im Rahmen eingesetzt." class="" loading="lazy"><img src="platform/demos/dispo-frame.svg" alt="" class="tour-before" loading="lazy"><i class="tour-pointer" aria-hidden="true"></i></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Geräte im Aufbau prüfen" data-detail="Im Beispiel sitzen die LS-Abgänge über den Zählern und die D-Sicherungen darunter. Du kannst die einzelnen Bauteile auf dem Blatt auswählen."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Frontansicht</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Bestückung</h4><div class="tour-field"><small>Zählergruppen</small><strong>Allgemein, E-Mobility, Wohnung 1</strong></div></div><div class="tour-paper tour-change tour-place"><img src="platform/demos/dispo-complete.svg" alt="Bestückter Rahmen mit LS-Abgängen, Zählern und D-Sicherungen" class="" loading="lazy"><img src="platform/demos/dispo-plates.svg" alt="" class="tour-before" loading="lazy"><i class="tour-pointer" aria-hidden="true"></i></div></div></div></div></div></div></div>
+<div id="panel-together" role="tabpanel" aria-labelledby="tab-together" tabindex="0" data-title="Vom Schema zur Dispo am Beispiel von Zähler 10P1" data-description="Verfolge den Zähler «Allgemein» von Blatt 10 bis auf seine Platte. Du siehst, welche Geräte übernommen werden, wie die Software den Aufbau berechnet und wie du ihn anschliessend änderst." hidden><div class="clip main-clip" id="clip-together" data-clip data-step-ms="6500"><div class="clip-stage"><div class="clip-frame" data-frame data-caption="Zähler im Schema finden" data-detail="Auf Blatt 10 trägt «Allgemein» das Kennzeichen 10P1. Oberhalb siehst du die Sicherung 10F1, darunter die vier LS-Abgänge der Gruppe."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Schema · Blatt 10</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Zähler auswählen</h4><div class="tour-field tour-selected"><small>Betriebsmittel</small><strong>10P1</strong></div><div class="tour-field"><small>Bezeichnung</small><strong>Allgemein</strong></div><button type="button" class="tour-command" data-cad-next>Geräte der Gruppe ansehen</button></div><div class="tour-paper"><img src="platform/demos/schema-source.svg#allgemein" alt="Ausschnitt aus Blatt 10 mit dem Zähler 10P1 und seinen Abgängen" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Zugehörige Geräte erkennen" data-detail="SchaltBase liest Gerätetyp, Kennzeichen und Gruppenzuordnung aus dem Schema. So landen der Zähler und seine Abgänge im selben Aufbau."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Schema · Gruppe Allgemein</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Aus dem Schema</h4><div class="tour-field"><small>Zähler</small><strong>10P1 · Allgemein</strong></div><div class="tour-field"><small>Vorsicherung</small><strong>10F1 · DII</strong></div><div class="tour-field tour-selected"><small>Vier LS-Abgänge</small><strong>10F1.2, 10F1.3, 10F2, 10F2.2</strong></div><button type="button" class="tour-command" data-cad-next>Einbaumasse / Reserve</button></div><div class="tour-paper"><img src="platform/demos/schema-source.svg#allgemein" alt="Quellschema mit Zähler, vorgeschalteter Sicherung und vier LS-Abgängen" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Einbaumasse und Reserve vorgeben" data-detail="Auf der Dispo-Seite öffnest du «Einbaumasse / Reserve». Hier begrenzen 1008 × 1520 mm den verfügbaren Platz. Für die Geräte sind 20 % Platzreserve vorgesehen."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Einbaumasse / Reserve</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Vorgaben</h4><div class="tour-field"><small>Max. Breite / Höhe</small><strong>1008 / 1520 mm</strong></div><div class="tour-field tour-selected"><small>Geräte-Platzreserve</small><strong>20 %</strong></div><button type="button" class="tour-command" data-cad-next>Varianten vergleichen</button></div><div class="tour-paper"><img src="platform/demos/schema-source.svg" alt="Ausgangslage mit den drei Zählergruppen im Schema" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Aufbau berechnen und übernehmen" data-detail="Im Variantenvergleich wählst du «SBR / Standard · Hager». Für die drei Gruppen berechnet das CAD einen 758 mm breiten Rahmen. Mit «Diese Variante übernehmen» wird daraus die bearbeitbare Dispo."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Varianten vergleichen</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>SBR / Standard · Hager</h4><div class="tour-field"><small>Berechneter Aufbau</small><strong>758 × 1520 mm</strong></div><div class="tour-field"><small>Tiefe</small><strong>165 mm</strong></div><button type="button" class="tour-command" data-cad-next>Diese Variante übernehmen</button></div><div class="tour-paper"><img src="platform/demos/sbr-variante.svg" alt="Berechnete Frontansicht mit drei Zählerplätzen, 10P1 links markiert" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Dasselbe Kennzeichen wiederfinden" data-detail="Links steht 10P1 im Schema, rechts sitzt derselbe Zähler auf der ersten Platte. Sein Kennzeichen und die Bezeichnung «Allgemein» bleiben erhalten."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Zuordnung · 10P1</span></div><div class="tour-pair"><figure><figcaption>Schema · Blatt 10</figcaption><div class="tour-paper"><img src="platform/demos/schema-source.svg#allgemein" alt="Zähler 10P1 im Schema" class="" loading="lazy"></div></figure><figure><figcaption>Dispo · Zählerreihe</figcaption><div class="tour-paper"><img src="platform/demos/sbr-variante.svg#zaehlerreihe" alt="10P1 auf der linken Zählerplatte" class="" loading="lazy"></div></figure></div><div class="tour-actions"><button type="button" class="tour-command" data-cad-next>Zählerplätze bearbeiten</button></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Platz für den Tausch auswählen" data-detail="10P1 sitzt links, 10P4 in der Mitte. In der Zeichnung ziehst du die erste Platte auf die zweite. Mit «Plätze tauschen» kannst du die Änderung hier nachvollziehen."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Zählerplätze</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Vor dem Tausch</h4><div class="tour-field"><small>Links</small><strong>10P1 · Allgemein</strong></div><div class="tour-field"><small>Mitte</small><strong>10P4 · E-Mobility</strong></div><button type="button" class="tour-command" data-cad-next>Plätze tauschen</button></div><div class="tour-paper"><img src="platform/demos/sbr-variante.svg#zaehlerreihe" alt="Vor dem Tausch sitzt 10P1 auf der linken Zählerplatte" class="" loading="lazy"></div></div></div></div>
+<div class="clip-frame" data-frame hidden data-caption="Zählerplätze im Aufbau tauschen" data-detail="Ziehe «Allgemein» auf den Platz von «E-Mobility». Nach dem Loslassen sitzt 10P1 in der Mitte und 10P4 links. Die Bezeichnungen im Schema bleiben erhalten."><div class="tour-editor"><div class="tour-toolbar"><b>SchaltBase CAD</b><span>Dispo · Zählerplätze</span></div><div class="tour-workspace"><div class="tour-inspector"><h4>Zählerplätze tauschen</h4><div class="tour-field tour-selected"><small>Auswahl</small><strong>10P1 · Allgemein</strong></div><div class="tour-field"><small>Ziel</small><strong>Platz von 10P4</strong></div><p>Die beiden Zähler tauschen ihre Position.</p></div><div class="tour-paper tour-change tour-drag"><img src="platform/demos/sbr-getauscht.svg#zaehlerreihe" alt="Nach dem Tausch liegt E-Mobility links und Allgemein in der Mitte." class="" loading="lazy"><img src="platform/demos/sbr-variante.svg#zaehlerreihe" alt="" class="tour-before" loading="lazy"><i class="tour-pointer" aria-hidden="true"></i></div></div></div></div></div></div></div>
+<!-- cad-panels:end -->
+<div id="panel-offers" role="tabpanel" aria-labelledby="tab-offers" tabindex="0" data-title="Vom ersten Artikel bis zur Offerte." data-description="Anlagen, Material und Arbeitszeit kalkulieren. Offerten zentral für den Betrieb speichern und für den nächsten Schritt ausgeben.">
 <div class="clip main-clip" id="clip-offers" data-clip>
 <div class="clip-stage">
 <div class="clip-frame " data-frame data-caption="Projekt erfassen" data-detail="Kunde, Offertennummer und Anlage anlegen.">
@@ -323,15 +146,15 @@
 <h4>Unterverteilung Werkstatt</h4>
 <div class="mock-field typed">
 <small>Offertennummer</small>
-<strong>BEISPIEL-001</strong>
+<strong>AN-00104</strong>
 </div>
 <div class="mock-field ">
 <small>Kunde</small>
-<strong>Musterbetrieb</strong>
+<strong>Muster AG</strong>
 </div>
 <div class="mock-field ">
 <small>Anlage</small>
-<strong>Unterverteilung</strong>
+<strong>UV Werkstatt</strong>
 </div>
 <span class="mock-action">Anlage hinzufügen</span>
 </div>
@@ -350,25 +173,25 @@
 </thead>
 <tbody>
 <tr>
-<td>Schrank</td>
-<td>1</td>
-<td>680.00</td>
+<td>DIN-Schienen à 1500 mm</td>
+<td>4</td>
+<td>30.00</td>
 </tr>
 <tr>
 <td>Leitungsschutzschalter</td>
-<td>12</td>
-<td>264.00</td>
+<td>6</td>
+<td>174.00</td>
 </tr>
 <tr>
 <td>Montage · CHF 95/h</td>
-<td>6 h</td>
-<td>570.00</td>
+<td>2 h</td>
+<td>190.00</td>
 </tr>
 </tbody>
 </table>
 <div class="offer-total">
 <span>Beispiel, exkl. MwSt.</span>
-<strong>CHF 1’514.00</strong>
+<strong>CHF 394.00</strong>
 </div>
 </div>
 </div>
@@ -378,8 +201,8 @@
 <h4>Im Betrieb gespeichert.</h4>
 <div class="saved-project">
 <strong>Unterverteilung Werkstatt</strong>
-<span>BEISPIEL-001</span>
-<b>CHF 1’514.00</b>
+<span>AN-00104</span>
+<b>CHF 394.00</b>
 </div>
 <p>Berechtigte Mitarbeitende können gemeinsam weiterarbeiten.</p>
 <div class="export-chips">
@@ -395,17 +218,17 @@
 <button type="button" id="demo-play" aria-label="Demo pausieren">Pause</button>
 <label class="demo-timeline">
 <span class="sr-only">Position in der Demo</span>
-<input id="demo-progress" type="range" min="0" max="16000" step="100" value="0">
+<input id="demo-progress" type="range" min="0" max="12000" step="100" value="0">
 </label>
-<output id="demo-time" aria-live="off">0:00 / 0:16</output>
+<output id="demo-time" aria-live="off">0:00 / 0:12</output>
 <button id="demo-restart" type="button" aria-label="Demo von vorne starten">↺</button>
 </div>
 </div>
 <div class="demo-explanation">
-<p class="eyebrow" id="demo-kicker">AUFTRÄGE</p>
-<h3 id="demo-title">Aus einer Zusage wird ein Auftrag.</h3>
-<p id="demo-description">Die genehmigte Offerte wird zum Auftrag mit eigener Nummer und Auftragsbestätigung. Gleichzeitig wird vorhandenes, zugeordnetes Material aus eurem Lager abgebucht.</p>
-<a id="demo-detail" href="/produkte/auftraege.html">Aufträge im Detail kennenlernen</a>
+<p class="eyebrow" id="demo-kicker">Offerte</p>
+<h3 id="demo-title">Vom ersten Artikel bis zur Offerte.</h3>
+<p id="demo-description">Anlagen, Material und Arbeitszeit kalkulieren. Offerten zentral für den Betrieb speichern und für den nächsten Schritt ausgeben.</p>
+<a id="demo-detail" href="/produkte/offerten.html">Offerte im Detail kennenlernen</a>
 <ol id="demo-steps" class="demo-steps">
 </ol>
 <label class="cycle-choice">
@@ -838,7 +661,7 @@
 <span>Planen. Bauen. Dokumentieren.</span>
 <a href="login.html">Anmelden</a>
 </footer>
-<script type="module" src="platform/home-demo.mjs?v=20261126-workflow">
+<script type="module" src="platform/home-demo.mjs?v=20261126-cadtour">
 </script>
 <script type="module" src="/platform/public-nav.mjs"></script></body>
 </html>

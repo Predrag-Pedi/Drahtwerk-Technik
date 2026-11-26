@@ -15,3 +15,55 @@
 /* Keep the examples readable without nested scrollbars, including narrow phones. */
 .hero-clip .clip-stage{height:430px}.flow-mini .clip-frame{padding:0}.flow-mini .clip-stage{height:300px}.flow-scene{justify-content:safe center}.demo-player{scroll-margin-top:105px}
 @media(max-width:760px){.hero-clip .clip-stage{height:445px}.flow-clip .clip-stage{height:535px}.product-page[data-product="auftraege"] .product-preview,.product-page[data-product="lager"] .product-preview{height:535px}.flow-mini .clip-stage{height:300px}.demo-player{scroll-margin-top:90px}}
+
+/* Chapter links reuse the existing label on the public homepage. */
+.hero-chapters.product-sticker {gap: 1px; padding: 5px; bottom: -24px; flex-wrap: nowrap;}
+.hero-chapters a {font-size: 14px; color: #3f5d7e; font-weight: 550; padding: 9px 12px; border-radius: 7px;}
+.hero-chapters a:hover, .hero-chapters a[aria-current="step"] {background: #e5efff; color: #174f9f;}
+.connected-rule a {color: #1e5dac; text-decoration: underline; text-underline-offset: 3px;}
+.tour-editor {height: 100%; display: flex; flex-direction: column; text-align: left; color: #1c3955; background: #fff;}
+.tour-toolbar {display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 14px; background: #214a76; color: #fff; flex: none; font-size: 13px; line-height: 1.4;}
+.tour-toolbar span {color: #e1edfc; text-align: right;}
+.tour-workspace {flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(145px, 34%) minmax(0, 1fr);}
+.tour-inspector {padding: clamp(12px, 2vw, 24px); background: #f1f5fb; border-right: 1px solid #cbd9e7; align-self: stretch;}
+.tour-inspector h4 {font-size: clamp(16px, 1.6vw, 22px); margin: 0 0 17px; letter-spacing: -.03em; line-height: 1.2;}
+.tour-field {padding: 7px 9px; margin: 0 0 10px; background: white; border: 1px solid #cad8e7; border-radius: 4px; line-height: 1.4;}
+.tour-field small, .tour-field strong {display: block;}
+.tour-field small {color: #52677d; font-size: 12px; margin-bottom: 2px;}
+.tour-field strong {font-weight: 600; font-size: 14px;}
+.tour-selected {border-color: #397de0; box-shadow: inset 3px 0 #397de0;}
+.tour-command {display: inline-block; padding: 7px 10px; font-size: 13px; line-height: 1.4; font-weight: 600; color: white; background: #235eb6; border-radius: 4px;}
+.tour-inspector p {font-size: 14px; line-height: 1.55; color: #4b647e;}
+.tour-paper {position: relative; min-height: 0; min-width: 0; overflow: hidden; background: #fff radial-gradient(#d3ddeb .7px, transparent .9px) 0 0 / 14px 14px;}
+.tour-paper img {position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px;}
+.tour-before {opacity: 0; animation: tour-reveal 4.5s linear both;}
+.tour-pointer {position: absolute; z-index: 1; width: 18px; height: 24px; background: #216ee0; clip-path: polygon(0 0, 100% 63%, 57% 66%, 75% 97%, 56% 100%, 39% 73%, 10% 94%); opacity: 0; left: 65%; top: 32%; animation: tour-click 4.5s ease both;}
+.tour-drag .tour-pointer {left: 50%; top: 50%; animation-name: tour-swap;}
+.tour-pair {min-height: 0; flex: 1; display: grid; grid-template-columns: 2fr 3fr;}
+.tour-pair figure {min-width: 0; display: flex; flex-direction: column; margin: 0;}
+.tour-pair figure + figure {border-left: 1px solid #c6d5e6;}
+.tour-pair figcaption {padding: 7px 10px; background: #edf3fb; font-size: 13px; font-weight: 600;}
+.tour-pair .tour-paper {flex: 1;}
+@keyframes tour-reveal {0%,44% {opacity:1;} 54%,100% {opacity:0;}}
+@keyframes tour-click {0% {opacity:0; transform:translate(-35px,24px);} 25%,48% {opacity:1; transform:translate(0);} 58% {opacity:1; transform:scale(.8);} 85%,100% {opacity:0;}}
+@keyframes tour-swap {0% {opacity:0; transform:translateX(-90px);} 12% {opacity:1; transform:translateX(-90px);} 48%,60% {opacity:1; transform:translateX(0);} 85%,100% {opacity:0;}}
+@media (max-width: 760px) {
+  .hero-chapters.product-sticker {max-width: fit-content; margin-inline: auto;}
+  .hero-chapters a {padding: 8px; font-size: 13px;}
+  .tour-workspace {grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);}
+  .tour-inspector {border-right: 0; border-bottom: 1px solid #cbd9e7; padding: 9px 11px; display: flex; align-items: stretch; flex-wrap: wrap; gap: 5px;}
+  .tour-inspector h4 {flex-basis: 100%; margin: 0 0 2px; font-size: 16px;}
+  .tour-field {padding: 4px 7px; margin: 0; max-width: 100%;}
+  .tour-field strong, .tour-command {font-size: 13px;}
+  .tour-inspector p {display: none;}
+  .tour-command {align-self: center;}
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-before, .tour-pointer {animation: none;}
+}
+button.tour-command {border: 1px solid #174f9f; cursor: pointer; text-align: left;}
+button.tour-command:hover {background: #174e9f;}
+.tour-actions {padding: 8px 12px; border-top: 1px solid #cbd9e7; background: #f3f7fc;}
+@media (max-width: 760px) {
+  :is(#clip-schema, #clip-dispo, #clip-together) .clip-stage {height: clamp(450px, 66svh, 550px);}
+}
