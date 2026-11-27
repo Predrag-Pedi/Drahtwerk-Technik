@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {api,can,serverMode} from './client.mjs';
 import {stockQuantity} from './inventory-model.mjs';
 import {escapeHTML as esc,quantity as qty,inventoryLines} from './inventory-view.mjs';

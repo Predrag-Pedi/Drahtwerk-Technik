@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {libraryCaption,drawingPageTitle,languages,validLanguage} from './template-language.mjs';
 import {attachCustomerPicker,fillCustomerFields} from '../platform/customer-picker.mjs';
 import {savedLabel,localScope} from '../platform/client.mjs';

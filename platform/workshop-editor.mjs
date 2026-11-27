@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {account, api} from './client.mjs';
 import {templateTools, railProfiles, cloneTemplate, templateId} from './workshop-model.mjs';
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

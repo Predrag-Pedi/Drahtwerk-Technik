@@ -1,0 +1,31 @@
+.sb-language {position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 4px; flex: none; min-width: 44px; min-height: 40px; padding: 0 6px; color: inherit; font: 650 13px/1 system-ui, sans-serif; border-radius: 6px;}
+.sb-language::after {content: ''; width: 5px; height: 5px; border-right: 1.5px solid; border-bottom: 1.5px solid; transform: translateY(-1px) rotate(45deg);}
+.sb-language:focus-within {outline: 2px solid currentColor; outline-offset: 2px;}
+.sb-language select {position: absolute; inset: 0; width: 100%; height: 100%; min-width: 0; padding: 0; margin: 0; opacity: 0; cursor: pointer;}
+.sb-language-error {position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 10000; max-width: 90vw; background: #fff; color: #263d56; border: 1px solid #bbcee2; padding: 12px; border-radius: 6px;}
+.signin-header .sb-language {margin-left: auto;}
+@media (max-width: 600px) {
+  .home-header:has(.sb-language) {gap: 5px; padding-inline: 8px;}
+  .home-header:has(.sb-language) nav {gap: 0;}
+  .signin-header:has(.sb-language) {gap: 8px; padding-inline: 12px;}
+}
+@media (max-width: 400px) {
+  .home-header:has(.sb-language) .home-brand {font-size: 15px; gap: 4px;}
+  .home-header:has(.sb-language) .home-brand img {width: 24px; height: 24px;}
+  .home-header:has(.sb-language) summary {font-size: 12px;}
+  .home-header:has(.sb-language) .login-link {padding-inline: 6px;}
+  .home-header .sb-language {min-width: 33px; padding-inline: 2px;}
+}
+@media print { .sb-language, .sb-language-error {display: none !important;} }
+
+@media (max-width: 1100px) {
+  html:not(:lang(de)) .hero-chapters.product-sticker {
+    position: relative;
+    inset: auto;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto -12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}

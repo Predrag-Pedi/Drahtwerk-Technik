@@ -1,3 +1,4 @@
+import {alertMessage as alert, confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {account, serverMode, localScope} from './client.mjs';
 import {loadWorkshop, templateNotice} from './workshop-client.mjs';
 import {railLength, railProfiles, railProfileForDepth, csvCell} from './workshop-model.mjs';

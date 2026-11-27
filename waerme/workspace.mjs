@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {ready,calculationBusy,captureCalculation,restoreCalculation,resetCalculation} from './app.mjs?v=20261119-9';
 import {projectRepository,projectSummary} from './projects.mjs?v=20261119-9';
 import {serverMode,account} from '../platform/client.mjs';
