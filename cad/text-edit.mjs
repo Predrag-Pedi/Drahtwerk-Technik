@@ -1,3 +1,4 @@
+import {templateDefault} from './template-language.mjs';
 import {articleFieldOwner} from './protection-catalog.mjs?v=20261119-7';
 import {functionBmk,functionData,functionKeys,findFunction} from './references.mjs?v=20261119-7';
 
@@ -9,7 +10,7 @@ export function drawingText(d,p,e,key){
  if(key.startsWith('bmk:')){const id=key.slice(4);if(!functionKeys(e).includes(id))return null;return {title:'BMK bearbeiten',value:functionBmk(d,p,e,id),maxLength:200,reset:'Automatisches BMK',hint:bmkOwner(d,e,id)?'Ändert das BMK des zugeordneten Schützes und aller seiner Kontakte. Leer = automatisch.':'Leer lassen für Blattnummer und Strompfad.'};}
  if(key.startsWith('field:')){const field=key.slice(6);if(!['text','tag','value'].includes(field))return null;return {title:field==='tag'?'Kennzeichen bearbeiten':field==='value'?'Wert / Typ bearbeiten':'Text bearbeiten',value:e[field]||'',maxLength:field==='text'?2000:200};}
  const text=e.template?.details?.texts.find(t=>t.key===key);
- return text?{title:'Vorlagentext bearbeiten',value:e.textEdits?.[key]??text.text,maxLength:Object.values(e.functions||{}).some(f=>f.descriptionTextKey===key)?200:2000,reset:'Originaltext wiederherstellen'}:null;
+ return text?{title:'Vorlagentext bearbeiten',value:e.textEdits?.[key]??templateDefault(text,d.drawingLanguage),maxLength:Object.values(e.functions||{}).some(f=>f.descriptionTextKey===key)?200:2000,reset:'Originaltext wiederherstellen'}:null;
 }
 export function applyDrawingText(d,p,e,key,value,{reset=false}={}){
  if(!drawingText(d,p,e,key)||typeof value!=='string'||value.length>(drawingText(d,p,e,key)?.maxLength||2000))throw Error('Ungültiger Text.');

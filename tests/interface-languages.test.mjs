@@ -33,3 +33,35 @@ test('native dialogs translate their message and preserve the proposed input', t
   useCatalogue();
   assert.equal(uiText('Projektname'), 'Projektname');
 });
+
+import {readFileSync, readdirSync} from 'node:fs';
+const load = name => readFileSync(new URL('../' + name, import.meta.url), 'utf8');
+
+test('all public and tool pages load the shared language picker from their own directory', () => {
+  const pages = dir => readdirSync(new URL('../' + dir, import.meta.url)).filter(file => file.endsWith('.html'));
+  for (const [dir,prefix] of [['',''],['produkte/','../']]) {
+    for (const file of pages(dir)) {
+      const html = load(dir + file);
+      assert.ok(html.includes('src="' + prefix + 'ui/language.mjs"'), dir + file);
+      assert.ok(html.includes('href="' + prefix + 'ui/language.css"'), dir + file);
+    }
+  }
+});
+
+test('each catalogue covers quotes, orders, inventory and account access without changing placeholders', () => {
+  const expected = {
+    en: ['Quotation','Order','Inventory','Sign in','Allow support access?'],
+    fr: ['Offre','Commande','Stock','Se connecter','Autoriser l’accès au support ?'],
+    it: ['Offerta','Ordine','Magazzino','Accedi','Consentire l’accesso all’assistenza?'],
+  };
+  for (const [code, values] of Object.entries(expected)) {
+    const catalogue = JSON.parse(load('ui/locales/' + code + '.json'));
+    const translate = makeTranslator(catalogue);
+    assert.deepEqual(['Offerte','Auftrag','Lager','Anmelden','Supportzugriff erlauben?'].map(translate), values);
+    for (const [source,target] of Object.entries(catalogue)) {
+      assert.equal(typeof target, 'string');
+      assert.deepEqual((source.match(/⟦\d+⟧/g)||[]).sort(), (target.match(/⟦\d+⟧/g)||[]).sort(), code + ': ' + source);
+    }
+    assert.ok(translate('Projekt «Werkstatt Nord» löschen?').includes('Werkstatt Nord'));
+  }
+});

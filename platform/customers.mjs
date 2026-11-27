@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {can,account,listRecords,writeRecord} from './client.mjs';
 import {customerFields,contactFields,validateCustomer} from './customers-model.mjs';
 
@@ -47,12 +48,12 @@ function collect(){
 
 function renderEditor(){
  const c=current.value,write=writable();
- $('customerEditorTitle').textContent=c.name||'Neuer Kunde';
+ $('customerEditorTitle').translate=!c.name;$('customerEditorTitle').textContent=c.name||'Neuer Kunde';
  $('customerReadOnly').hidden=write;
  $('customerEditorContent').innerHTML=`<form id="customerForm"><fieldset ${write?'':'disabled'}>
   <section class="customer-editor-section"><div class="customer-section-heading"><div><h3>Firmendaten</h3><p>Adresse und Kontaktdaten für die Auswahl in deinen Werkzeugen.</p></div>${c.archived?'<span class="customer-badge">Archiviert</span>':''}</div><div class="customer-fields">${fields(c,customerFields,'company_')}</div></section>
   <section class="customer-editor-section"><div class="customer-section-heading"><div><h3>Kontaktpersonen <span class="customer-count">${c.contacts.length}</span></h3><p>Persönliche Kontaktdaten und bei Bedarf eine abweichende Adresse.</p></div></div>
-   ${c.contacts.map((person,i)=>`<section class="customer-contact" aria-labelledby="contactTitle${i}"><div class="customer-contact-heading"><h4 id="contactTitle${i}">${esc(person.name||'Neue Kontaktperson')}</h4><button type="button" class="customer-danger" data-remove-contact="${i}" aria-label="${esc(person.name||'Neue Kontaktperson')} entfernen">Kontakt entfernen</button></div><div class="customer-fields">${fields(person,contactFields,'contact_'+i+'_')}</div></section>`).join('')||'<p class="customer-contact-empty">Noch keine Kontaktperson erfasst.</p>'}
+   ${c.contacts.map((person,i)=>`<section class="customer-contact" aria-labelledby="contactTitle${i}"><div class="customer-contact-heading"><h4 id="contactTitle${i}"${person.name?' translate="no"':''}>${esc(person.name||'Neue Kontaktperson')}</h4><button type="button" class="customer-danger" data-remove-contact="${i}" aria-label="${esc(person.name||'Neue Kontaktperson')} entfernen">Kontakt entfernen</button></div><div class="customer-fields">${fields(person,contactFields,'contact_'+i+'_')}</div></section>`).join('')||'<p class="customer-contact-empty">Noch keine Kontaktperson erfasst.</p>'}
    <button type="button" id="addCustomerContact" ${c.contacts.length>=100?'disabled':''}>Kontaktperson hinzufügen</button>
   </section>
  </fieldset>

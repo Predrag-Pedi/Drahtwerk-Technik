@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {attachCustomerPicker,fillCustomerFields} from '../platform/customer-picker.mjs';
 import {account,serverMode,can,listRecords,readRecord,writeRecord,deleteRecord,companyProfile} from '../platform/client.mjs';
 import {swissDay} from '../platform/model.mjs';

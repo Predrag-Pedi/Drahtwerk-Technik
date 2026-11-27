@@ -1,3 +1,4 @@
+import {templateDefault} from './template-language.mjs';
 import {terminalMarker} from './terminal-markers.mjs?v=20261119-7';
 import auditedEnds from './template-ends.mjs?v=20261119-7';
 export function enrichedDetails(id,details){const out=details||{texts:[],ends:[]},extra=auditedEnds[id]||[];return {...out,ends:[...out.ends,...extra.filter(a=>!out.ends.some(b=>b.key===a.key))]};}
@@ -19,14 +20,24 @@ export function validateTemplate(raw){
  return {...semantic,...(raw.details||auditedEnds[raw.id]?{details:validateDetails(enrichedDetails(raw.id,raw.details),fail)}:{}),id:str(raw.id),name:str(raw.name),category:raw.category==='Dispo'?'Dispo':'Schema',group:str(raw.group),source:str(raw.source),width:number(raw.width,10000),height:number(raw.height,10000),viewWidth:number(raw.viewWidth),viewHeight:number(raw.viewHeight),paths:raw.paths.map(p=>{if(typeof p.d!=='string'||!p.d.length||p.d.length>500000||!safePath.test(p.d)||(chars+=p.d.length)>5000000)fail();if(!['none','#000000','#ffffff'].includes(p.fill)||!['none','#000000','#ffffff'].includes(p.stroke)||!Number.isFinite(p.sw)||p.sw<0||p.sw>1e6)fail();return {d:p.d,fill:p.fill,stroke:p.stroke,sw:p.sw};})};
 }
 const escapeText=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function templateMarkup(t,w,h,labelValues={},edits={},editor=false,lineHits='',offsets={},terminalSide='original'){
+export function templateMarkup(t,w,h,labelValues={},edits={},editor=false,lineHits='',offsets={},terminalSide='original',language='de'){
  const matrix=(r,key)=>{const m=[...r.matrix],o=offsets[key];if(o){m[4]+=o.x;m[5]+=o.y;}return m.join(' ');};
+ // Keep source data and manual text edits separate from language-dependent defaults.
+ const translated=new Set();
+ if(language!=='de' && t.details?.texts?.length){
+  edits={...edits};
+  for(const field of t.details.texts){
+   if(Object.hasOwn(edits,field.key))continue;
+   const label=templateDefault(field,language);
+   if(label!==field.text){edits[field.key]=label;translated.add(field.key);}
+  }
+ }
  const hidden=new Set((t.details?.texts||[]).filter(l=>Object.hasOwn(edits,l.key)).flatMap(l=>l.hashes));
  const marker=terminalMarker(t,terminalSide);for(const hash of marker.hidden)hidden.add(hash);
  const graphic=t.paths.filter(p=>!hidden.size||!hidden.has(pathHash(p.d))).flatMap(p=>repairPaths(p,t)).map(p=>`<path d="${p.d}" fill="${p.fill}" stroke="${p.stroke}" stroke-width="${Math.max(p.sw,.75/Math.min(w/t.viewWidth,h/t.viewHeight))}"/>`).join('');
  let texts=(t.labels||[]).map(l=>`<text ${editor?`data-template-text="bmk:${escapeText(l.key)}" pointer-events="all"`:''} transform="matrix(${matrix(l,'bmk:'+l.key)})" font-family="Arial,sans-serif" font-size="${l.fontSize}" fill="#000000" stroke="none">${escapeText(edits['bmk:'+l.key]??labelValues[l.key]??l.text)}</text>`).join('');
  for(const l of t.details?.texts||[]){const edited=Object.hasOwn(edits,l.key);const lines=(edited?edits[l.key]:l.text).split('\n');
- if(edited)lines.forEach((text,i)=>{const r=l.runs[i]||l.runs[0];if(!r)return;texts+=`<text ${t.category==='Dispo'&&l.text.trim()==='ORT'?'data-dispo-group="true"':''} transform="matrix(${matrix(r,l.key)})" y="${i>=l.runs.length?i*r.fontSize*1.2:0}" font-family="Arial,sans-serif" ${t.category==='Dispo'&&t.width===250&&t.height===400&&['BMK','ORT'].includes(l.text.trim())?'text-anchor="middle"':''} font-size="${r.fontSize}" fill="#000000" stroke="none">${escapeText(text)}</text>`;});
+ if(edited)lines.forEach((text,i)=>{const r=l.runs[i]||l.runs[0];if(!r)return;const fit=translated.has(l.key)&&text.length>r.text.length*1.2?`textLength="${Math.max(r.fontSize,r.text.length*r.fontSize*.56)}" lengthAdjust="spacingAndGlyphs"`:'';texts+=`<text ${fit} ${t.category==='Dispo'&&l.text.trim()==='ORT'?'data-dispo-group="true"':''} transform="matrix(${matrix(r,l.key)})" y="${i>=l.runs.length?i*r.fontSize*1.2:0}" font-family="Arial,sans-serif" ${t.category==='Dispo'&&t.width===250&&t.height===400&&['BMK','ORT'].includes(l.text.trim())?'text-anchor="middle"':''} font-size="${r.fontSize}" fill="#000000" stroke="none">${escapeText(text)}</text>`;});
  if(editor)l.runs.forEach((r,i)=>{const len=Math.max(r.text.length,lines[i]?.length||0,1);texts+=`<rect data-template-text="${escapeText(l.key)}" transform="matrix(${matrix(r,l.key)})" x="0" y="${-r.fontSize}" width="${len*r.fontSize*.63}" height="${r.fontSize*1.25}" fill="transparent" stroke="none" pointer-events="all"/>`;});
  }
  return `<svg width="${w}" height="${h}" viewBox="0 0 ${t.viewWidth} ${t.viewHeight}" overflow="visible" preserveAspectRatio="none"><g stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd">${graphic}${marker.markup}${lineHits}${texts}</g></svg>`;

@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {uid} from './core.mjs';
 import {api,can,serverMode} from '../platform/client.mjs';
 import {customerMaterials} from '../platform/material-model.mjs';

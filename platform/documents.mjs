@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {materialStatus,materialLabel} from './material-model.mjs';
 import {inventoryLines} from './inventory-view.mjs';
 import {api,can,companyProfile,serverMode} from './client.mjs';

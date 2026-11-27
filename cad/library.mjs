@@ -1,3 +1,4 @@
+import {libraryCaption} from './template-language.mjs';
 export const libraryName=s=>String(s).replace(/TinLine/gi,'').replace(/^(?:\d{2,3}[_ -]|[A-Z]\d{1,4}[_ ]|[A-Z]\d(?=[A-ZÄÖÜ])|\d{2}(?=[A-WYZa-wyzÄÖÜ]))/,'').replaceAll('_',' ').replaceAll('&amp;','&').replace(/Schuetzen/gi,'Schütze').trim();
 // Curated current-only families. Source IDs and files remain valid in old projects.
 export const macroFamilies=[
@@ -32,15 +33,27 @@ export function libraryFacets(t){
 }
 // Treat keyboard spellings and technical separators alike (FI/LS = FI_LS,
 // Zaehler = Zähler). Name matches precede incidental folder-name matches.
-export const searchText=value=>String(value||'').toLocaleLowerCase('de').replace(/ä|ae/g,'a').replace(/ö|oe/g,'o').replace(/ü|ue/g,'u').replaceAll('ß','ss').replaceAll('²','2').replace(/[^a-z0-9]+/g,' ').trim();
+export const searchText=value=>String(value||'').toLocaleLowerCase('de').replace(/ä|ae/g,'a').replace(/ö|oe/g,'o').replace(/ü|ue/g,'u').normalize('NFKD').replace(/\p{M}/gu,'').replaceAll('ß','ss').replaceAll('²','2').replace(/[^a-z0-9]+/g,' ').trim();
 export function libraryCategory(t,category){return !category||category==='Makro'&&t.category==='Schema'&&/^Makros\//i.test(t.source||'')||t.category===category;}
-export function filterLibrary(items,{query='',category='',group='',domain='',manufacturer='',scope='all',favorites=[],recent=[]}={}){
+// Some original symbols carry native French or Italian lettering drawn as paths.
+export function artworkLanguage(t){
+ const folder=/(?:^|\/)(FR|Fra|IT|Ita)\/[^/]+$/i.exec(t.source||'')?.[1];
+ return folder ? (folder[0].toUpperCase()==='F'?'fr':'it') : '';
+}
+export function filterLibrary(items,{query='',language='de',drawingLanguage=language,category='',group='',domain='',manufacturer='',scope='all',favorites=[],recent=[]}={}){
  items=groupedTemplates(items);favorites=favorites.map(canonicalTemplateId);recent=[...new Set(recent.map(canonicalTemplateId))];
  const words=searchText(query).split(/\s+/).filter(Boolean),compact=value=>value.replaceAll(' ','');
  const matches=value=>{const text=searchText(value),joined=compact(text);return words.every(w=>text.includes(w)||joined.includes(w));};
- const result=items.filter(t=>{const f=libraryFacets(t);return libraryCategory(t,category)&&(!group||f.group===group||t.group===group)&&(!domain||f.domain===domain)&&(!manufacturer||f.manufacturer===manufacturer)&&(scope!=='favorites'||favorites.includes(t.id))&&(scope!=='recent'||recent.includes(t.id))&&matches(`${t.name} ${(t.aliases||[]).map(a=>a.name+' '+a.source).join(' ')} ${t.group} ${t.source} ${f.domain} ${f.group} ${f.manufacturer}`);});
+ const caption=t=>libraryCaption(templateName(t),language,true);
+ const result=items.filter(t=>{const f=libraryFacets(t);return libraryCategory(t,category)&&(!group||f.group===group||t.group===group)&&(!domain||f.domain===domain)&&(!manufacturer||f.manufacturer===manufacturer)&&(scope!=='favorites'||favorites.includes(t.id))&&(scope!=='recent'||recent.includes(t.id))&&(!words.length||matches(`${caption(t)} ${libraryCaption(f.group,language)} ${libraryCaption(f.domain,language)} ${t.name} ${(t.aliases||[]).map(a=>a.name+' '+a.source).join(' ')} ${t.group} ${t.source} ${f.domain} ${f.group} ${f.manufacturer}`));});
  if(scope==='recent')return result.sort((a,b)=>recent.indexOf(a.id)-recent.indexOf(b.id));
- return words.length?result.sort((a,b)=>Number(matches(b.name))-Number(matches(a.name))):result;
+ const preferArtwork=t=>['fr','it'].includes(drawingLanguage)&&artworkLanguage(t)===drawingLanguage?1:0;
+ if(words.length){
+  const rank=t=>(matches(t.name)||matches(caption(t))?2:0)+preferArtwork(t);
+  const ranks=new Map(result.map(t=>[t,rank(t)]));
+  return result.sort((a,b)=>ranks.get(b)-ranks.get(a));
+ }
+ return result;
 }
 export function rememberTemplate(recent,id){id=canonicalTemplateId(id);return [id,...recent.map(canonicalTemplateId).filter(x=>x!==id)].slice(0,24);}
 export function readLibrarySettings(storage){try{const v=JSON.parse(storage.getItem('cad-library-settings')||'{}');return {favorites:Array.isArray(v.favorites)?[...new Set(v.favorites.filter(x=>typeof x==='string').map(canonicalTemplateId))].slice(0,2000):[],recent:Array.isArray(v.recent)?[...new Set(v.recent.filter(x=>typeof x==='string').map(canonicalTemplateId))].slice(0,24):[]};}catch{return {favorites:[],recent:[]};}}

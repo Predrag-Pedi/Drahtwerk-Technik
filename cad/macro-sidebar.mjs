@@ -1,3 +1,4 @@
+import {libraryCaption,templateDefault} from './template-language.mjs';
 import {protectionPicker} from './protection-picker.mjs?v=20261119-8';
 import {protectionFields} from './protection-fields.mjs?v=20261119-7';
 import {terminalBands} from './terminal-markers.mjs?v=20261119-7';
@@ -8,15 +9,21 @@ import {templateMarkup} from './template.mjs?v=20261119-7';
 import {templateName,libraryName,libraryFacets,searchText} from './library.mjs?v=20261119-9';
 
 // All choices are drafts until inserted. Each placement receives a fresh copy.
-export function macroSidebar(root,{manual,place,changed,currentPage,choose,getPercent,setPercent}){
+export function macroSidebar(root,{manual,place,changed,currentPage,interfaceLanguage=()=>'de',drawingLanguage=()=>'de',choose,getPercent,setPercent}){
  let template=null,draft=null,busy=false,fields=[],bindings=[];const drafts=new Map();
  const $=selector=>root.querySelector(selector),title=$('[data-macro-title]'),preview=$('[data-macro-preview]'),form=$('[data-macro-fields]'),extra=$('[data-macro-extra]'),status=$('[data-macro-status]'),notice=$('[data-macro-notice]'),names=$('[data-macro-names]'),fieldSearch=$('[data-macro-field-search]');
  const value=key=>draft.values[key]??fields.find(f=>f.key===key)?.value??'';
+ const caption=source=>libraryCaption(source,interfaceLanguage());
+ const fieldValue=key=>{
+  if(Object.hasOwn(draft.values,key))return draft.values[key];
+  const field=template.details?.texts?.find(f=>f.key===key);
+  return field?templateDefault(field,drawingLanguage()):value(key);
+ };
  const showStatus=(text,error=false)=>{status.textContent=text;status.classList.toggle('macro-error',error);};
  const filterFields=()=>{const q=searchText(fieldSearch.value);for(const label of extra.children)label.hidden=!searchText(label.textContent+' '+label.querySelector('input').value).includes(q);$('[data-macro-no-fields]').hidden=[...extra.children].some(l=>!l.hidden);};
- const redraw=()=>{if(!template)return;const factor=Math.min(64/template.width,60/template.height);preview.innerHTML=templateMarkup(template,template.width*factor,template.height*factor,{},draft.values,false,'',{},draft.side);};
+ const redraw=()=>{if(!template)return;const factor=Math.min(64/template.width,60/template.height);preview.innerHTML=templateMarkup(template,template.width*factor,template.height*factor,{},draft.values,false,'',{},draft.side,drawingLanguage());};
  function sync(){
-  for(const input of root.querySelectorAll('[data-macro-value]'))if(document.activeElement!==input)input.value=value(input.dataset.macroValue);
+  for(const input of root.querySelectorAll('[data-macro-value]'))if(document.activeElement!==input)input.value=fieldValue(input.dataset.macroValue);
   for(const group of root.querySelectorAll('[data-choice-field]')){
    const selected=value(group.dataset.choiceField).trim();for(const b of group.querySelectorAll('[data-choice-value]'))b.setAttribute('aria-pressed',String(b.dataset.choiceValue===selected));
    const summary=group.querySelector('summary');if(summary)summary.textContent=[...group.querySelectorAll(':scope > .macro-choice-row button')].some(b=>b.dataset.choiceValue===selected)?'Weitere Werte':`${selected} · Weitere Werte`;
@@ -42,11 +49,11 @@ export function macroSidebar(root,{manual,place,changed,currentPage,choose,getPe
  }
  const node=(tag,text,className)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e;};
  function inputField(f,caption){
-  const label=node('label',undefined,'macro-field'),span=node('span',caption),input=node('input');input.type='text';input.maxLength=2000;input.value=value(f.key);input.dataset.macroValue=f.key;
+  const label=node('label',undefined,'macro-field'),span=node('span',libraryCaption(caption,interfaceLanguage())),input=node('input');input.type='text';input.maxLength=2000;input.value=fieldValue(f.key);input.dataset.macroValue=f.key;
   input.oninput=()=>{setMacroValue(template,draft,f.key,input.value);sync();};label.append(span,input);return label;
  }
  function choices(f,caption,options,others=[]){
-  const box=node('fieldset',undefined,'macro-choices');box.dataset.choiceField=f.key;box.append(node('legend',caption));const row=node('div',undefined,'macro-choice-row');box.append(row);
+  const box=node('fieldset',undefined,'macro-choices');box.dataset.choiceField=f.key;box.append(node('legend',libraryCaption(caption,interfaceLanguage())));const row=node('div',undefined,'macro-choice-row');box.append(row);
   const add=(parent,v)=>{const b=node('button',v);b.type='button';b.dataset.choiceValue=v;b.setAttribute('aria-label',`${caption}: ${v}`);b.onclick=()=>{setMacroValue(template,draft,f.key,v);sync();};parent.append(b);};
   [...new Set([...options,...(!options.includes(value(f.key))?[value(f.key)]:[])])].forEach(v=>add(row,v));
   if(f.label==='Charakteristik')return box;
@@ -81,10 +88,15 @@ export function macroSidebar(root,{manual,place,changed,currentPage,choose,getPe
  $('[data-macro-manual]').onclick=()=>action((t,v)=>{manual(t,v);return 'Auf dem Blatt platzieren · Esc beendet die Platzierung.';});
  $('[data-macro-paths]').onclick=e=>{const b=e.target.closest('[data-macro-path]');if(b)action((t,v)=>place(t,Number(b.dataset.macroPath),v));};
  $('[data-macro-reset]').onclick=()=>{draft=initializeMacroArticles(template,createMacroDraft(template));build();showStatus('Vorlagenwerte und automatische Kabelzuordnung wiederhergestellt.');};
+ function refreshHeading(){
+  title.setAttribute('translate','no');title.textContent=libraryCaption(templateName(template),interfaceLanguage(),true);
+  const meta=$('[data-macro-meta]');meta.setAttribute('translate','no');meta.textContent=caption(libraryFacets(template).group);
+ }
  return {
+  refreshLanguage(){if(template){refreshHeading();build();update();}},
   select(t){
    if(template)drafts.set(template.id,{draft:structuredClone(draft),percent:getPercent()});template=t;const saved=drafts.get(t.id);draft=initializeMacroArticles(t,createMacroDraft(t,saved?.draft));fields=macroFields(t);bindings=macroBindings(t);setPercent(saved?.percent||100);
-   fieldSearch.value='';$('[data-macro-more]').open=false;$('.macro-scroll').scrollTop=0;$('[data-macro-terminal-label]').hidden=!terminalBands(t).length;root.hidden=false;title.textContent=templateName(t);$('[data-macro-meta]').textContent=libraryFacets(t).group;
+   fieldSearch.value='';$('[data-macro-more]').open=false;$('.macro-scroll').scrollTop=0;$('[data-macro-terminal-label]').hidden=!terminalBands(t).length;root.hidden=false;refreshHeading();
    $('[data-macro-reset]').hidden=!fields.length&&!terminalBands(t).length;build();showStatus(isSchemaMacro(t)?'Werte wählen und Strompfad anklicken.':'Mit der Maus platzieren.');update();
   },update,
   sideFor(t){return t?.id===template?.id?draft.side:'original';},

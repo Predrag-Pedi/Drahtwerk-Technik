@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {mountMaterialActions,updateStockPreview,addCutEditor,refreshStock,stockBadge} from './materials-ui.mjs';
 import {attachCustomerPicker,fillCustomerFields} from '../platform/customer-picker.mjs';
 import {savedLabel,serverMode,api,can} from '../platform/client.mjs';

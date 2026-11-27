@@ -1,3 +1,4 @@
+import {confirmMessage as confirm} from '../ui/locale-text.mjs';
 import {api} from './client.mjs';
 import {formatDocumentNumber} from './document-model.mjs';
 import {swissDay} from './model.mjs';

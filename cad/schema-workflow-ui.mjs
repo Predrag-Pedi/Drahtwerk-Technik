@@ -1,3 +1,4 @@
+import {drawingPageTitle} from './template-language.mjs';
 import {allFunctions,functionBmk,functionData,findFunction,contactsFor,configureContacts,referenceLocation} from './references.mjs?v=20261119-7';
 import {uid} from './model.mjs?v=20261119-9';
 import {reportRows,csv} from './schema-assembly.mjs?v=20261119-7';
@@ -52,7 +53,7 @@ export function openPrintSelection(doc,currentId,exportPages){
  const bar=node('div',undefined,'workflow-actions');body.append(bar);
  for(const [title,predicate]of [['Alle Seiten',()=>true],['Aktuelle Seite',p=>p.id===currentId],['Nur Schema',p=>p.type==='schema'],['Nur Dispo',p=>p.type==='dispo']])button(bar,title,()=>{selected.clear();for(const p of doc.pages)if(predicate(p))selected.add(p.id);controls.forEach(([p,c])=>c.checked=selected.has(p.id));});
  const list=node('div',undefined,'print-page-list');body.append(list);
- for(const p of doc.pages){const l=node('label'),c=node('input');c.type='checkbox';c.checked=true;c.onchange=()=>c.checked?selected.add(p.id):selected.delete(p.id);l.append(c,node('span',`${p.number} · ${p.title}`));list.append(l);controls.push([p,c]);}
+ for(const p of doc.pages){const l=node('label'),c=node('input');c.type='checkbox';c.checked=true;c.onchange=()=>c.checked?selected.add(p.id):selected.delete(p.id);const name=node('span',`${p.number} · ${drawingPageTitle(p,doc.drawingLanguage)}`);name.setAttribute('translate','no');l.append(c,name);list.append(l);controls.push([p,c]);}
  body.append(node('p','A3 quer · Seitenmassstäbe bleiben erhalten · Lesezeichen und enthaltene Querverweise sind anklickbar.','hint'));
  button(body,'PDF erstellen',()=>{if(!selected.size){error.textContent='Mindestens eine Seite auswählen.';return;}dialog.close();exportPages(doc.pages.filter(p=>selected.has(p.id)).map(p=>p.id));}).className='primary';
 }
